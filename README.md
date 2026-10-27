@@ -141,6 +141,7 @@ index.html                               l'app Cadence (GitHub Pages)
 rules.js                                 les règles de chaque réseau (lues par l'app et le robot)
 confidentialite.html                     règles de confidentialité et conditions (exigées par Google)
 logo/                                    le logo, en SVG et en PNG
+profil.json, profil/                     ton nom, ton identifiant et ta photo, pour les aperçus
 posts/<id>.json                          un fichier par post
 media/<id>/…                             le visuel du post
 robot/publish.mjs                        le robot : publication, vérification, aide

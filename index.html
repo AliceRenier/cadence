@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Cadence</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='116' fill='%23D5360C'/%3E%3Cpath d='M357.1 340.8A132 132 0 1 1 357.1 171.2' fill='none' stroke='%23E6D5BD' stroke-width='56' stroke-linecap='round'/%3E%3Ccircle cx='388' cy='256' r='32' fill='%23101010'/%3E%3C/svg%3E">
+<link rel="icon" type="image/png" sizes="32x32" href="logo/favicon-32.png">
+<link rel="apple-touch-icon" href="logo/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Cadence">
 <style>
 /* Layout: app en un écran — barre latérale, barre d'outils, calendrier qui défile, composeur en volet à droite.
    Palette de la marque : orange brûlé (action), ivoire chaud (fond clair), noir doux (fond sombre). */
@@ -560,6 +563,14 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
 /* ---------- titre et hashtags ---------- */
 .opt{font-weight:400;text-transform:none;letter-spacing:0;color:var(--fg-3)}
 
+/* ---------- ton profil ---------- */
+.profile{border:0;padding:0;background:none;max-width:calc(100% - 32px)}
+.profile::backdrop{background:rgba(16,16,16,.38);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.profile-photo{display:flex;align-items:center;gap:12px}
+.profile-photo .av{width:56px;height:56px;font-size:16px}
+.profile-actions{justify-content:flex-end}
+img.av{object-fit:cover;padding:0}
+
 /* ---------- échecs du robot ---------- */
 .pill-failed{background:var(--crit-soft);color:var(--crit)}
 .chip.s-failed{border-left-color:var(--crit)}
@@ -629,6 +640,10 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
         Exporter vers mon agenda
       </button>
+      <button type="button" id="btnProfile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="10" r="2.8"/><path d="M7 17.5c1-2 2.8-3 5-3s4 1 5 3"/></svg>
+        Ton profil
+      </button>
       <button type="button" id="btnTheme">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6l1.4 1.4m10 10 1.4 1.4m0-12.8-1.4 1.4m-10 10-1.4 1.4"/></svg>
         Apparence
@@ -673,6 +688,30 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
 </div>
 
 <nav class="tabbar" id="tabbar"></nav>
+
+<dialog class="profile" id="profile" aria-labelledby="profileTitle">
+  <form method="dialog" class="gate-card" id="profileForm">
+    <h2 id="profileTitle">Ton profil</h2>
+    <p>Le nom, l'identifiant et la photo que montrent les aperçus. Rien n'est changé sur tes réseaux.</p>
+    <div class="profile-photo">
+      <span id="pPhoto"></span>
+      <label class="btn media-pick" for="p-file">Choisir une photo</label>
+      <input type="file" id="p-file" class="sr-only" accept="image/*">
+    </div>
+    <div class="field">
+      <label for="p-name">Nom</label>
+      <input class="inp" id="p-name" maxlength="60" placeholder="RiskTakeur" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="p-handle">Identifiant</label>
+      <input class="inp" id="p-handle" maxlength="40" placeholder="@risktakeur" spellcheck="false" autocapitalize="off" autocomplete="off">
+    </div>
+    <div class="gate-row profile-actions">
+      <button type="button" class="btn btn-ghost" id="pCancel">Annuler</button>
+      <button type="submit" class="btn btn-primary" id="pSave">Enregistrer</button>
+    </div>
+  </form>
+</dialog>
 
 <div class="gate" id="gate" hidden>
   <form class="gate-card" id="gateForm" novalidate>
@@ -976,6 +1015,82 @@ const Store = {
     return {path, type: file.type === "application/pdf" ? "document" : file.type.startsWith("video/") ? "video" : "image"};
   },
 };
+
+/* ===================== ton profil ===================== */
+
+/** Nom, identifiant et photo montrés dans les aperçus. Rangés dans profil.json, la photo dans profil/. */
+const Profile = {
+  data: {},
+
+  async load(){
+    this.data = {};
+    if (Store.mode === "github") this.data = (await GH.readJson("profil.json").catch(() => null)) || {};
+    else try{ this.data = JSON.parse(localStorage.getItem("cadence.profil") || "{}"); }catch(_){}
+  },
+
+  get name(){ return this.data.name || "Ton compte"; },
+  get handle(){ return String(this.data.handle || "tonprofil").replace(/^@+/, ""); },
+  get photo(){ return this.data.photoData || (this.data.photo ? GH.rawUrl(this.data.photo) : ""); },
+
+  /** photo : un fichier image choisi, réduit à 320 px avant d'être rangé. */
+  async save({name, handle, photo}){
+    const next = {name: name.trim(), handle: handle.trim().replace(/^@+/, "")};
+    const old = this.data.photo;
+    if (photo){
+      const blob = await squareJpeg(photo, 320);
+      if (Store.mode === "github"){
+        next.photo = `profil/photo-${Date.now().toString(36)}.jpg`;
+        await GH.put(next.photo, b64FromBytes(new Uint8Array(await blob.arrayBuffer())), "Cadence : photo de profil");
+      } else next.photoData = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); });
+    } else {
+      if (this.data.photo) next.photo = this.data.photo;
+      if (this.data.photoData) next.photoData = this.data.photoData;
+    }
+    if (Store.mode === "github"){
+      await GH.put("profil.json", b64FromText(JSON.stringify(next, null, 2) + "\n"), "Cadence : profil");
+      if (photo && old) GH.remove(old, "Cadence : ancienne photo de profil").catch(() => {});
+    } else try{ localStorage.setItem("cadence.profil", JSON.stringify(next)); }catch(_){}
+    this.data = next;
+  },
+};
+
+/** Recadre une image au carré, au centre, en JPEG de size × size. */
+function squareJpeg(file, size){
+  return new Promise((resolve, reject) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const c = document.createElement("canvas"); c.width = c.height = size;
+      const side = Math.min(img.naturalWidth, img.naturalHeight);
+      c.getContext("2d").drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+      c.toBlob(b => b ? resolve(b) : reject(new Error("image illisible")), "image/jpeg", 0.88);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("image illisible")); };
+    img.src = url;
+  });
+}
+
+const profileState = {file: null, url: ""};
+
+function profilePhotoHTML(){
+  const src = profileState.url || Profile.photo;
+  return src ? `<img class="av" src="${esc(src)}" alt="">`
+             : `<span class="av">${esc((Profile.data.name || "C").slice(0, 2).toUpperCase())}</span>`;
+}
+
+function openProfile(){
+  profileState.file = null; profileState.url = "";
+  document.getElementById("p-name").value = Profile.data.name || "";
+  document.getElementById("p-handle").value = Profile.data.handle ? "@" + Profile.handle : "";
+  document.getElementById("pPhoto").innerHTML = profilePhotoHTML();
+  document.getElementById("profile").showModal();
+}
+
+function closeProfile(){
+  if (profileState.url) URL.revokeObjectURL(profileState.url);
+  profileState.file = null; profileState.url = "";
+  document.getElementById("profile").close();
+}
 
 /* ===================== sélecteurs ===================== */
 
@@ -1497,10 +1612,8 @@ function renderSheetUnsafe(){
   const keepBody = sheet.querySelector(".sheet-body")?.scrollTop || 0;
   const keepTracks = sheet.querySelector(".tracks")?.scrollTop || 0;
 
-  const manualNote = (e.platforms.includes("x")
-      ? `<p class="hint"><b>X se publie à la main.</b> Le jour J, ouvre ce post et copie le texte en un clic.</p>` : "")
-    + (e.platforms.includes("youtube")
-      ? `<p class="hint"><b>YouTube :</b> la première ligne du texte devient le titre de la vidéo (100 caractères au plus).</p>` : "");
+  const manualNote = e.platforms.includes("x")
+    ? `<p class="hint"><b>X se publie à la main.</b> Le jour J, ouvre ce post et copie le texte en un clic.</p>` : "";
   const saved = state.posts.get(e.id);
   const failure = saved?.status === "failed" && saved.error
     ? `<p class="alert">${esc(saved.error)}\nCorrige ce qui bloque, puis repasse le post en « Programmé » : seuls les réseaux en échec repartiront.</p>` : "";
@@ -1616,7 +1729,9 @@ const ICON = {
   play:    '<path d="M8 5v14l11-7z" fill="currentColor"/>',
 };
 const ico = (n, cls = "") => `<svg class="ico${cls ? " " + cls : ""}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]}</svg>`;
-const avatar = (k, sq) => `<span class="av${sq ? " sq" : ""}">${esc(PLATFORMS[k].mono)}</span>`;
+const avatar = (k, sq) => Profile.photo
+  ? `<img class="av${sq ? " sq" : ""}" src="${esc(Profile.photo)}" alt="">`
+  : `<span class="av${sq ? " sq" : ""}">${esc(PLATFORMS[k].mono)}</span>`;
 
 /** Le texte tel que le fil l'affiche avant « plus » : clip = "caractères,lignes". */
 function clipHTML(text, clip, more){
@@ -1690,18 +1805,18 @@ const PREVIEW = {
       media: mediaEl(video),
       top: "<b>Reels</b>",
       rail: [["heart", "J'aime"], ["comment", "0"], ["send", "0"], ["more"]],
-      bottom: `<p class="pv-who">${avatar("instagram")}<b>tonprofil</b><span class="pv-follow">Suivre</span></p>
+      bottom: `<p class="pv-who">${avatar("instagram")}<b>${esc(Profile.handle)}</b><span class="pv-follow">Suivre</span></p>
         <p class="pv-cap">${liveHTML(c, "text", "48,1")}</p>
-        <p class="pv-music">${ico("music")}<span>tonprofil · Son original</span></p>`,
+        <p class="pv-music">${ico("music")}<span>${esc(Profile.handle)} · Son original</span></p>`,
     });
     const imgs = e.visuals, i = slideOf(imgs.length);
     // Instagram recadre tout le carrousel aux proportions de la première image, entre 4:5 et 1,91:1.
     const r = within(ratioOf(imgs[0]) ?? 1, 0.8, 1.91);
     return `<div class="pv pv-card">
-      <div class="pv-head">${avatar("instagram")}<b>tonprofil</b>${ico("more", "end")}</div>
+      <div class="pv-head">${avatar("instagram")}<b>${esc(Profile.handle)}</b>${ico("more", "end")}</div>
       <div class="pv-media" style="aspect-ratio:${r}">${imgs.length ? mediaEl(imgs[i]) : placeholder("Ton visuel")}${slideNav(imgs.length, i)}</div>
       <div class="pv-actions">${ico("heart")}${ico("comment")}${ico("send")}${dots(imgs.length, i)}${ico("save", "end")}</div>
-      <p class="pv-txt"><b>tonprofil</b> ${liveHTML(c, "text", "90,2")}</p>
+      <p class="pv-txt"><b>${esc(Profile.handle)}</b> ${liveHTML(c, "text", "90,2")}</p>
       <p class="pv-meta">À l'instant</p>
     </div>`;
   },
@@ -1714,14 +1829,14 @@ const PREVIEW = {
       draft: "Son à choisir dans l'app TikTok",
       music: t.music ? `${t.music.name} · ${t.music.artist}` : "Choisis un son",
       auto:  "Son choisi par TikTok",
-      none:  video ? "Son original · tonprofil" : "Sans musique",
+      none:  video ? `Son original · ${Profile.handle}` : "Sans musique",
     }[t.mode];
     return phoneHTML({
       media: video ? mediaEl(video) : imgs.length ? mediaEl(imgs[i]) : placeholder("Ta vidéo ou tes photos, en 9:16"),
       extra: video ? "" : `${slideNav(imgs.length, i)}${dots(imgs.length, i)}`,
       top: "<span>Abonnements</span><b>Pour toi</b>",
       rail: [["heart", "0"], ["comment", "0"], ["save", "0"], ["share", "0"]],
-      bottom: `<p class="pv-handle">tonprofil</p>
+      bottom: `<p class="pv-handle">${esc(Profile.handle)}</p>
         ${video ? "" : `<p class="pv-ttl">${liveHTML(c, "title")}</p>`}
         <p class="pv-cap">${liveHTML(c, "text", "72,2")}</p>
         <p class="pv-music">${ico("music")}<span>${esc(sound)}</span></p>`,
@@ -1734,21 +1849,21 @@ const PREVIEW = {
       media: mediaEl(video),
       top: "<b>Shorts</b>",
       rail: [["like", "J'aime"], ["comment", "0"], ["share", "Partager"]],
-      bottom: `<p class="pv-who">${avatar("youtube")}<b>@tachaine</b><span class="pv-follow light">S'abonner</span></p>
+      bottom: `<p class="pv-who">${avatar("youtube")}<b>@${esc(Profile.handle)}</b><span class="pv-follow light">S'abonner</span></p>
         <p class="pv-ttl clamp2">${liveHTML(c, "title")}</p>`,
     });
     return `<div class="pv pv-card pv-yt">
       <div class="pv-media dark" style="aspect-ratio:16/9">${video ? mediaEl(video) : placeholder("YouTube publie seulement des vidéos")}${
         video?.meta?.duration ? `<span class="pv-dur">${clock(video.meta.duration)}</span>` : ""}</div>
       <p class="pv-yt-title">${liveHTML(c, "title")}</p>
-      <div class="pv-head">${avatar("youtube")}<span class="pv-who2"><b>Ta chaîne</b><small>0 abonné</small></span><span class="pv-sub">S'abonner</span></div>
+      <div class="pv-head">${avatar("youtube")}<span class="pv-who2"><b>${esc(Profile.name)}</b><small>0 abonné</small></span><span class="pv-sub">S'abonner</span></div>
       <p class="pv-desc"><b>0 vue · à l'instant</b><br>${liveHTML(c, "text", "120,3", "plus")}</p>
     </div>`;
   },
 
   facebook(e, c){
     return `<div class="pv pv-card">
-      <div class="pv-head">${avatar("facebook")}<span class="pv-who2"><b>Ton entreprise</b><small>À l'instant · ${ico("globe")}</small></span>${ico("more", "end")}</div>
+      <div class="pv-head">${avatar("facebook")}<span class="pv-who2"><b>${esc(Profile.name)}</b><small>À l'instant · ${ico("globe")}</small></span>${ico("more", "end")}</div>
       <p class="pv-txt">${liveHTML(c, "text", "230,5", "Voir plus")}</p>
       ${gridHTML(e.visuals)}
       ${barHTML([["like", "J'aime"], ["comment", "Commenter"], ["share", "Partager"]])}
@@ -1761,7 +1876,7 @@ const PREVIEW = {
         <div class="pv-doc-page">${placeholder(`Les pages de ${esc(e.pdf.name)}`)}<span class="pv-nav r">›</span></div>
       </div>` : gridHTML(e.visuals);
     return `<div class="pv pv-card">
-      <div class="pv-head">${avatar("linkedin", true)}<span class="pv-who2"><b>Ton entreprise</b><small>Page</small><small>À l'instant · ${ico("globe")}</small></span>${ico("more", "end")}</div>
+      <div class="pv-head">${avatar("linkedin", true)}<span class="pv-who2"><b>${esc(Profile.name)}</b><small>Page</small><small>À l'instant · ${ico("globe")}</small></span>${ico("more", "end")}</div>
       <p class="pv-txt">${liveHTML(c, "text", "200,3", "plus")}</p>
       ${doc}
       ${barHTML([["like", "J'aime"], ["comment", "Commenter"], ["repost", "Republier"], ["send", "Envoyer"]], "col")}
@@ -1772,7 +1887,7 @@ const PREVIEW = {
     return `<div class="pv pv-card pv-x">
       ${avatar("x")}
       <div class="pv-xmain">
-        <p class="pv-xhead"><b>Ton compte</b> <span>@tonprofil · 1 min</span></p>
+        <p class="pv-xhead"><b>${esc(Profile.name)}</b> <span>@${esc(Profile.handle)} · 1 min</span></p>
         <p class="pv-txt">${liveHTML(c, "text")}</p>
         ${e.visuals.length ? `<div class="pv-xmedia">${gridHTML(e.visuals)}</div>` : ""}
         <div class="pv-actions">${ico("comment")}${ico("repost")}${ico("heart")}${ico("save")}${ico("send")}</div>
@@ -2169,6 +2284,28 @@ document.getElementById("btnToday").addEventListener("click", () => {
 document.getElementById("btnNew").addEventListener("click", () => openNew());
 document.getElementById("btnIcs").addEventListener("click", exportIcs);
 document.getElementById("btnWipe").addEventListener("click", wipeExamples);
+document.getElementById("btnProfile").addEventListener("click", openProfile);
+document.getElementById("pCancel").addEventListener("click", closeProfile);
+document.getElementById("p-file").addEventListener("change", ev => {
+  const f = ev.target.files?.[0];
+  ev.target.value = "";
+  if (!f) return;
+  if (profileState.url) URL.revokeObjectURL(profileState.url);
+  profileState.file = f; profileState.url = URL.createObjectURL(f);
+  document.getElementById("pPhoto").innerHTML = profilePhotoHTML();
+});
+document.getElementById("profileForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const btn = document.getElementById("pSave");
+  btn.disabled = true; btn.textContent = "Enregistrement…";
+  try{
+    await Profile.save({name: document.getElementById("p-name").value, handle: document.getElementById("p-handle").value, photo: profileState.file});
+    closeProfile();
+    toast("Profil enregistré.");
+  }catch(err){ toast(`Le profil n'a pas pu être enregistré : ${err.message}`); }
+  finally{ btn.disabled = false; btn.textContent = "Enregistrer"; }
+});
+
 document.getElementById("btnTheme").addEventListener("click", () => {
   const cur = document.documentElement.getAttribute("data-theme");
   const dark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
@@ -2199,7 +2336,7 @@ const setLocalChoice = on => { try{ on ? localStorage.setItem("cadence.local", "
 
 async function reload(){
   state.loading = true; render();
-  try{ await Store.load(); }
+  try{ await Promise.all([Store.load(), Profile.load()]); }
   catch(err){ toast(`Impossible de lire tes posts sur GitHub : ${err.message}`); }
   finally{ state.loading = false; render(); }
 }
