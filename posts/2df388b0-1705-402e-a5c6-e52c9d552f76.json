@@ -4,12 +4,12 @@
   "platforms": [
     "tiktok"
   ],
-  "at": "2026-10-27T22:27",
+  "at": "2026-10-27T22:30",
   "tiktok": {
     "mode": "auto"
   },
   "timezone": "Europe/Paris",
-  "status": "published",
+  "status": "scheduled",
   "media": [
     {
       "path": "media/2df388b0-1705-402e-a5c6-e52c9d552f76/mvr72k7q-37.png",
@@ -76,5 +76,5 @@
       "height": 1350
     }
   ],
-  "updatedAt": "2026-10-27T21:25:48.014Z"
+  "updatedAt": "2026-10-27T21:29:05.993Z"
 }
