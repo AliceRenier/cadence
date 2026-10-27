@@ -14,8 +14,8 @@ Planifie tes posts dans un calendrier. Un robot GitHub les publie à l'heure pr�
 ## Comment ça marche
 
 1. Tu écris tes posts dans Cadence, ton site GitHub Pages. Chaque post devient un fichier `posts/<id>.json` dans ce dépôt. Ses visuels vont sur une branche à part, `media`, hors du code.
-2. Toutes les heures, la tâche **Publier les posts** lance `robot/publish.mjs`. Le robot publie ce qui est dû, puis note le résultat dans le fichier du post.
-   24 h après la publication, il supprime les visuels du post : chaque réseau garde sa copie. Il réduit ensuite la branche `media` à un seul commit, pour que le dépôt ne s'alourdisse pas au fil des vidéos.
+2. Toutes les 15 minutes, la tâche **Publier les posts** lance `robot/publish.mjs`. Le robot publie ce qui est dû, puis note le résultat dans le fichier du post.
+   24 h après la publication, il redemande à chaque réseau si le post est bien en ligne. Si tous confirment, il supprime les visuels du post : chaque réseau garde sa copie. Sinon, il garde tout. Il réduit ensuite la branche `media` à un seul commit, pour que le dépôt ne s'alourdisse pas au fil des vidéos.
 3. Si une publication échoue, GitHub t'envoie un e-mail. Le post passe en « Échec » dans Cadence, avec la raison. Corrige le problème et repasse le post en « Programmé » : seuls les réseaux en échec repartent.
 4. Chaque matin, **Vérifier les accès** contrôle que tes accès Meta, YouTube et Zernio marchent encore, et **Musique TikTok** récupère les 100 sons tendance du moment.
 
@@ -116,8 +116,9 @@ Programme un post de test dans Cadence pour dans quelques minutes, puis va dans 
   - Les **hashtags** s'ajoutent à la fin du texte, sur une ligne à part. Ils s'écrivent sans espace ni ponctuation ; le # est ajouté s'il manque.
 - **YouTube** : une vidéo verticale de 3 minutes au plus devient un Short. Au-delà de 15 hashtags, YouTube ignore tous les hashtags de la vidéo : Cadence bloque.
 - **LinkedIn** : un même texte publié deux fois est refusé par LinkedIn, même à plusieurs semaines d'écart.
+- **Qualité** : Cadence et le robot envoient tes fichiers d'origine, octet pour octet, sans les compresser ni les réencoder. Seuls les réseaux réencodent ensuite, comme pour tout envoi. Pour le meilleur rendu : MP4 en H.264, 1080 × 1920 pour les formats verticaux, 30 ou 60 images par seconde, et la vidéo HDR de l'iPhone désactivée (les réseaux la rendent souvent délavée).
 - **Taille des vidéos** : GitHub refuse les fichiers de plus de 100 Mo. Les vidéos publiées sont supprimées et la branche `media` est réduite à un seul commit : GitHub efface ensuite ces fichiers de son côté, en général sous quelques jours.
-- **Ponctualité** : le robot passe chaque heure, à la 7e minute, et GitHub le lance parfois avec un peu de retard. Un post prévu à 9 h 00 part donc vers 9 h 10 ou un peu plus tard.
+- **Ponctualité** : le robot passe toutes les 15 minutes (à 7, 22, 37 et 52), et GitHub le lance parfois avec un peu de retard, ou saute un passage quand il est chargé. Un post prévu à 9 h 00 part donc vers 9 h 10, parfois un peu plus tard. Pour qu'il parte tout de suite, utilise « Publier maintenant ».
 - **Plus de 48 h de retard** : un post en retard de plus de 48 h n'est pas publié. Il passe en échec pour que tu décides.
 - **60 jours sans activité** : sur un dépôt public, GitHub suspend les tâches planifiées si le dépôt ne bouge pas pendant 60 jours, et prévient par e-mail. Publier régulièrement suffit à l'éviter.
 
@@ -147,7 +148,7 @@ profil.json, profil/                     ton nom, ton identifiant et ta photo, p
 posts/<id>.json                          un fichier par post
 media/<id>/…  (branche media)            les visuels des posts en attente
 robot/publish.mjs                        le robot : publication, vérification, aide
-.github/workflows/publier.yml            toutes les heures
+.github/workflows/publier.yml            toutes les 15 minutes
 .github/workflows/verifier-acces.yml     chaque matin
 .github/workflows/musique-tiktok.yml     chaque matin : les sons tendance TikTok
 .github/workflows/aide-identifiants.yml  à la main, pendant la mise en route

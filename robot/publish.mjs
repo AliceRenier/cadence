@@ -1,6 +1,6 @@
 // Cadence — robot de publication.
 //
-// Lancé toutes les heures par GitHub Actions (.github/workflows/publier.yml).
+// Lancé toutes les 15 minutes par GitHub Actions (.github/workflows/publier.yml).
 // Il lit chaque post de posts/*.json, publie ceux dont l'heure est passée,
 // puis réécrit le fichier avec le résultat. Il ne touche jamais aux brouillons.
 //
@@ -16,8 +16,8 @@
 //
 // Variables : DRY_RUN=1 valide sans rien publier ; NOW=2026-10-28T08:20:00Z simule une heure.
 //
-// Après chaque passage, il supprime les visuels des posts publiés depuis plus de 24 h
-// (voir cleanPublished) : le dépôt ne garde que ceux qui attendent encore.
+// Après chaque passage, il supprime les visuels des posts publiés depuis plus de 24 h, une fois
+// que chaque réseau a confirmé le post en ligne (voir cleanPublished).
 
 import { readdir, readFile, writeFile, appendFile, stat, rm } from "node:fs/promises";
 import path from "node:path";
@@ -106,6 +106,7 @@ function rawUrl(p, ref) {
 function mediaOf(post) {
   const items = (post.media || []).filter(m => m?.path).map(m => ({
     path: m.path,
+    ref: m.ref,
     type: m.type || (/\.(mp4|mov|m4v|webm)$/i.test(m.path) ? "video" : /\.pdf$/i.test(m.path) ? "document" : "image"),
     url: rawUrl(m.path, m.ref),
   }));
@@ -124,6 +125,13 @@ const firstLine = (text, max) =>
   (String(text || "").split("\n").find(l => l.trim()) || "Nouvelle vidéo").trim().slice(0, max);
 
 /** Échange la clé longue durée de Google contre un accès valable une heure. */
+/** Télécharge un visuel de la branche des visuels, tel quel. */
+async function download(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`visuel introuvable (${res.status}) : ${url}`);
+  return Buffer.from(await res.arrayBuffer());
+}
+
 async function googleAccessToken() {
   need("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "YOUTUBE_REFRESH_TOKEN");
   const {body} = await call("https://oauth2.googleapis.com/token", {method: "POST", body: form({
@@ -220,7 +228,8 @@ const NETWORKS = {
     },
     async publish(post, m) {
       const token = await googleAccessToken();
-      const bytes = await readFile(m.video.path);
+      // Le fichier d'origine, octet pour octet : rien n'est réencodé avant YouTube.
+      const bytes = m.video.ref ? await download(m.video.url) : await readFile(m.video.path);
       const type = /\.mov$/i.test(m.video.path) ? "video/quicktime" : "video/mp4";
 
       // Envoi en deux temps : on décrit la vidéo, YouTube répond avec l'adresse où déposer le fichier.
@@ -505,8 +514,64 @@ async function deleteFromBranch(p, ref) {
 }
 
 /**
- * Les visuels d'un post publié depuis plus de KEEP_MEDIA_HOURS sont supprimés : chaque réseau
- * a gardé sa copie. On attend tant que X reste à poster à la main, puisqu'il te faut le visuel.
+ * Avant de supprimer les visuels, on redemande à chaque réseau si le post est bien en ligne :
+ *   "ok"      en ligne, le réseau a sa propre copie
+ *   "pending" encore en traitement chez le réseau : on garde tout et on redemande au prochain passage
+ *   sinon     le message d'erreur du réseau : le post repasse en échec, visuels gardés
+ */
+function zernioConfirm(platform) {
+  return async r => {
+    if (!r.id) return "ok";
+    const {body} = await call(`${ZERNIO}/posts/${encodeURIComponent(r.id)}`,
+      {headers: {Authorization: `Bearer ${env.ZERNIO_API_KEY}`}});
+    const p = (body.post || body).platforms?.find(x => x.platform === platform);
+    if (!p || p.status === "published") return "ok";
+    if (p.status === "failed" || p.status === "cancelled") return p.errorMessage || "Zernio signale un échec.";
+    return "pending";
+  };
+}
+
+const CONFIRM = {
+  // Instagram : publié seulement une fois le média traité (voir waitInstagram).
+  instagram: async () => "ok",
+  // Facebook : les photos sont en ligne tout de suite, une vidéo est traitée après coup.
+  async facebook(r, post) {
+    if (!post.media.some(m => m.type === "video")) return "ok";
+    const {body} = await call(`${GRAPH}/${r.id}?fields=status&access_token=${encodeURIComponent(env.META_PAGE_TOKEN)}`);
+    const s = body.status?.video_status;
+    return s === "ready" ? "ok" : s === "error" ? "Facebook n'a pas pu traiter la vidéo." : "pending";
+  },
+  async youtube(r) {
+    const token = await googleAccessToken();
+    const {body} = await call(`https://www.googleapis.com/youtube/v3/videos?part=status&id=${encodeURIComponent(r.id)}`,
+      {headers: {Authorization: `Bearer ${token}`}});
+    const s = body.items?.[0]?.status;
+    if (!s || s.uploadStatus === "processed") return "ok";   // absente : retirée de la chaîne depuis
+    if (s.uploadStatus === "uploaded") return "pending";
+    return `YouTube a refusé la vidéo (${s.failureReason || s.rejectionReason || s.uploadStatus}).`;
+  },
+  tiktok: zernioConfirm("tiktok"),
+  linkedin: zernioConfirm("linkedin"),
+};
+
+/** Ce que dit chaque réseau du post : {errors, pending}. Un réseau injoignable compte comme « en attente ». */
+async function confirmOnline(post) {
+  const errors = [], pending = [];
+  for (const [net, r] of Object.entries(post.results || {})) {
+    if (!r?.ok || MANUAL.has(net)) continue;
+    let state;
+    try { state = await (CONFIRM[net] || (async () => "ok"))(r, post); }
+    catch (e) { state = "pending"; console.log(`${NAMES[net] || net} injoignable pour l'instant : ${e.message}`); }
+    if (state === "pending") pending.push(net);
+    else if (state !== "ok") errors.push([net, state]);
+  }
+  return {errors, pending};
+}
+
+/**
+ * Les visuels d'un post publié depuis plus de KEEP_MEDIA_HOURS sont supprimés, une fois que chaque
+ * réseau a confirmé que le post est en ligne : il a gardé sa propre copie. Rien n'est supprimé
+ * tant que X reste à poster à la main, ni pour un post en brouillon, programmé ou en échec.
  * Le post garde son texte et note combien de visuels il avait.
  */
 async function cleanPublished() {
@@ -518,14 +583,30 @@ async function cleanPublished() {
     if (post.status !== "published" || !post.publishedAt || !post.media?.length) continue;
     if ((post.manual || []).length) continue;
     if ((NOW - new Date(post.publishedAt)) / 3_600_000 < KEEP_MEDIA_HOURS) continue;
-    if (DRY_RUN) { console.log(`Essai : supprimerait ${post.media.length} visuel(s) de « ${firstLine(post.text, 50)} »`); continue; }
+    const label = firstLine(post.text, 50);
+    const {errors, pending} = await confirmOnline(post);
+    if (errors.length) {
+      // Publié en apparence, refusé ensuite par le réseau : on le signale et on garde les visuels.
+      for (const [net, msg] of errors) post.results[net] = {ok: false, error: msg, at: NOW.toISOString()};
+      post.status = "failed";
+      post.error = errors.map(([net, msg]) => `${NAMES[net] || net} : ${msg}`).join("\n");
+      if (!DRY_RUN) await writeFile(file, JSON.stringify(post, null, 2) + "\n");
+      console.log(`« ${label} » : refusé après coup par ${errors.map(([n]) => NAMES[n] || n).join(", ")}, visuels gardés.`);
+      process.exitCode = 1;
+      continue;
+    }
+    if (pending.length) {
+      console.log(`« ${label} » : ${pending.map(n => NAMES[n] || n).join(", ")} n'a pas encore confirmé, visuels gardés.`);
+      continue;
+    }
+    if (DRY_RUN) { console.log(`Essai : supprimerait ${post.media.length} visuel(s) de « ${label} »`); continue; }
     try {
       for (const m of post.media) {
         if (m.ref) await deleteFromBranch(m.path, m.ref);
         else await rm(m.path, {force: true});
       }
     } catch (e) {
-      console.log(`Visuels de « ${firstLine(post.text, 50)} » gardés pour l'instant : ${e.message}`);
+      console.log(`Visuels de « ${label} » gardés pour l'instant : ${e.message}`);
       continue;
     }
     post.mediaRemoved = {at: NOW.toISOString(), count: post.media.length};

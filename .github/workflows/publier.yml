@@ -6,7 +6,9 @@ name: Publier les posts
 
 on:
   schedule:
-    - cron: "7 * * * *"   # à la 7e minute de chaque heure : les heures pile sont encombrées chez GitHub
+    # Toutes les 15 minutes, en évitant les heures pile, encombrées chez GitHub.
+    # GitHub saute parfois un passage quand il est chargé : le suivant rattrape le retard.
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:       # bouton « Run workflow » pour lancer à la main
 
 permissions:

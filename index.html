@@ -1171,7 +1171,7 @@ function renderNav(){
   const note = document.getElementById("storeNote");
   note.classList.toggle("ok", online);
   note.querySelector("span").textContent = online
-    ? `Connecté à ${GH.owner}/${GH.repo}. Le robot publie toutes les heures.`
+    ? `Connecté à ${GH.owner}/${GH.repo}. Le robot passe toutes les 15 minutes.`
     : "Aperçu : tes posts restent dans ce navigateur, rien n’est publié.";
 
   const isCal = state.view === "calendar";
@@ -1292,7 +1292,7 @@ function itemHTML(p, now){
   const late = p.status === "scheduled" && d && d < now;
   const auto = (p.platforms||[]).some(k => !PLATFORMS[k]?.manual);
   const st = late ? "late" : (p.status || "draft");
-  // Le robot passe toutes les heures : un post à l'heure dépassée l'attend, sauf s'il est 100 % manuel.
+  // Le robot passe toutes les 15 minutes : un post à l'heure dépassée l'attend, sauf s'il est 100 % manuel.
   const stLabel = late ? (auto ? "En attente du robot" : "À publier") : (STATE_LABEL[p.status]?.label || "Brouillon");
   const manual = (p.manual||[]).includes("x") || ((p.platforms||[]).includes("x") && p.status === "scheduled");
   return `<button type="button" class="q-item" data-open="${esc(p.id)}">
@@ -1604,6 +1604,9 @@ function statusHint(e, saved){
   const robotPublished = Object.values(saved?.results || {}).some(r => r.ok);
   if (e.status === "published" && !robotPublished)
     return `<p class="warn">« Déjà publié » : le robot ne publiera pas ce post. Choisis « Programmé » pour qu’il parte.</p>`;
+  // Un nouveau post démarre à 9 h aujourd'hui : le soir, il partirait aussitôt sans qu'on le veuille.
+  if (e.status === "scheduled" && !robotPublished && new Date(`${e.day}T${e.time}`) < new Date())
+    return `<p class="warn">Cette date est déjà passée : le post partira au prochain passage du robot, d’ici 15 minutes. Change la date pour le programmer plus tard.</p>`;
   return "";
 }
 
@@ -1704,7 +1707,7 @@ function renderSheetUnsafe(){
             </select>
           </div>
         </div>
-        ${statusHint(e, saved)}
+        <div id="statusHint">${statusHint(e, saved)}</div>
       </div>
 
       <div class="prev">
@@ -2211,6 +2214,8 @@ document.addEventListener("input", ev => {
   }
   if (id === "f-day") e.day = ev.target.value || todayKey();
   if (id === "f-time") e.time = ev.target.value || "09:00";
+  if (id === "f-day" || id === "f-time")
+    document.getElementById("statusHint").innerHTML = statusHint(e, state.posts.get(e.id));
 });
 
 document.addEventListener("change", async ev => {
