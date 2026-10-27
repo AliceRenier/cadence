@@ -365,25 +365,112 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
 .prev-tab{padding:4px 9px;border-radius:7px;font-size:12px;font-weight:560;color:var(--fg-2);transition:background .14s}
 .prev-tab:hover{background:var(--hairline-2)}
 .prev-tab[aria-selected="true"]{background:var(--panel);color:var(--fg);box-shadow:var(--shadow-card);font-weight:640}
-.card{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-card)}
-.card-top{display:flex;align-items:center;gap:9px;padding:11px}
-.av{width:33px;height:33px;border-radius:50%;flex:none;background:var(--accent);display:grid;place-items:center;color:var(--accent-fg);font-weight:700;font-size:12px}
-.av.sq{border-radius:9px}
-.card-who{min-width:0;display:flex;flex-direction:column}
-.card-who b{font-size:13px;font-weight:640;letter-spacing:-.01em}
-.card-who span{font-size:11.5px;color:var(--fg-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.card-media{
-  aspect-ratio:1/1;max-width:100%;
-  background:repeating-linear-gradient(135deg,var(--panel-2),var(--panel-2) 11px,var(--hairline-2) 11px,var(--hairline-2) 22px);
-  display:grid;place-items:center;color:var(--fg-3);font-size:11.5px;border-block:1px solid var(--hairline-2)
-}
-.card-media.wide{aspect-ratio:16/9}
-.card-media.tall{aspect-ratio:9/16;max-height:290px}
-.card-txt{padding:11px;font-size:13.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
-.card-txt.clip{display:-webkit-box;-webkit-line-clamp:7;-webkit-box-orient:vertical;overflow:hidden}
-.card-txt .tag{color:var(--accent-ink)}
-.card-bar{display:flex;gap:16px;padding:9px 11px;border-top:1px solid var(--hairline-2);color:var(--fg-3)}
-.card-bar svg{width:16px;height:16px}
+.av{width:32px;height:32px;border-radius:50%;flex:none;background:var(--accent);display:grid;place-items:center;color:var(--accent-fg);font-weight:700;font-size:11.5px}
+.av.sq{border-radius:7px}
+.pv{--tag:#2F62AE;position:relative;font-size:13px;line-height:1.45}
+:root[data-theme="dark"] .pv{--tag:#86ACE6}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .pv{--tag:#86ACE6} }
+.pv .tag{color:var(--tag)}
+.pv .more{color:var(--fg-3)}
+.pv p{margin:0}
+.pv [data-live]{white-space:pre-wrap;word-break:break-word}
+.ico{width:20px;height:20px;flex:none}
+.ico.end{margin-left:auto}
+.pv-ph{display:grid;place-items:center;width:100%;height:100%;padding:16px;text-align:center;font-size:12px;color:var(--fg-3);
+  background:repeating-linear-gradient(135deg,var(--panel-2),var(--panel-2) 11px,var(--hairline-2) 11px,var(--hairline-2) 22px)}
+
+/* fil d'actualité : Instagram, Facebook, LinkedIn, YouTube, X */
+.pv-card{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-card)}
+.pv-head{display:flex;align-items:center;gap:9px;padding:10px 11px}
+.pv-head > b{font-size:13px;font-weight:640}
+.pv-who2{display:flex;flex-direction:column;min-width:0;line-height:1.3}
+.pv-who2 b{font-size:13px;font-weight:640}
+.pv-who2 small{font-size:11px;color:var(--fg-3);display:flex;align-items:center;gap:3px}
+.pv-who2 .ico{width:11px;height:11px}
+.pv-media{position:relative;overflow:hidden;background:var(--panel-2)}
+.pv-media.dark{background:#000}
+.pv-media img,.pv-media video{width:100%;height:100%;object-fit:cover;display:block}
+.pv-media.dark video{object-fit:contain}
+.pv-actions{display:flex;align-items:center;gap:14px;padding:9px 11px 4px;position:relative}
+.pv-txt{padding:4px 11px 2px}
+.pv-head + .pv-txt{padding-top:0;padding-bottom:10px}
+.pv-meta{padding:2px 11px 11px;font-size:11px;color:var(--fg-3)}
+.pv-bar{display:flex;align-items:center;justify-content:space-around;gap:4px;padding:8px 6px;border-top:1px solid var(--hairline-2);color:var(--fg-2);font-size:11px;font-weight:560}
+.pv-bar span{display:flex;align-items:center;gap:5px}
+.pv-bar .ico{width:16px;height:16px}
+.pv-bar.col span{flex-direction:column;gap:2px;font-size:10.5px}
+.pv-grid{display:grid;gap:2px;aspect-ratio:1;grid-template-columns:1fr 1fr}
+.pv-grid > span{position:relative;overflow:hidden;background:var(--panel-2)}
+.pv-grid img,.pv-grid video{width:100%;height:100%;object-fit:cover;display:block}
+.pv-grid.n3 > span:first-child{grid-row:span 2}
+.pv-grid b{position:absolute;inset:0;display:grid;place-items:center;background:rgba(16,16,16,.5);color:#fff;font-size:22px;font-weight:600}
+
+/* carrousel : flèches, compteur, points */
+.pv-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:26px;height:26px;border-radius:50%;
+  background:rgba(255,255,255,.88);color:#101010;font-size:18px;line-height:24px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.pv-nav.l{left:8px} .pv-nav.r{right:8px}
+.pv-count{position:absolute;right:8px;top:8px;z-index:2;background:rgba(16,16,16,.7);color:#fff;font:600 11px/1.7 var(--font-num);border-radius:20px;padding:0 8px}
+.pv-dots{position:absolute;left:50%;transform:translateX(-50%);display:flex;gap:4px}
+.pv-dots i{width:6px;height:6px;border-radius:50%;background:var(--fg-3);opacity:.45}
+.pv-dots i.on{background:var(--tag);opacity:1}
+
+/* plein écran : Reel, TikTok, Short */
+.pv-phone{width:min(100%,272px);margin:0 auto;aspect-ratio:9/16;border-radius:22px;overflow:hidden;background:#000;color:#fff;
+  box-shadow:var(--shadow-card);--tag:#fff;font-size:12.5px}
+.pv-phone .tag{font-weight:650}
+.pv-phone .more{color:rgba(255,255,255,.75);font-weight:600}
+.pv-screen{position:absolute;inset:0;display:grid;place-items:center}
+.pv-screen img,.pv-screen video{width:100%;height:100%;object-fit:contain;display:block}
+.pv-screen .pv-ph{background:#161616;color:rgba(255,255,255,.55)}
+.pv-phone::after{content:"";position:absolute;inset:auto 0 0;height:55%;background:linear-gradient(transparent,rgba(0,0,0,.72));pointer-events:none}
+.pv-top{position:absolute;top:12px;left:0;right:0;display:flex;justify-content:center;gap:14px;z-index:2;font-size:13px;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.pv-top span{opacity:.7}
+.pv-top b{font-weight:700}
+.pv-rail{position:absolute;right:8px;bottom:78px;z-index:2;display:flex;flex-direction:column;gap:14px;align-items:center}
+.pv-rail span{display:flex;flex-direction:column;align-items:center;gap:1px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
+.pv-rail .ico{width:25px;height:25px}
+.pv-rail small{font-size:10px;font-weight:600}
+.pv-bottom{position:absolute;left:12px;right:52px;bottom:14px;z-index:2;display:flex;flex-direction:column;gap:4px;text-shadow:0 1px 2px rgba(0,0,0,.45)}
+.pv-who{display:flex;align-items:center;gap:7px}
+.pv-who .av{width:26px;height:26px;font-size:10px}
+.pv-follow{border:1px solid rgba(255,255,255,.7);border-radius:7px;padding:1px 8px;font-size:11px;font-weight:600}
+.pv-follow.light{background:#fff;color:#101010;border-color:#fff;border-radius:20px;text-shadow:none}
+.pv-handle{font-weight:700;font-size:13.5px}
+.pv-ttl{font-weight:700;font-size:13.5px}
+.pv-ttl.clamp2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pv-ttl:has([data-live]:empty){display:none}
+.pv-music{display:flex;align-items:center;gap:5px;font-size:11.5px;min-width:0}
+.pv-music .ico{width:13px;height:13px}
+.pv-music span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pv-phone > .pv-dots{bottom:4px;z-index:3}
+.pv-phone > .pv-dots i{background:#fff;opacity:.45}
+.pv-phone > .pv-dots i.on{opacity:1}
+.pv-phone > .pv-count{top:40px}
+.pv-phone > .pv-nav{top:38%}
+.pv-phone > .pv-nav.r{right:48px}
+
+/* YouTube, vidéo classique */
+.pv-dur{position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.8);color:#fff;font:600 11px/1.6 var(--font-num);border-radius:4px;padding:0 4px}
+.pv-yt-title{padding:10px 11px 0;font-size:14.5px;font-weight:650;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pv-sub{margin-left:auto;background:var(--fg);color:var(--panel);border-radius:20px;padding:4px 11px;font-size:11.5px;font-weight:620}
+.pv-desc{margin:0 11px 11px !important;padding:9px 10px;border-radius:10px;background:var(--panel-2);font-size:12px}
+
+/* document LinkedIn */
+.pv-doc{border-block:1px solid var(--hairline-2)}
+.pv-doc-bar{display:flex;justify-content:space-between;gap:8px;align-items:baseline;padding:8px 11px;background:var(--panel-2)}
+.pv-doc-bar b{font-size:12.5px;font-weight:640;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pv-doc-bar small{font-size:11px;color:var(--fg-3)}
+.pv-doc-page{position:relative;aspect-ratio:4/5}
+
+/* X */
+.pv-x{display:flex;gap:9px;padding:11px}
+.pv-xmain{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.pv-xhead{font-size:13px}
+.pv-xhead span{color:var(--fg-3)}
+.pv-x .pv-txt{padding:0}
+.pv-xmedia{border:1px solid var(--hairline);border-radius:14px;overflow:hidden}
+.pv-x .pv-actions{justify-content:space-between;padding:2px 0 0;color:var(--fg-3)}
+.pv-x .ico{width:16px;height:16px}
 
 /* ---------- toast ---------- */
 .toast{
@@ -425,7 +512,6 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
 .media-name small{display:block;color:var(--fg-3);font-size:11px}
 .media-pick{align-self:flex-start;border:1px dashed var(--hairline);cursor:pointer}
 .warn{margin:0;font-size:12px;color:var(--warn)}
-.card-media img,.card-media video{width:100%;height:100%;object-fit:cover;display:block}
 
 /* ---------- visuels et contrôle par réseau ---------- */
 .thumbs{display:flex;gap:8px;flex-wrap:wrap}
@@ -437,10 +523,6 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
 .thumb-tools button:hover{background:rgba(255,255,255,.22)}
 .media-actions{display:flex;gap:8px;flex-wrap:wrap}
 .pdf-ico{width:52px;height:52px;border-radius:8px;flex:none;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-ink);font:700 12px var(--font-display)}
-.card-media{position:relative}
-.count-badge{position:absolute;right:8px;top:8px;background:rgba(16,16,16,.72);color:#fff;font:600 11px/1.6 var(--font-num);border-radius:20px;padding:0 8px}
-.doc-prev{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--fg-2);font-size:12px;padding:12px;text-align:center}
-.doc-prev b{font:700 18px var(--font-display);color:var(--accent-ink)}
 .checks{display:flex;flex-direction:column;gap:6px}
 .chk{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;padding:7px 9px;border-radius:9px;background:var(--panel-2)}
 .chk.bad{background:var(--crit-soft)}
@@ -477,8 +559,6 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
 
 /* ---------- titre et hashtags ---------- */
 .opt{font-weight:400;text-transform:none;letter-spacing:0;color:var(--fg-3)}
-.card-title{padding:11px 11px 0;font-size:14px;font-weight:650;letter-spacing:-.01em}
-.card-title:empty{display:none}
 
 /* ---------- échecs du robot ---------- */
 .pill-failed{background:var(--crit-soft);color:var(--crit)}
@@ -638,12 +718,12 @@ const rulesOk = window.CadenceRules?.VERSION === RULES_VERSION;
 /* ===================== modèle ===================== */
 
 const PLATFORMS = {
-  instagram:{name:"Instagram", mono:"IG", limit:2200,  handle:"@tonprofil",      shape:"square"},
-  facebook: {name:"Facebook",  mono:"f",  limit:63206, handle:"Page · 2 h",      shape:"wide"},
-  linkedin: {name:"LinkedIn",  mono:"in", limit:3000,  handle:"Page · 2 h",      shape:"wide"},
-  x:        {name:"X",         mono:"X",  limit:280,   handle:"@tonprofil",      shape:"none", manual:true},
-  tiktok:   {name:"TikTok",    mono:"TT", limit:2200,  handle:"@tonprofil",      shape:"tall"},
-  youtube:  {name:"YouTube",   mono:"YT", limit:5000,  handle:"Ta chaîne",       shape:"wide"},
+  instagram:{name:"Instagram", mono:"IG", limit:2200},
+  facebook: {name:"Facebook",  mono:"f",  limit:63206},
+  linkedin: {name:"LinkedIn",  mono:"in", limit:3000},
+  x:        {name:"X",         mono:"X",  limit:280, manual:true},
+  tiktok:   {name:"TikTok",    mono:"TT", limit:2200},
+  youtube:  {name:"YouTube",   mono:"YT", limit:5000},
 };
 const PKEYS = Object.keys(PLATFORMS);
 
@@ -1140,6 +1220,7 @@ function openPost(id){
                    visuals:visualsFrom(p.media), pdf:pdfFrom(p.media), toDelete:[],
                    tiktok:{...(p.tiktok || {})}};
   state.previewOn = state.editing.platforms[0] || "instagram";
+  state.slide = 0;
   state.confirmDel = false;
   renderSheet();
 }
@@ -1149,6 +1230,7 @@ function openNew(day){
                    day:day||todayKey(), time:"09:00", status:"scheduled", example:false, title:"", hashtags:"",
                    visuals:[], pdf:null, toDelete:[], tiktok:{}};
   state.previewOn = "instagram";
+  state.slide = 0;
   state.confirmDel = false;
   renderSheet();
 }
@@ -1234,13 +1316,6 @@ function postIssues(e){
   // Sans GitHub, on ne peut pas joindre de visuel : son absence n'est alors qu'un avertissement.
   return Store.mode === "github" ? issues
     : issues.map(i => i.code === "needs" ? {...i, level: "warn"} : i);
-}
-
-/** Le visuel montré dans l'aperçu de chaque réseau. */
-function mediaView(e, k){
-  if (k === "linkedin" && e.pdf) return {type: "document", name: e.pdf.name};
-  const v = e.visuals[0];
-  return v ? {url: v.url, type: v.type, count: e.visuals.length} : null;
 }
 
 function mediaFieldHTML(e){
@@ -1497,8 +1572,8 @@ function renderSheetUnsafe(){
       <div class="prev">
         <div class="prev-tabs" role="tablist">${(e.platforms.length ? e.platforms : ["instagram"]).map(k =>
           `<button type="button" role="tab" class="prev-tab" data-prev="${k}" aria-selected="${prevOn===k}">${PLATFORMS[k].name}</button>`).join("")}</div>
-        <div id="prevCard">${previewHTML(prevOn, e, mediaView(e, prevOn))}</div>
-        <p class="hint">Aperçu indicatif : chaque réseau rogne et recadre à sa façon.</p>
+        <div id="prevCard">${previewHTML(prevOn, e)}</div>
+        <p class="hint"><b>${formatLabel(prevOn, e)}</b>. Aperçu indicatif : chaque réseau peut recadrer à sa façon.</p>
       </div>
     </div>
 
@@ -1522,38 +1597,206 @@ const cardTextHTML = text => esc(text || "Ton texte apparaîtra ici.")
 /** Le titre et le texte exactement tels que le réseau k les recevra (voir compose dans rules.js). */
 function composedFor(e, k){
   const hasVideo = e.visuals?.some(v => v.type === "video");
-  const c = CadenceRules.compose({title: e.title, text: e.text, hashtags: e.hashtags}, k, hasVideo);
-  // Le bloc titre existe dès que le réseau en a un, même vide : la saisie en direct le remplit.
-  const showTitle = k === "youtube" || (k === "tiktok" && !hasVideo) || Boolean(k === "linkedin" && e.pdf);
-  return {...c, showTitle};
+  return CadenceRules.compose({title: e.title, text: e.text, hashtags: e.hashtags}, k, hasVideo);
 }
 
-function previewHTML(k, e, mv){
-  const P = PLATFORMS[k];
-  const c = composedFor(e, k);
-  const body = cardTextHTML(c.text);
-  const media = {wide:" wide", tall:" tall"}[P.shape] || "";
-  const ratio = {wide:"16:9", tall:"9:16", square:"1:1"}[P.shape];
-  const round = (k === "linkedin" || k === "facebook") ? " sq" : "";
-  const name = (k === "linkedin" || k === "facebook") ? "Ton entreprise" : "Ton compte";
-  return `<div class="card">
-    <div class="card-top">
-      <span class="av${round}">${esc(P.mono)}</span>
-      <span class="card-who"><b>${name}</b><span>${esc(P.handle)}</span></span>
-    </div>
-    ${P.shape === "none" ? "" : `<div class="card-media${media}">${
-      !mv ? `Visuel ${ratio}`
-      : mv.type === "document" ? `<span class="doc-prev"><b>PDF</b>${esc(mv.name)}</span>`
-      : mv.type === "video" ? `<video src="${esc(mv.url)}" muted playsinline loop autoplay></video>`
-      : `<img src="${esc(mv.url)}" alt="">${mv.count > 1 ? `<span class="count-badge">1/${mv.count}</span>` : ""}`}</div>`}
-    ${c.showTitle ? `<div class="card-title">${esc(c.title)}</div>` : ""}
-    <div class="card-txt${k==="instagram"||k==="linkedin"?" clip":""}">${body}</div>
-    <div class="card-bar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.7-7 9-7 9z"/></svg>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-3.2-6.4L20 5v5h-5"/></svg>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 1 3 6.2L4 20l1-3.4A8 8 0 0 1 4 12z"/></svg>
-    </div>
+/* ---------- aperçus : un rendu par réseau et par format ---------- */
+
+const ICON = {
+  heart:   '<path d="M12 20s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.7-7 9-7 9z"/>',
+  comment: '<path d="M4 12a8 8 0 1 1 3 6.2L4 20l1-3.4A8 8 0 0 1 4 12z"/>',
+  send:    '<path d="M21 3 10 14"/><path d="M21 3l-6.5 18-4.5-7-7-4.5z"/>',
+  save:    '<path d="M6 3.5h12v17l-6-4.2-6 4.2z"/>',
+  share:   '<path d="M14 5l7 7-7 7v-4c-5.5 0-8.5 1.6-11 5 .8-5.6 3.8-10 11-11z"/>',
+  repost:  '<path d="M4 9V7a2 2 0 0 1 2-2h12l-3-3"/><path d="M20 15v2a2 2 0 0 1-2 2H6l3 3"/>',
+  like:    '<path d="M7 11v9H4v-9z"/><path d="M7 11l4-7c1.6 0 2.6 1.2 2.1 3L12.4 10H18a2 2 0 0 1 2 2.3l-1.1 6A2 2 0 0 1 16.9 20H7"/>',
+  more:    '<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>',
+  music:   '<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
+  globe:   '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/>',
+  play:    '<path d="M8 5v14l11-7z" fill="currentColor"/>',
+};
+const ico = (n, cls = "") => `<svg class="ico${cls ? " " + cls : ""}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]}</svg>`;
+const avatar = (k, sq) => `<span class="av${sq ? " sq" : ""}">${esc(PLATFORMS[k].mono)}</span>`;
+
+/** Le texte tel que le fil l'affiche avant « plus » : clip = "caractères,lignes". */
+function clipHTML(text, clip, more){
+  if (!text || !clip) return cardTextHTML(text);
+  const [chars, lines] = clip.split(",").map(Number);
+  let cut = text.split("\n").slice(0, lines).join("\n");
+  if (cut.length > chars) cut = cut.slice(0, chars).replace(/\s+\S*$/, "");
+  return cut.trimEnd().length < text.trimEnd().length
+    ? `${cardTextHTML(cut.trimEnd())}<span class="more"> … ${esc(more)}</span>` : cardTextHTML(text);
+}
+/** Un texte de l'aperçu que la saisie met à jour en direct (voir refreshLive). */
+const liveHTML = (c, kind, clip = "", more = "plus") => kind === "title"
+  ? `<span data-live="title">${esc(c.title || "")}</span>`
+  : `<span data-live="text" data-clip="${clip}" data-more="${esc(more)}">${clipHTML(c.text, clip, more)}</span>`;
+function refreshLive(c){
+  document.querySelectorAll("#prevCard [data-live]").forEach(el => {
+    el.innerHTML = el.dataset.live === "title" ? esc(c.title || "") : clipHTML(c.text, el.dataset.clip, el.dataset.more);
+  });
+}
+
+const ratioOf = v => v?.meta?.width && v?.meta?.height ? v.meta.width / v.meta.height : null;
+const within = (r, lo, hi) => Math.min(hi, Math.max(lo, r));
+const mediaEl = v => v.type === "video"
+  ? `<video src="${esc(v.url)}" muted playsinline loop autoplay></video>`
+  : `<img src="${esc(v.url)}" alt="">`;
+const barHTML = (items, cls = "") => `<div class="pv-bar ${cls}">${items.map(([n, label]) => `<span>${ico(n)}${label}</span>`).join("")}</div>`;
+const placeholder = what => `<span class="pv-ph">${what}</span>`;
+const isShort = v => Boolean(v) && (v.meta?.duration ?? 0) <= 180 && (v.meta?.height ?? 0) >= (v.meta?.width ?? 1);
+const clock = s => s ? `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}` : "";
+
+/** L'image du carrousel affichée dans l'aperçu, avec flèches, points et compteur. */
+function slideOf(n){
+  state.slide = Math.min(Math.max(state.slide || 0, 0), Math.max(n - 1, 0));
+  return state.slide;
+}
+const slideNav = (n, i) => n < 2 ? "" : `
+  ${i > 0 ? `<button type="button" class="pv-nav l" data-slide="-1" aria-label="Image précédente">‹</button>` : ""}
+  ${i < n - 1 ? `<button type="button" class="pv-nav r" data-slide="1" aria-label="Image suivante">›</button>` : ""}
+  <span class="pv-count">${i + 1}/${n}</span>`;
+const dots = (n, i) => n < 2 ? "" : `<span class="pv-dots">${
+  Array.from({length: Math.min(n, 12)}, (_, j) => `<i${j === Math.min(i, 11) ? ' class="on"' : ""}></i>`).join("")}</span>`;
+
+/** Les vidéos plein écran : Reel, TikTok, Short. Toujours sur fond noir, comme dans les apps. */
+function phoneHTML({media, top = "", rail = [], bottom = "", extra = ""}){
+  return `<div class="pv pv-phone">
+    <div class="pv-screen">${media}</div>
+    ${extra}
+    <div class="pv-top">${top}</div>
+    <div class="pv-rail">${rail.map(([n, label]) => `<span>${ico(n)}${label ? `<small>${label}</small>` : ""}</span>`).join("")}</div>
+    <div class="pv-bottom">${bottom}</div>
   </div>`;
+}
+
+/** Plusieurs visuels en grille, comme Facebook et LinkedIn les affichent. */
+function gridHTML(visuals){
+  if (!visuals.length) return "";
+  if (visuals.length === 1){
+    const v = visuals[0];
+    const r = within(ratioOf(v) ?? (v.type === "video" ? 16 / 9 : 1), 0.8, 1.91);
+    return `<div class="pv-media" style="aspect-ratio:${r}">${mediaEl(v)}</div>`;
+  }
+  const shown = visuals.slice(0, 4), extra = visuals.length - shown.length;
+  return `<div class="pv-grid n${shown.length}">${shown.map((v, i) =>
+    `<span>${mediaEl(v)}${extra && i === 3 ? `<b>+${extra}</b>` : ""}</span>`).join("")}</div>`;
+}
+
+const PREVIEW = {
+  instagram(e, c){
+    const video = e.visuals.find(v => v.type === "video");
+    if (video) return phoneHTML({
+      media: mediaEl(video),
+      top: "<b>Reels</b>",
+      rail: [["heart", "J'aime"], ["comment", "0"], ["send", "0"], ["more"]],
+      bottom: `<p class="pv-who">${avatar("instagram")}<b>tonprofil</b><span class="pv-follow">Suivre</span></p>
+        <p class="pv-cap">${liveHTML(c, "text", "48,1")}</p>
+        <p class="pv-music">${ico("music")}<span>tonprofil · Son original</span></p>`,
+    });
+    const imgs = e.visuals, i = slideOf(imgs.length);
+    // Instagram recadre tout le carrousel aux proportions de la première image, entre 4:5 et 1,91:1.
+    const r = within(ratioOf(imgs[0]) ?? 1, 0.8, 1.91);
+    return `<div class="pv pv-card">
+      <div class="pv-head">${avatar("instagram")}<b>tonprofil</b>${ico("more", "end")}</div>
+      <div class="pv-media" style="aspect-ratio:${r}">${imgs.length ? mediaEl(imgs[i]) : placeholder("Ton visuel")}${slideNav(imgs.length, i)}</div>
+      <div class="pv-actions">${ico("heart")}${ico("comment")}${ico("send")}${dots(imgs.length, i)}${ico("save", "end")}</div>
+      <p class="pv-txt"><b>tonprofil</b> ${liveHTML(c, "text", "90,2")}</p>
+      <p class="pv-meta">À l'instant</p>
+    </div>`;
+  },
+
+  tiktok(e, c){
+    const video = e.visuals.find(v => v.type === "video");
+    const imgs = video ? [] : e.visuals, i = slideOf(imgs.length);
+    const t = tiktokFor(e);
+    const sound = {
+      draft: "Son à choisir dans l'app TikTok",
+      music: t.music ? `${t.music.name} · ${t.music.artist}` : "Choisis un son",
+      auto:  "Son choisi par TikTok",
+      none:  video ? "Son original · tonprofil" : "Sans musique",
+    }[t.mode];
+    return phoneHTML({
+      media: video ? mediaEl(video) : imgs.length ? mediaEl(imgs[i]) : placeholder("Ta vidéo ou tes photos, en 9:16"),
+      extra: video ? "" : `${slideNav(imgs.length, i)}${dots(imgs.length, i)}`,
+      top: "<span>Abonnements</span><b>Pour toi</b>",
+      rail: [["heart", "0"], ["comment", "0"], ["save", "0"], ["share", "0"]],
+      bottom: `<p class="pv-handle">tonprofil</p>
+        ${video ? "" : `<p class="pv-ttl">${liveHTML(c, "title")}</p>`}
+        <p class="pv-cap">${liveHTML(c, "text", "72,2")}</p>
+        <p class="pv-music">${ico("music")}<span>${esc(sound)}</span></p>`,
+    });
+  },
+
+  youtube(e, c){
+    const video = e.visuals.find(v => v.type === "video");
+    if (isShort(video)) return phoneHTML({
+      media: mediaEl(video),
+      top: "<b>Shorts</b>",
+      rail: [["like", "J'aime"], ["comment", "0"], ["share", "Partager"]],
+      bottom: `<p class="pv-who">${avatar("youtube")}<b>@tachaine</b><span class="pv-follow light">S'abonner</span></p>
+        <p class="pv-ttl clamp2">${liveHTML(c, "title")}</p>`,
+    });
+    return `<div class="pv pv-card pv-yt">
+      <div class="pv-media dark" style="aspect-ratio:16/9">${video ? mediaEl(video) : placeholder("YouTube publie seulement des vidéos")}${
+        video?.meta?.duration ? `<span class="pv-dur">${clock(video.meta.duration)}</span>` : ""}</div>
+      <p class="pv-yt-title">${liveHTML(c, "title")}</p>
+      <div class="pv-head">${avatar("youtube")}<span class="pv-who2"><b>Ta chaîne</b><small>0 abonné</small></span><span class="pv-sub">S'abonner</span></div>
+      <p class="pv-desc"><b>0 vue · à l'instant</b><br>${liveHTML(c, "text", "120,3", "plus")}</p>
+    </div>`;
+  },
+
+  facebook(e, c){
+    return `<div class="pv pv-card">
+      <div class="pv-head">${avatar("facebook")}<span class="pv-who2"><b>Ton entreprise</b><small>À l'instant · ${ico("globe")}</small></span>${ico("more", "end")}</div>
+      <p class="pv-txt">${liveHTML(c, "text", "230,5", "Voir plus")}</p>
+      ${gridHTML(e.visuals)}
+      ${barHTML([["like", "J'aime"], ["comment", "Commenter"], ["share", "Partager"]])}
+    </div>`;
+  },
+
+  linkedin(e, c){
+    const doc = e.pdf ? `<div class="pv-doc">
+        <p class="pv-doc-bar"><b>${liveHTML(c, "title")}</b><small>PDF</small></p>
+        <div class="pv-doc-page">${placeholder(`Les pages de ${esc(e.pdf.name)}`)}<span class="pv-nav r">›</span></div>
+      </div>` : gridHTML(e.visuals);
+    return `<div class="pv pv-card">
+      <div class="pv-head">${avatar("linkedin", true)}<span class="pv-who2"><b>Ton entreprise</b><small>Page</small><small>À l'instant · ${ico("globe")}</small></span>${ico("more", "end")}</div>
+      <p class="pv-txt">${liveHTML(c, "text", "200,3", "plus")}</p>
+      ${doc}
+      ${barHTML([["like", "J'aime"], ["comment", "Commenter"], ["repost", "Republier"], ["send", "Envoyer"]], "col")}
+    </div>`;
+  },
+
+  x(e, c){
+    return `<div class="pv pv-card pv-x">
+      ${avatar("x")}
+      <div class="pv-xmain">
+        <p class="pv-xhead"><b>Ton compte</b> <span>@tonprofil · 1 min</span></p>
+        <p class="pv-txt">${liveHTML(c, "text")}</p>
+        ${e.visuals.length ? `<div class="pv-xmedia">${gridHTML(e.visuals)}</div>` : ""}
+        <div class="pv-actions">${ico("comment")}${ico("repost")}${ico("heart")}${ico("save")}${ico("send")}</div>
+      </div>
+    </div>`;
+  },
+};
+
+/** Ce que le réseau va publier, en clair, sous l'aperçu. */
+function formatLabel(k, e){
+  const video = e.visuals.find(v => v.type === "video"), n = e.visuals.length;
+  const photos = n > 1 ? `carrousel de ${n} images` : n ? "une image" : "texte seul";
+  return {
+    instagram: video ? "Reel" : n > 1 ? `Carrousel de ${n} images` : "Publication",
+    tiktok:    video ? "Vidéo" : n ? `Carrousel photo de ${n} image${n > 1 ? "s" : ""}` : "Il manque un visuel",
+    youtube:   !video ? "Il manque une vidéo" : isShort(video) ? "Short" : "Vidéo",
+    facebook:  video ? "Vidéo" : n > 1 ? `${n} photos` : n ? "Photo" : "Texte seul",
+    linkedin:  e.pdf ? "Document PDF à faire défiler" : video ? "Vidéo" : n > 1 ? `${n} images` : n ? "Image" : "Texte seul",
+    x:         `À poster à la main, ${video ? "avec la vidéo" : photos}`,
+  }[k];
+}
+
+function previewHTML(k, e){
+  return PREVIEW[k](e, composedFor(e, k));
 }
 
 /* ===================== actions ===================== */
@@ -1744,7 +1987,13 @@ document.addEventListener("click", ev => {
   }
 
   const prev = t.closest("[data-prev]");
-  if (prev && state.editing){ state.previewOn = prev.dataset.prev; state.editing.focusText = false; renderSheet(); return; }
+  if (prev && state.editing){ state.previewOn = prev.dataset.prev; state.slide = 0; state.editing.focusText = false; renderSheet(); return; }
+  const slide = t.closest("[data-slide]");
+  if (slide && state.editing){
+    state.slide = (state.slide || 0) + Number(slide.dataset.slide);
+    document.getElementById("prevCard").innerHTML = previewHTML(state.previewOn, state.editing);
+    return;
+  }
 
   const play = t.closest("[data-play]");
   if (play && state.editing && state.music){
@@ -1816,10 +2065,7 @@ document.addEventListener("input", ev => {
     // Compteurs, contrôles et aperçu mis à jour sans reconstruire les champs de saisie.
     document.getElementById("counts").innerHTML = countersHTML(e);
     document.getElementById("checks").innerHTML = checksHTML(e);
-    const c = composedFor(e, state.previewOn);
-    const txt = document.querySelector("#prevCard .card-txt"), title = document.querySelector("#prevCard .card-title");
-    if (txt) txt.innerHTML = cardTextHTML(c.text);
-    if (title) title.textContent = c.title;
+    refreshLive(composedFor(e, state.previewOn));
     return;
   }
   if (id === "f-day") e.day = ev.target.value || todayKey();
