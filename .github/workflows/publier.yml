@@ -1,0 +1,57 @@
+# Toutes les heures, publie les posts dont l'heure est passée,
+# puis enregistre leur nouveau statut dans le dépôt.
+name: Publier les posts
+
+on:
+  schedule:
+    - cron: "7 * * * *"   # à la 7e minute de chaque heure : les heures pile sont encombrées chez GitHub
+  workflow_dispatch:       # bouton « Run workflow » pour lancer à la main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cadence-publier
+  cancel-in-progress: false
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Publier ce qui est dû
+        id: robot
+        continue-on-error: true   # on enregistre les statuts même si un réseau a échoué
+        run: node robot/publish.mjs
+        env:
+          META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
+          META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
+          META_IG_USER_ID: ${{ secrets.META_IG_USER_ID }}
+          LINKEDIN_TOKEN: ${{ secrets.LINKEDIN_TOKEN }}
+          LINKEDIN_AUTHOR: ${{ secrets.LINKEDIN_AUTHOR }}
+          ZERNIO_API_KEY: ${{ secrets.ZERNIO_API_KEY }}
+          ZERNIO_TIKTOK_ID: ${{ secrets.ZERNIO_TIKTOK_ID }}
+          ZERNIO_YOUTUBE_ID: ${{ secrets.ZERNIO_YOUTUBE_ID }}
+
+      - name: Enregistrer les statuts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add posts
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Robot : statuts de publication"
+          for i in 1 2 3; do
+            git push && exit 0
+            git pull --rebase
+          done
+          exit 1
+
+      - name: Signaler un échec (GitHub t'envoie un e-mail)
+        if: steps.robot.outcome == 'failure'
+        run: exit 1

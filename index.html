@@ -1,0 +1,1646 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cadence</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23D5360C'/%3E%3Cpath d='M5 18c3.3 0 3.3-8 6.7-8s3.3 13.3 6.6 13.3 3.4-10.6 6.7-10.6h2' fill='none' stroke='%23E6D5BD' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+/* Layout: app en un écran — barre latérale, barre d'outils, calendrier qui défile, composeur en volet à droite.
+   Palette de la marque : orange brûlé (action), ivoire chaud (fond clair), noir doux (fond sombre). */
+:root{
+  --bg:#E6D5BD;
+  --panel:#F5EDE1;
+  --panel-2:#EDE2D1;
+  --sidebar:rgba(230,213,189,.82);
+  --fg:#101010;
+  --fg-2:#4A4038;
+  --fg-3:#6E5F50;
+  --hairline:rgba(16,16,16,.13);
+  --hairline-2:rgba(16,16,16,.07);
+  --accent:#D5360C;          /* orange brûlé : boutons, repères */
+  --accent-ink:#A82A08;      /* orange assombri : petit texte lisible sur ivoire */
+  --accent-fg:#FFF8F0;
+  --accent-soft:rgba(213,54,12,.12);
+  --ink:#101010;
+  --ok:#2E7A47;
+  --ok-soft:rgba(46,122,71,.13);
+  --warn:#8A5A00;
+  --warn-soft:rgba(160,110,0,.15);
+  --crit:#9E1B32;
+  --crit-soft:rgba(158,27,50,.12);
+  --today:rgba(213,54,12,.07);
+  --shadow-sheet:0 24px 70px rgba(16,16,16,.22),0 2px 8px rgba(16,16,16,.08);
+  --shadow-card:0 1px 2px rgba(16,16,16,.08),0 6px 18px rgba(16,16,16,.05);
+  --radius:14px;
+
+  --font-ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Segoe UI,system-ui,sans-serif;
+  --font-display:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Segoe UI,system-ui,sans-serif;
+  --font-num:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#101010;
+    --panel:#171615;
+    --panel-2:#201E1C;
+    --sidebar:rgba(23,22,21,.82);
+    --fg:#E6D5BD;
+    --fg-2:#BFAF98;
+    --fg-3:#8C7F70;
+    --hairline:rgba(230,213,189,.13);
+    --hairline-2:rgba(230,213,189,.07);
+    --accent:#D5360C;
+    --accent-ink:#F0663C;
+    --accent-fg:#FFF8F0;
+    --accent-soft:rgba(213,54,12,.2);
+    --ink:#E6D5BD;
+    --ok:#5BC17E;
+    --ok-soft:rgba(91,193,126,.15);
+    --warn:#E5A93A;
+    --warn-soft:rgba(229,169,58,.15);
+    --crit:#FF6B81;
+    --crit-soft:rgba(255,107,129,.15);
+    --today:rgba(213,54,12,.13);
+    --shadow-sheet:0 24px 70px rgba(0,0,0,.6),0 2px 8px rgba(0,0,0,.4);
+    --shadow-card:0 1px 2px rgba(0,0,0,.45);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101010;
+  --panel:#171615;
+  --panel-2:#201E1C;
+  --sidebar:rgba(23,22,21,.82);
+  --fg:#E6D5BD;
+  --fg-2:#BFAF98;
+  --fg-3:#8C7F70;
+  --hairline:rgba(230,213,189,.13);
+  --hairline-2:rgba(230,213,189,.07);
+  --accent:#D5360C;
+  --accent-ink:#F0663C;
+  --accent-fg:#FFF8F0;
+  --accent-soft:rgba(213,54,12,.2);
+  --ink:#E6D5BD;
+  --ok:#5BC17E;
+  --ok-soft:rgba(91,193,126,.15);
+  --warn:#E5A93A;
+  --warn-soft:rgba(229,169,58,.15);
+  --crit:#FF6B81;
+  --crit-soft:rgba(255,107,129,.15);
+  --today:rgba(213,54,12,.13);
+  --shadow-sheet:0 24px 70px rgba(0,0,0,.6),0 2px 8px rgba(0,0,0,.4);
+  --shadow-card:0 1px 2px rgba(0,0,0,.45);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:var(--bg);color:var(--fg);
+  font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  -webkit-font-smoothing:antialiased;overflow:hidden;
+}
+img{max-width:100%}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px;border-radius:7px}
+::selection{background:var(--accent-soft)}
+
+/* ---------- shell ---------- */
+.shell{display:grid;grid-template-columns:248px 1fr;height:100%;min-height:0}
+
+/* ---------- barre latérale ---------- */
+.sidebar{
+  background:var(--sidebar);
+  -webkit-backdrop-filter:saturate(160%) blur(28px);backdrop-filter:saturate(160%) blur(28px);
+  border-right:1px solid var(--hairline);
+  display:flex;flex-direction:column;min-height:0;overflow-y:auto;
+  padding-block:18px 14px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:16px;
+}
+.brand{display:flex;align-items:center;gap:9px;margin-bottom:22px;padding-left:2px}
+.brand-mark{
+  width:26px;height:26px;border-radius:8px;flex:none;background:var(--accent);
+  display:grid;place-items:center;box-shadow:0 1px 3px rgba(0,0,0,.2)
+}
+.brand-mark svg{width:15px;height:15px;display:block}
+.brand-name{font-family:var(--font-display);font-size:16px;font-weight:680;letter-spacing:-.02em}
+
+.side-label{
+  font-size:11px;font-weight:640;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--fg-3);margin:0 0 7px 10px
+}
+.side-group{display:flex;flex-direction:column;gap:1px;margin-bottom:22px}
+.nav-item{
+  display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:8px;
+  color:var(--fg-2);font-weight:520;text-align:left;width:100%;
+  transition:background .14s ease,color .14s ease
+}
+.nav-item:hover{background:var(--hairline-2);color:var(--fg)}
+.nav-item[aria-current="true"]{background:var(--accent-soft);color:var(--accent-ink);font-weight:620}
+.nav-item .ni-icon{width:16px;height:16px;flex:none;opacity:.9}
+.ni-count{
+  margin-left:auto;font-family:var(--font-num);font-size:11px;font-variant-numeric:tabular-nums;
+  color:var(--fg-3);background:var(--hairline-2);padding:1px 6px;border-radius:20px;min-width:22px;text-align:center
+}
+.nav-item[aria-current="true"] .ni-count{background:transparent;color:var(--accent-ink)}
+
+.plat-row{
+  display:flex;align-items:center;gap:9px;padding:6px 10px;border-radius:8px;width:100%;
+  text-align:left;color:var(--fg-2);transition:background .14s ease
+}
+.plat-row:hover{background:var(--hairline-2)}
+.plat-row[aria-pressed="true"]{color:var(--fg);font-weight:560}
+.plat-row[aria-pressed="false"] .tile{opacity:.3;filter:grayscale(1)}
+.plat-row .ni-count{background:transparent}
+.manual{
+  font-size:10px;font-weight:600;letter-spacing:.03em;color:var(--fg-3);
+  border:1px solid var(--hairline);padding:0 5px;border-radius:5px
+}
+
+.tile{
+  width:19px;height:19px;border-radius:6px;flex:none;display:grid;place-items:center;
+  font-family:var(--font-display);font-size:9.5px;font-weight:700;letter-spacing:-.03em;
+  color:#fff;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.14);transition:opacity .14s,filter .14s
+}
+.tile.sm{width:15px;height:15px;border-radius:5px;font-size:7.5px}
+.tile-instagram{background:linear-gradient(135deg,#FEC053,#F2203E 48%,#B729A8 78%,#5342D6)}
+.tile-facebook{background:#1877F2}
+.tile-linkedin{background:#0A66C2}
+.tile-x{background:var(--ink);color:var(--panel)}
+.tile-tiktok{background:#111;position:relative}
+.tile-tiktok::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(135deg,rgba(37,244,238,.55),transparent 55%,rgba(254,44,85,.55))}
+.tile-youtube{background:#E5002B}
+.tile span{position:relative;z-index:1}
+
+.side-foot{margin-top:auto;display:flex;flex-direction:column;gap:3px;padding-top:12px;border-top:1px solid var(--hairline-2)}
+.side-foot button{
+  display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;
+  color:var(--fg-2);font-size:13px;transition:background .14s;text-align:left
+}
+.side-foot button:hover{background:var(--hairline-2);color:var(--fg)}
+.side-foot svg{width:15px;height:15px;flex:none}
+.note{display:flex;align-items:flex-start;gap:7px;margin:8px 0 0;padding:0 10px;font-size:11.5px;color:var(--fg-3);line-height:1.35}
+.note i{width:6px;height:6px;border-radius:50%;flex:none;background:var(--warn);margin-top:5px}
+
+/* ---------- zone principale ---------- */
+.main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.toolbar{
+  display:flex;align-items:center;gap:12px;flex:none;
+  border-bottom:1px solid var(--hairline);background:var(--panel);
+  padding-block:11px;
+  padding-left:16px;
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.tb-title{font-family:var(--font-display);font-size:19px;font-weight:650;letter-spacing:-.025em;min-width:0;margin:0}
+.tb-title .yr{color:var(--fg-3);font-weight:500}
+.stepper{display:flex;align-items:center;gap:1px;background:var(--panel-2);border-radius:9px;padding:2px}
+.stepper button{width:26px;height:24px;border-radius:7px;display:grid;place-items:center;color:var(--fg-2);transition:background .14s}
+.stepper button:hover{background:var(--panel);color:var(--fg);box-shadow:var(--shadow-card)}
+.stepper svg{width:13px;height:13px}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:9px;
+  font-weight:560;font-size:13px;white-space:nowrap;
+  background:var(--panel-2);color:var(--fg);transition:filter .14s,background .14s,transform .08s
+}
+.btn:hover{filter:brightness(.97)}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--accent);color:var(--accent-fg);box-shadow:0 1px 2px rgba(0,0,0,.18)}
+.btn-primary:hover{filter:brightness(1.06)}
+.btn-ghost{background:transparent;color:var(--fg-2)}
+.btn-ghost:hover{background:var(--hairline-2);color:var(--fg)}
+.btn-danger{background:var(--crit-soft);color:var(--crit)}
+.btn svg{width:14px;height:14px;flex:none}
+.spacer{flex:1}
+.seg{display:flex;background:var(--panel-2);border-radius:9px;padding:2px;gap:2px}
+.seg button{
+  padding:4px 11px;border-radius:7px;font-size:12.5px;font-weight:560;color:var(--fg-2);
+  transition:background .14s,color .14s
+}
+.seg button[aria-selected="true"]{background:var(--panel);color:var(--fg);box-shadow:var(--shadow-card)}
+
+.pane{flex:1;min-height:0;overflow:auto;background:var(--panel)}
+.pane-pad{
+  padding-block:16px 40px;
+  padding-left:16px;
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+
+/* ---------- calendrier ---------- */
+.cal{display:flex;flex-direction:column;min-height:100%}
+.cal-head{
+  display:grid;grid-template-columns:repeat(7,minmax(0,1fr));
+  border-bottom:1px solid var(--hairline);position:sticky;top:0;z-index:3;background:var(--panel)
+}
+.cal-head div{padding:7px 10px;font-size:11px;font-weight:640;letter-spacing:.05em;text-transform:uppercase;color:var(--fg-3)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));flex:1;min-height:0}
+.day{
+  border-right:1px solid var(--hairline-2);border-bottom:1px solid var(--hairline-2);
+  min-height:112px;padding:6px;display:flex;flex-direction:column;gap:4px;min-width:0;
+  transition:background .14s ease
+}
+.day:nth-child(7n){border-right:0}
+.day.out{background:var(--panel-2);opacity:.6}
+.day.weekend:not(.out){background:color-mix(in oklab,var(--panel) 95%,var(--fg))}
+.day.today{background:var(--today)}
+.day.drop{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--accent)}
+.day-n{display:flex;align-items:center;gap:5px;font-family:var(--font-num);font-size:11.5px;font-variant-numeric:tabular-nums;color:var(--fg-3)}
+.day.today .day-n span{
+  color:var(--accent-fg);background:var(--accent);font-weight:700;
+  border-radius:20px;padding:0 6px;min-width:20px;text-align:center
+}
+.day-add{
+  margin-left:auto;width:18px;height:18px;border-radius:6px;display:grid;place-items:center;
+  color:var(--fg-3);opacity:0;transition:opacity .14s,background .14s
+}
+.day:hover .day-add,.day-add:focus-visible{opacity:1}
+.day-add:hover{background:var(--hairline);color:var(--fg)}
+.day-add svg{width:11px;height:11px}
+.chip{
+  display:flex;flex-direction:column;gap:3px;padding:5px 6px;border-radius:9px;
+  background:var(--panel);box-shadow:var(--shadow-card);border-left:2.5px solid var(--fg-3);
+  text-align:left;width:100%;min-width:0;cursor:grab;transition:transform .1s ease,box-shadow .14s
+}
+.chip:hover{transform:translateY(-1px);box-shadow:0 2px 4px rgba(16,16,16,.1),0 10px 24px rgba(16,16,16,.09)}
+.chip:active{cursor:grabbing}
+.chip.dragging{opacity:.4}
+.chip.s-scheduled{border-left-color:var(--accent)}
+.chip.s-draft{border-left-color:var(--fg-3);border-left-style:dashed}
+.chip.s-published{border-left-color:var(--ok)}
+.chip-top{display:flex;align-items:center;gap:4px;min-width:0}
+.chip-time{font-family:var(--font-num);font-size:10px;font-variant-numeric:tabular-nums;color:var(--fg-3);flex:none}
+.chip-tiles{display:flex;gap:2px;margin-left:auto;flex:none}
+.chip-txt{font-size:11.5px;line-height:1.3;color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.day-more{font-size:10.5px;color:var(--fg-3);padding-left:6px;text-align:left}
+.day-more:hover{color:var(--accent-ink)}
+
+/* ---------- file d'attente ---------- */
+.queue{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:26px}
+.q-day{display:flex;flex-direction:column;gap:7px}
+.q-day-h{
+  display:flex;align-items:baseline;gap:8px;padding-bottom:7px;border-bottom:1px solid var(--hairline);
+  position:sticky;top:0;background:var(--panel);z-index:2;padding-top:4px
+}
+.q-day-h b{font-family:var(--font-display);font-size:15px;font-weight:650;letter-spacing:-.015em}
+.q-day-h span{font-size:12px;color:var(--fg-3)}
+.q-day-h em{margin-left:auto;font-style:normal;font-size:11.5px;color:var(--fg-3);font-family:var(--font-num)}
+.q-item{
+  display:flex;gap:13px;padding:11px;border-radius:var(--radius);width:100%;text-align:left;
+  background:var(--panel-2);transition:background .14s,transform .08s
+}
+.q-item:hover{background:color-mix(in oklab,var(--panel-2) 88%,var(--accent))}
+.q-item:active{transform:scale(.995)}
+.q-when{flex:none;width:52px;font-family:var(--font-num);font-size:13px;font-variant-numeric:tabular-nums;color:var(--fg);font-weight:600;padding-top:1px}
+.q-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.q-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.q-txt{font-size:13.5px;color:var(--fg-2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pill{font-size:10.5px;font-weight:650;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:20px;flex:none}
+.pill-scheduled{background:var(--accent-soft);color:var(--accent-ink)}
+.pill-draft{background:var(--hairline-2);color:var(--fg-3)}
+.pill-published{background:var(--ok-soft);color:var(--ok)}
+.pill-late{background:var(--warn-soft);color:var(--warn)}
+.pill-ex{background:var(--warn-soft);color:var(--warn)}
+.pill-manual{background:var(--hairline-2);color:var(--fg-2)}
+
+/* ---------- état vide ---------- */
+.empty{max-width:430px;margin:min(10vh,90px) auto;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
+.empty-art{width:62px;height:62px;border-radius:17px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-ink)}
+.empty-art svg{width:28px;height:28px}
+.empty h2{font-family:var(--font-display);font-size:21px;font-weight:650;letter-spacing:-.025em;margin:0;text-wrap:balance}
+.empty p{margin:0;color:var(--fg-2);font-size:13.5px;text-wrap:balance;max-width:36ch}
+.empty-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+
+/* ---------- composeur ---------- */
+.scrim{position:fixed;inset:0;background:rgba(16,16,16,.38);z-index:40;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);animation:fade .18s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.sheet{
+  position:fixed;z-index:50;top:0;right:0;bottom:0;width:min(760px,100%);
+  background:var(--panel);box-shadow:var(--shadow-sheet);
+  display:flex;flex-direction:column;min-height:0;
+  animation:slide .26s cubic-bezier(.32,.72,0,1);
+  padding-right:env(safe-area-inset-right,0px);
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)
+}
+@keyframes slide{from{transform:translateX(26px);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.sheet,.scrim{animation:none}.chip:hover{transform:none}}
+.sheet-head{display:flex;align-items:center;gap:10px;flex:none;padding:13px 18px;border-bottom:1px solid var(--hairline)}
+.sheet-head h2{font-family:var(--font-display);font-size:16px;font-weight:650;letter-spacing:-.02em;margin:0}
+.sheet-body{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:1fr 322px}
+.form{padding:18px;display:flex;flex-direction:column;gap:17px;min-width:0}
+.prev{border-left:1px solid var(--hairline);background:var(--panel-2);padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field > label,.field > .lbl{font-size:11.5px;font-weight:640;letter-spacing:.05em;text-transform:uppercase;color:var(--fg-3)}
+textarea,.inp{background:var(--panel-2);border:1px solid var(--hairline);border-radius:11px;padding:9px 11px;width:100%;transition:border-color .14s,box-shadow .14s}
+textarea{resize:vertical;min-height:142px;line-height:1.52;font-size:14.5px}
+textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3.5px var(--accent-soft)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row > .field{flex:1;min-width:132px}
+.plats{display:flex;gap:7px;flex-wrap:wrap}
+.plat-pick{
+  display:flex;align-items:center;gap:7px;padding:6px 11px 6px 7px;border-radius:999px;
+  border:1px solid var(--hairline);background:var(--panel-2);font-size:12.5px;font-weight:560;color:var(--fg-2);transition:all .14s
+}
+.plat-pick[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink);font-weight:640}
+.plat-pick[aria-pressed="false"] .tile{opacity:.45;filter:grayscale(.8)}
+.counts{display:flex;flex-direction:column;gap:5px}
+.count{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--fg-2)}
+.count-name{width:76px;flex:none;font-weight:560;color:var(--fg)}
+.bar{flex:1;height:4px;border-radius:4px;background:var(--hairline);overflow:hidden;min-width:40px}
+.bar i{display:block;height:100%;border-radius:4px;background:var(--accent);transition:width .2s ease}
+.count.over .bar i{background:var(--crit)}
+.count-n{font-family:var(--font-num);font-size:11px;font-variant-numeric:tabular-nums;color:var(--fg-3);flex:none;width:86px;text-align:right}
+.count.over .count-n{color:var(--crit);font-weight:700}
+.hint{font-size:12px;color:var(--fg-3);margin:0}
+.hint b{color:var(--fg-2);font-weight:600}
+.sheet-foot{display:flex;align-items:center;gap:8px;flex:none;padding:12px 18px;border-top:1px solid var(--hairline);background:var(--panel)}
+
+/* aperçu */
+.prev-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.prev-tab{padding:4px 9px;border-radius:7px;font-size:12px;font-weight:560;color:var(--fg-2);transition:background .14s}
+.prev-tab:hover{background:var(--hairline-2)}
+.prev-tab[aria-selected="true"]{background:var(--panel);color:var(--fg);box-shadow:var(--shadow-card);font-weight:640}
+.card{background:var(--panel);border:1px solid var(--hairline);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-card)}
+.card-top{display:flex;align-items:center;gap:9px;padding:11px}
+.av{width:33px;height:33px;border-radius:50%;flex:none;background:var(--accent);display:grid;place-items:center;color:var(--accent-fg);font-weight:700;font-size:12px}
+.av.sq{border-radius:9px}
+.card-who{min-width:0;display:flex;flex-direction:column}
+.card-who b{font-size:13px;font-weight:640;letter-spacing:-.01em}
+.card-who span{font-size:11.5px;color:var(--fg-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card-media{
+  aspect-ratio:1/1;max-width:100%;
+  background:repeating-linear-gradient(135deg,var(--panel-2),var(--panel-2) 11px,var(--hairline-2) 11px,var(--hairline-2) 22px);
+  display:grid;place-items:center;color:var(--fg-3);font-size:11.5px;border-block:1px solid var(--hairline-2)
+}
+.card-media.wide{aspect-ratio:16/9}
+.card-media.tall{aspect-ratio:9/16;max-height:290px}
+.card-txt{padding:11px;font-size:13.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.card-txt.clip{display:-webkit-box;-webkit-line-clamp:7;-webkit-box-orient:vertical;overflow:hidden}
+.card-txt .tag{color:var(--accent-ink)}
+.card-bar{display:flex;gap:16px;padding:9px 11px;border-top:1px solid var(--hairline-2);color:var(--fg-3)}
+.card-bar svg{width:16px;height:16px}
+
+/* ---------- toast ---------- */
+.toast{
+  position:fixed;z-index:80;left:50%;transform:translateX(-50%);
+  bottom:calc(22px + env(safe-area-inset-bottom,0px));
+  background:var(--ink);color:var(--panel);padding:9px 16px;border-radius:999px;
+  font-size:13px;font-weight:560;box-shadow:0 8px 28px rgba(0,0,0,.3);
+  animation:pop .22s cubic-bezier(.3,1.4,.5,1);max-width:calc(100% - 32px);text-align:center
+}
+@keyframes pop{from{opacity:0;transform:translateX(-50%) translateY(8px) scale(.95)}to{opacity:1;transform:translateX(-50%)}}
+
+/* ---------- connexion ---------- */
+.gate{
+  position:fixed;inset:0;z-index:90;background:var(--bg);display:grid;place-items:center;overflow:auto;
+  padding-block:24px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px))
+}
+.gate-card{
+  width:min(440px,100%);background:var(--panel);border:1px solid var(--hairline);border-radius:20px;
+  box-shadow:var(--shadow-sheet);padding:28px;display:flex;flex-direction:column;gap:16px
+}
+.gate-card .brand{margin:0}
+.gate-card h2{font-family:var(--font-display);font-size:22px;font-weight:680;letter-spacing:-.025em;margin:0;text-wrap:balance}
+.gate-card > p{margin:0;color:var(--fg-2);font-size:13.5px}
+.gate-card a{color:var(--accent-ink);font-weight:600}
+.gate-row{display:flex;gap:10px;flex-wrap:wrap}
+.gate-row .field{flex:1;min-width:140px}
+.gate-err{margin:0;font-size:12.5px;color:var(--crit);background:var(--crit-soft);padding:8px 10px;border-radius:9px}
+.gate-actions{display:flex;flex-direction:column;gap:8px}
+.gate-actions .btn{justify-content:center;padding:9px 12px}
+.btn:disabled{opacity:.6;cursor:progress}
+
+/* ---------- visuel du post ---------- */
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.media-box{display:flex;align-items:center;gap:10px;padding:8px;border:1px solid var(--hairline);border-radius:11px;background:var(--panel-2);min-width:0}
+.media-thumb{width:52px;height:52px;border-radius:8px;flex:none;object-fit:cover;background:var(--hairline-2)}
+.media-name{flex:1;min-width:0;font-size:12.5px;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.media-name small{display:block;color:var(--fg-3);font-size:11px}
+.media-pick{align-self:flex-start;border:1px dashed var(--hairline);cursor:pointer}
+.warn{margin:0;font-size:12px;color:var(--warn)}
+.card-media img,.card-media video{width:100%;height:100%;object-fit:cover;display:block}
+
+/* ---------- échecs du robot ---------- */
+.pill-failed{background:var(--crit-soft);color:var(--crit)}
+.chip.s-failed{border-left-color:var(--crit)}
+.q-err{font-size:12px;color:var(--crit);white-space:pre-line}
+.alert{margin:0;font-size:12.5px;color:var(--crit);background:var(--crit-soft);padding:9px 11px;border-radius:10px;white-space:pre-line}
+.note.ok i{background:var(--ok)}
+
+/* ---------- barre d'onglets (téléphone) ---------- */
+.tabbar{display:none}
+
+@media (max-width:900px){
+  .sheet-body{grid-template-columns:1fr}
+  .prev{border-left:0;border-top:1px solid var(--hairline)}
+}
+@media (max-width:760px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .day{min-height:78px;padding:4px;gap:3px}
+  .chip-txt{-webkit-line-clamp:1;font-size:10.5px}
+  .cal-head div{padding:6px 4px;font-size:10px;text-align:center}
+  .tb-title{font-size:16px}
+  .toolbar{gap:8px;padding-block:9px;flex-wrap:wrap;padding-left:max(16px,env(safe-area-inset-left,0px))}
+  .pane-pad{padding-left:max(16px,env(safe-area-inset-left,0px));padding-bottom:84px}
+  .seg button{padding:4px 8px;font-size:12px}
+  .btn .lbl{display:none}
+  .sheet{width:100%}
+  .tabbar{
+    display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;
+    background:var(--sidebar);-webkit-backdrop-filter:blur(26px) saturate(160%);backdrop-filter:blur(26px) saturate(160%);
+    border-top:1px solid var(--hairline);
+    padding-block:6px;padding-bottom:calc(6px + env(safe-area-inset-bottom,0px));
+    padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))
+  }
+  .tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;font-weight:560;color:var(--fg-3);padding:3px}
+  .tabbar button[aria-current="true"]{color:var(--accent-ink)}
+  .tabbar svg{width:20px;height:20px}
+  .cal{padding-bottom:78px}
+  .queue{gap:20px}
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#E6D5BD" stroke-width="2.6" stroke-linecap="round">
+          <path d="M3 14c2.5 0 2.5-6 5-6s2.5 10 5 10 2.5-8 5-8h3"/>
+        </svg>
+      </span>
+      <span class="brand-name">Cadence</span>
+    </div>
+
+    <p class="side-label">Vues</p>
+    <div class="side-group" id="navViews"></div>
+
+    <p class="side-label">Réseaux</p>
+    <div class="side-group" id="navPlats"></div>
+
+    <div class="side-foot">
+      <button type="button" id="btnIcs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        Exporter vers mon agenda
+      </button>
+      <button type="button" id="btnTheme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6l1.4 1.4m10 10 1.4 1.4m0-12.8-1.4 1.4m-10 10-1.4 1.4"/></svg>
+        Apparence
+      </button>
+      <button type="button" id="btnWipe" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2m-8 0 1 13h8l1-13"/></svg>
+        Retirer les exemples
+      </button>
+      <button type="button" id="btnAccount">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.9-3.6 3.7-5.6 7-5.6s6.1 2 7 5.6"/></svg>
+        <span id="accountLabel">Se connecter à GitHub</span>
+      </button>
+      <p class="note" id="storeNote"><i></i><span>Aperçu : tes posts restent dans ce navigateur.</span></p>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="toolbar">
+      <div class="stepper" id="stepper">
+        <button type="button" id="btnPrev" aria-label="Mois précédent">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5 8 12l6.5 7"/></svg>
+        </button>
+        <button type="button" id="btnNext" aria-label="Mois suivant">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5 16 12l-6.5 7"/></svg>
+        </button>
+      </div>
+      <h1 class="tb-title" id="tbTitle">—</h1>
+      <button type="button" class="btn btn-ghost" id="btnToday">Aujourd’hui</button>
+      <span class="spacer"></span>
+      <div class="seg" id="segView" role="tablist"></div>
+      <button type="button" class="btn btn-primary" id="btnNew">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        <span class="lbl">Nouveau post</span>
+      </button>
+    </header>
+    <div class="pane" id="pane"></div>
+  </main>
+</div>
+
+<nav class="tabbar" id="tabbar"></nav>
+
+<div class="gate" id="gate" hidden>
+  <form class="gate-card" id="gateForm" novalidate>
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#E6D5BD" stroke-width="2.6" stroke-linecap="round"><path d="M3 14c2.5 0 2.5-6 5-6s2.5 10 5 10 2.5-8 5-8h3"/></svg>
+      </span>
+      <span class="brand-name">Cadence</span>
+    </div>
+    <h2>Connecte-toi à ton dépôt</h2>
+    <p>Cadence range tes posts dans ton dépôt GitHub, et le robot les publie à l’heure prévue.</p>
+    <div class="gate-row">
+      <div class="field">
+        <label for="g-owner">Compte GitHub</label>
+        <input class="inp" id="g-owner" spellcheck="false" autocapitalize="off" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="g-repo">Dépôt</label>
+        <input class="inp" id="g-repo" spellcheck="false" autocapitalize="off" autocomplete="off">
+      </div>
+    </div>
+    <div class="field">
+      <label for="g-token">Jeton d’accès</label>
+      <input class="inp" id="g-token" type="password" spellcheck="false" autocomplete="current-password" placeholder="github_pat_…">
+    </div>
+    <p class="hint">Crée-le sur <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub, jetons à grain fin</a> : accès à ce seul dépôt, permission <b>Contents</b> en lecture et écriture. Il reste sur cet appareil.</p>
+    <p class="gate-err" id="gateErr" hidden></p>
+    <div class="gate-actions">
+      <button type="submit" class="btn btn-primary" id="gateGo">Se connecter</button>
+      <button type="button" class="btn btn-ghost" id="gateLocal">Essayer sans connexion (aperçu local)</button>
+    </div>
+  </form>
+</div>
+
+<script>
+"use strict";
+
+/* ===================== modèle ===================== */
+
+const PLATFORMS = {
+  instagram:{name:"Instagram", mono:"IG", limit:2200,  handle:"@tonprofil",      shape:"square"},
+  facebook: {name:"Facebook",  mono:"f",  limit:63206, handle:"Page · 2 h",      shape:"wide"},
+  linkedin: {name:"LinkedIn",  mono:"in", limit:3000,  handle:"Fondateur · 2 h", shape:"wide"},
+  x:        {name:"X",         mono:"X",  limit:280,   handle:"@tonprofil",      shape:"none", manual:true},
+  tiktok:   {name:"TikTok",    mono:"TT", limit:2200,  handle:"@tonprofil",      shape:"tall"},
+  youtube:  {name:"YouTube",   mono:"YT", limit:5000,  handle:"Ta chaîne",       shape:"wide"},
+};
+const PKEYS = Object.keys(PLATFORMS);
+
+/* États que tu choisis dans le composeur. */
+const STATUS = {
+  draft:    {label:"Brouillon"},
+  scheduled:{label:"Programmé"},
+  published:{label:"Publié"},
+};
+/* « Échec » est posé par le robot : affiché, jamais proposé. */
+const STATE_LABEL = {...STATUS, failed:{label:"Échec"}};
+
+const VIEWS = [
+  {id:"calendar", label:"Calendrier",     icon:'<path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM4 10h16M9 3v4m6-4v4"/>'},
+  {id:"queue",    label:"File d’attente", icon:'<path d="M5 7h14M5 12h14M5 17h9"/>'},
+  {id:"drafts",   label:"Brouillons",     icon:'<path d="M5 19h14M7 15l9.5-9.5a2.1 2.1 0 0 0-3-3L4 12v3h3z"/>'},
+];
+
+/* Exemples chargés à la demande, toujours en brouillon : ils ne partiront jamais seuls. */
+const EXAMPLES = [
+  {text:"Coulisses de l’atelier : 3 prototypes, 1 seul passe le test de chute.\n\nLequel vous tente ?\n\n#madeinfrance #atelier #produit", platforms:["instagram","facebook"], offset:1, time:"09:15", status:"draft"},
+  {text:"On a divisé notre temps de production par deux sans changer de machine. Le détail qui a tout changé : réorganiser le poste, pas l’outil.\n\nJe détaille la méthode en commentaire.", platforms:["linkedin"], offset:2, time:"08:00", status:"draft"},
+  {text:"Petit rappel : un bon produit mal expliqué se vend moins bien qu’un produit moyen bien expliqué.", platforms:["x"], offset:3, time:"12:30", status:"draft"},
+  {text:"Montage accéléré de la nouvelle série : 40 secondes, son calé sur le rythme de la découpe.", platforms:["tiktok","youtube","instagram"], offset:5, time:"18:45", status:"draft"},
+  {text:"Portes ouvertes samedi de 10 h à 17 h. Café, visite de l’atelier, et 15 % sur place.", platforms:["facebook","instagram"], offset:9, time:"10:00", status:"draft"},
+  {text:"Merci pour les 1 000 premiers clients. On garde le même cap : fabriquer ici, réparer plutôt que remplacer.", platforms:["linkedin","instagram"], offset:-4, time:"11:00", status:"published"},
+];
+
+/* ===================== utilitaires ===================== */
+
+const pad = n => String(n).padStart(2,"0");
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const todayKey = () => ymd(new Date());
+const dayOf = s => String(s||"").slice(0,10);
+const timeOf = s => String(s||"").slice(11,16);
+const joinAt = (day,time) => `${day}T${time||"09:00"}`;
+const parseAt = s => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(String(s||""));
+  return m ? new Date(+m[1], +m[2]-1, +m[3], +m[4], +m[5]) : null;
+};
+const addDays = (d,n) => new Date(d.getFullYear(), d.getMonth(), d.getDate()+n);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : "p" + Date.now().toString(36) + Math.random().toString(36).slice(2,8));
+const TZ = Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Paris";
+const firstWords = t => (String(t||"").split("\n").find(l => l.trim()) || "post").trim().slice(0, 50);
+const sizeLabel = n => n >= 1e6 ? `${(n/1e6).toFixed(1).replace(".", ",")} Mo` : `${Math.max(1, Math.round(n/1e3))} Ko`;
+
+const fmtMonth = new Intl.DateTimeFormat("fr-FR",{month:"long"});
+const fmtDayLong = new Intl.DateTimeFormat("fr-FR",{weekday:"long", day:"numeric", month:"long"});
+const WD = ["lun","mar","mer","jeu","ven","sam","dim"];
+
+/** Grille du mois, semaines commençant le lundi. */
+function monthGrid(cursor){
+  const y = cursor.getFullYear(), m = cursor.getMonth();
+  const lead = (new Date(y, m, 1).getDay() + 6) % 7;
+  const days = new Date(y, m+1, 0).getDate();
+  const rows = Math.ceil((lead + days) / 7);
+  const start = new Date(y, m, 1 - lead);
+  return Array.from({length: rows*7}, (_,i) => addDays(start, i));
+}
+
+/* ===================== état ===================== */
+
+const state = {
+  posts: new Map(),
+  view: "calendar",
+  cursor: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  hidden: new Set(),
+  editing: null,
+  previewOn: null,
+  confirmDel: false,
+  busy: false,
+  loading: false,
+};
+
+/* ===================== stockage ===================== */
+/* Deux modes. « github » : chaque post est un fichier posts/<id>.json du dépôt,
+   où le robot le lit et note le résultat. « local » : tout reste dans ce
+   navigateur, pour essayer sans compte ; rien n'y est jamais publié. */
+
+const b64FromBytes = bytes => {
+  let s = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(s);
+};
+const b64FromText = t => b64FromBytes(new TextEncoder().encode(t));
+const textFromB64 = b => new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\s/g, "")), c => c.charCodeAt(0)));
+
+const GH = {
+  owner: "", repo: "", token: "", branch: "main",
+  shas: new Map(),   // chemin → version du fichier, que GitHub exige pour le modifier
+
+  get ready(){ return Boolean(this.owner && this.repo && this.token); },
+
+  restore(){
+    try{ Object.assign(this, JSON.parse(localStorage.getItem("cadence.github") || "{}")); }catch(_){}
+    // Sur GitHub Pages, l'adresse donne déjà le compte et le dépôt.
+    const host = /^([^.]+)\.github\.io$/i.exec(location.hostname);
+    if (host && !this.owner){
+      this.owner = host[1];
+      this.repo = location.pathname.split("/").filter(Boolean)[0] || `${host[1]}.github.io`;
+    }
+  },
+  remember(){
+    try{ localStorage.setItem("cadence.github", JSON.stringify({owner:this.owner, repo:this.repo, token:this.token})); }catch(_){}
+  },
+  forget(){
+    this.token = "";
+    this.shas.clear();
+    try{ localStorage.setItem("cadence.github", JSON.stringify({owner:this.owner, repo:this.repo})); }catch(_){}
+  },
+
+  async api(path, init = {}){
+    const res = await fetch(`https://api.github.com/repos/${this.owner}/${this.repo}${path}`, {
+      cache: "no-store", ...init,
+      headers: {Accept: "application/vnd.github+json", Authorization: `Bearer ${this.token}`, ...(init.headers || {})},
+    });
+    if (res.status === 404 && !init.method) return null;
+    if (!res.ok){
+      const body = await res.json().catch(() => ({}));
+      const err = new Error(body.message || `GitHub a répondu ${res.status}`);
+      err.status = res.status;
+      throw err;
+    }
+    return res.status === 204 ? null : res.json();
+  },
+
+  /** Vérifie le jeton et le droit d'écrire dans le dépôt. */
+  async check(){
+    const repo = await this.api("");
+    if (!repo) throw new Error("Dépôt introuvable : vérifie le compte, le nom du dépôt, et que le jeton y a accès.");
+    if (!repo.permissions?.push) throw new Error("Ce jeton ne peut pas écrire dans le dépôt : donne-lui la permission Contents en lecture et écriture.");
+    this.branch = repo.default_branch || "main";
+  },
+
+  async readJson(path){
+    const f = await this.api(`/contents/${path}?ref=${encodeURIComponent(this.branch)}`);
+    if (!f) return null;
+    this.shas.set(path, f.sha);
+    return JSON.parse(textFromB64(f.content));
+  },
+
+  async list(dir){
+    const items = await this.api(`/contents/${dir}?ref=${encodeURIComponent(this.branch)}`);
+    return Array.isArray(items) ? items : [];
+  },
+
+  async put(path, base64, message){
+    const send = () => this.api(`/contents/${path}`, {method: "PUT", body: JSON.stringify({
+      message, content: base64, branch: this.branch,
+      ...(this.shas.has(path) ? {sha: this.shas.get(path)} : {}),
+    })});
+    let out;
+    try{ out = await send(); }
+    catch(e){
+      // Le fichier a changé entre-temps (le robot, un autre appareil) : on reprend sa version actuelle.
+      if (e.status !== 409 && e.status !== 422) throw e;
+      const f = await this.api(`/contents/${path}?ref=${encodeURIComponent(this.branch)}`);
+      if (f) this.shas.set(path, f.sha); else this.shas.delete(path);
+      out = await send();
+    }
+    this.shas.set(path, out.content.sha);
+  },
+
+  async remove(path, message){
+    if (!this.shas.has(path)){
+      const f = await this.api(`/contents/${path}?ref=${encodeURIComponent(this.branch)}`);
+      if (!f) return;
+      this.shas.set(path, f.sha);
+    }
+    await this.api(`/contents/${path}`, {method: "DELETE",
+      body: JSON.stringify({message, sha: this.shas.get(path), branch: this.branch})});
+    this.shas.delete(path);
+  },
+
+  rawUrl(path){
+    const file = path.split("/").map(encodeURIComponent).join("/");
+    return `https://raw.githubusercontent.com/${this.owner}/${this.repo}/${this.branch}/${file}`;
+  },
+};
+
+const Store = {
+  mode: "local",
+
+  async load(){
+    if (this.mode === "github"){
+      const files = (await GH.list("posts")).filter(f => f.type === "file" && f.name.endsWith(".json"));
+      const posts = new Map();
+      // Six lectures à la fois : rapide, sans saturer GitHub.
+      for (let i = 0; i < files.length; i += 6){
+        const batch = await Promise.all(files.slice(i, i + 6).map(f => GH.readJson(f.path).catch(() => null)));
+        batch.forEach((p, j) => { if (p) posts.set(p.id || files[i + j].name.replace(/\.json$/, ""), p); });
+      }
+      state.posts = posts;
+      return;
+    }
+    try{
+      const raw = localStorage.getItem("cadence.posts");
+      state.posts = raw ? new Map(Object.entries(JSON.parse(raw))) : new Map();
+    }catch(_){ state.posts = new Map(); }
+  },
+
+  saveLocal(){
+    try{ localStorage.setItem("cadence.posts", JSON.stringify(Object.fromEntries(state.posts))); }catch(_){}
+  },
+
+  async put(id, body){
+    if (this.mode === "github"){
+      const path = `posts/${id}.json`;
+      // Le robot écrit aussi dans ce fichier. On garde toujours ses résultats :
+      // un réseau déjà servi ne sera jamais republié.
+      const remote = await GH.readJson(path).catch(() => null);
+      if (remote?.results) body = {...body, results: {...(body.results || {}), ...remote.results}};
+      await GH.put(path, b64FromText(JSON.stringify({id, ...body}, null, 2) + "\n"), `Cadence : ${firstWords(body.text)}`);
+    }
+    state.posts.set(id, body);
+    if (this.mode === "local") this.saveLocal();
+  },
+
+  async drop(id){
+    const p = state.posts.get(id);
+    if (this.mode === "github"){
+      for (const m of p?.media || []) await GH.remove(m.path, "Cadence : visuel supprimé").catch(() => {});
+      await GH.remove(`posts/${id}.json`, `Cadence : post supprimé`);
+    }
+    state.posts.delete(id);
+    if (this.mode === "local") this.saveLocal();
+  },
+
+  async upload(id, file){
+    const safe = file.name.normalize("NFD").replace(/[̀-ͯ]/g, "")
+      .replace(/[^\w.-]+/g, "-").slice(-80) || "visuel";
+    const path = `media/${id}/${Date.now().toString(36)}-${safe}`;
+    await GH.put(path, b64FromBytes(new Uint8Array(await file.arrayBuffer())), `Cadence : visuel ${safe}`);
+    return {path, type: file.type.startsWith("video/") ? "video" : "image"};
+  },
+};
+
+/* ===================== sélecteurs ===================== */
+
+const visible = () => [...state.posts.entries()]
+  .map(([id,p]) => ({id, ...p}))
+  .filter(p => (p.platforms||[]).length === 0 || (p.platforms||[]).some(k => !state.hidden.has(k)));
+const byTime = (a,b) => String(a.at||"").localeCompare(String(b.at||""));
+const countFor = key => [...state.posts.values()].filter(p => (p.platforms||[]).includes(key)).length;
+const hasExamples = () => [...state.posts.values()].some(p => p.example);
+
+const tileHTML = (k, size="") =>
+  `<span class="tile ${size} tile-${k}" aria-hidden="true"><span>${esc(PLATFORMS[k].mono)}</span></span>`;
+
+/* ===================== rendu : navigation ===================== */
+
+function renderNav(){
+  const all = [...state.posts.values()];
+  const counts = {
+    calendar: all.filter(p => p.at).length,
+    queue: all.filter(p => p.status === "scheduled").length,
+    drafts: all.filter(p => p.status === "draft").length,
+  };
+
+  document.getElementById("navViews").innerHTML = VIEWS.map(v => `
+    <button type="button" class="nav-item" data-view="${v.id}" aria-current="${state.view===v.id}">
+      <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${v.icon}</svg>
+      ${v.label}<span class="ni-count">${counts[v.id]}</span>
+    </button>`).join("");
+
+  document.getElementById("navPlats").innerHTML = PKEYS.map(k => {
+    const on = !state.hidden.has(k);
+    return `<button type="button" class="plat-row" data-plat="${k}" aria-pressed="${on}" title="${on?"Masquer":"Afficher"} ${PLATFORMS[k].name}">
+      ${tileHTML(k)}${PLATFORMS[k].name}
+      ${PLATFORMS[k].manual ? `<span class="manual">manuel</span>` : ""}
+      <span class="ni-count">${countFor(k)}</span>
+    </button>`;
+  }).join("");
+
+  document.getElementById("segView").innerHTML = VIEWS.map(v =>
+    `<button type="button" role="tab" data-view="${v.id}" aria-selected="${state.view===v.id}">${v.label}</button>`).join("");
+
+  document.getElementById("tabbar").innerHTML = VIEWS.map(v => `
+    <button type="button" data-view="${v.id}" aria-current="${state.view===v.id}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${v.icon}</svg>
+      ${v.label}
+    </button>`).join("") + `
+    <button type="button" data-act="new">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      Nouveau
+    </button>`;
+
+  document.getElementById("btnWipe").hidden = !hasExamples();
+
+  const online = Store.mode === "github";
+  document.getElementById("accountLabel").textContent = online ? "Se déconnecter" : "Se connecter à GitHub";
+  const note = document.getElementById("storeNote");
+  note.classList.toggle("ok", online);
+  note.querySelector("span").textContent = online
+    ? `Connecté à ${GH.owner}/${GH.repo}. Le robot publie toutes les heures.`
+    : "Aperçu : tes posts restent dans ce navigateur, rien n’est publié.";
+
+  const isCal = state.view === "calendar";
+  document.getElementById("stepper").style.visibility = isCal ? "visible" : "hidden";
+  document.getElementById("btnToday").hidden = !isCal;
+
+  const m = fmtMonth.format(state.cursor);
+  document.getElementById("tbTitle").innerHTML = isCal
+    ? `${m[0].toUpperCase()}${m.slice(1)} <span class="yr">${state.cursor.getFullYear()}</span>`
+    : (state.view === "queue" ? "File d’attente" : "Brouillons");
+}
+
+/* ===================== rendu : calendrier ===================== */
+
+function renderCalendar(){
+  const cells = monthGrid(state.cursor);
+  const month = state.cursor.getMonth();
+  const tKey = todayKey();
+
+  // Les brouillons datés s'affichent aussi, avec un liseré pointillé.
+  const grouped = new Map();
+  for (const p of visible()){
+    const k = dayOf(p.at);
+    if (!k) continue;
+    (grouped.get(k) || grouped.set(k, []).get(k)).push(p);
+  }
+
+  const cellsHTML = cells.map(d => {
+    const key = ymd(d);
+    const list = (grouped.get(key) || []).sort(byTime);
+    const wd = (d.getDay() + 6) % 7;
+    const cls = ["day", d.getMonth() !== month ? "out" : "", wd >= 5 ? "weekend" : "", key === tKey ? "today" : ""]
+      .filter(Boolean).join(" ");
+    return `<div class="${cls}" data-day="${key}">
+      <div class="day-n">
+        <span>${d.getDate()}</span>
+        <button type="button" class="day-add" data-add="${key}" aria-label="Ajouter un post le ${key}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+      </div>
+      ${list.slice(0,3).map(chipHTML).join("")}
+      ${list.length > 3 ? `<button type="button" class="day-more" data-jump="${key}">+ ${list.length-3} autre${list.length-3>1?"s":""}</button>` : ""}
+    </div>`;
+  }).join("");
+
+  return `<div class="cal">
+    <div class="cal-head">${WD.map(w => `<div>${w}</div>`).join("")}</div>
+    <div class="cal-grid">${cellsHTML}</div>
+  </div>`;
+}
+
+function chipHTML(p){
+  const tiles = (p.platforms||[]).slice(0,3).map(k => tileHTML(k,"sm")).join("");
+  return `<button type="button" class="chip s-${esc(p.status||"draft")}" draggable="true" data-open="${esc(p.id)}">
+    <span class="chip-top">
+      <span class="chip-time">${esc(timeOf(p.at) || "—")}</span>
+      <span class="chip-tiles">${tiles}</span>
+    </span>
+    <span class="chip-txt">${esc((p.text||"").split("\n")[0] || "Sans texte")}</span>
+  </button>`;
+}
+
+/* ===================== rendu : file d'attente et brouillons ===================== */
+
+function renderList(kind){
+  const now = new Date();
+  let items = visible();
+
+  if (kind === "drafts"){
+    items = items.filter(p => p.status === "draft").sort(byTime);
+    if (!items.length) return emptyHTML("drafts");
+    return `<div class="pane-pad"><div class="queue"><div class="q-day">
+      <div class="q-day-h"><b>Brouillons</b><span>${items.length} en attente</span></div>
+      ${items.map(p => itemHTML(p, now)).join("")}
+    </div></div></div>`;
+  }
+
+  items = items.filter(p => p.status !== "draft").sort(byTime);
+  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const future = items.filter(p => { const d = parseAt(p.at); return d && d >= startToday; });
+  const list = future.length ? future : items;
+  if (!list.length) return emptyHTML("queue");
+
+  const days = new Map();
+  for (const p of list){
+    const k = dayOf(p.at);
+    (days.get(k) || days.set(k, []).get(k)).push(p);
+  }
+
+  return `<div class="pane-pad"><div class="queue">${[...days.entries()].map(([k,ps]) => {
+    const d = parseAt(k + "T00:00");
+    const label = d ? fmtDayLong.format(d) : k;
+    const rel = relDay(d);
+    return `<div class="q-day">
+      <div class="q-day-h">
+        <b>${label[0].toUpperCase()}${label.slice(1)}</b>
+        ${rel ? `<span>${rel}</span>` : ""}
+        <em>${ps.length} post${ps.length>1?"s":""}</em>
+      </div>
+      ${ps.map(p => itemHTML(p, now)).join("")}
+    </div>`;
+  }).join("")}</div></div>`;
+}
+
+function relDay(d){
+  if (!d) return "";
+  const n = new Date(), base = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  const diff = Math.round((d - base) / 86400000);
+  if (diff === 0) return "aujourd’hui";
+  if (diff === 1) return "demain";
+  if (diff > 1) return `dans ${diff} jours`;
+  if (diff === -1) return "hier";
+  return `il y a ${-diff} jours`;
+}
+
+function itemHTML(p, now){
+  const d = parseAt(p.at);
+  const late = p.status === "scheduled" && d && d < now;
+  const auto = (p.platforms||[]).some(k => !PLATFORMS[k]?.manual);
+  const st = late ? "late" : (p.status || "draft");
+  // Le robot passe toutes les heures : un post à l'heure dépassée l'attend, sauf s'il est 100 % manuel.
+  const stLabel = late ? (auto ? "En attente du robot" : "À publier") : (STATE_LABEL[p.status]?.label || "Brouillon");
+  const manual = (p.manual||[]).includes("x") || ((p.platforms||[]).includes("x") && p.status === "scheduled");
+  return `<button type="button" class="q-item" data-open="${esc(p.id)}">
+    <span class="q-when">${esc(timeOf(p.at) || "--:--")}</span>
+    <span class="q-body">
+      <span class="q-meta">
+        ${(p.platforms||[]).map(k => tileHTML(k,"sm")).join("")}
+        <span class="pill pill-${st}">${stLabel}</span>
+        ${manual ? `<span class="pill pill-manual">X à la main</span>` : ""}
+        ${p.example ? `<span class="pill pill-ex">Exemple</span>` : ""}
+      </span>
+      <span class="q-txt">${esc(p.text || "Sans texte")}</span>
+      ${p.status === "failed" && p.error ? `<span class="q-err">${esc(p.error)}</span>` : ""}
+    </span>
+  </button>`;
+}
+
+function emptyHTML(kind){
+  if (kind === "drafts") return `<div class="pane-pad"><div class="empty">
+    <span class="empty-art"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19h14M7 15l9.5-9.5a2.1 2.1 0 0 0-3-3L4 12v3h3z"/></svg></span>
+    <h2>Aucun brouillon</h2>
+    <p>Les posts pas encore prêts se rangent ici, le temps de trouver le bon créneau.</p>
+    <span class="empty-btns"><button type="button" class="btn btn-primary" data-act="new">Écrire un post</button></span>
+  </div></div>`;
+  return `<div class="pane-pad"><div class="empty">
+    <span class="empty-art"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM4 10h16M9 3v4m6-4v4M12 14v4m-2-2h4"/></svg></span>
+    <h2>Rien de programmé</h2>
+    <p>Écris un post, choisis tes réseaux et pose-le dans le calendrier.</p>
+    <span class="empty-btns">
+      <button type="button" class="btn btn-primary" data-act="new">Écrire un post</button>
+      ${Store.mode === "local" ? `<button type="button" class="btn" data-act="seed">Charger des exemples</button>` : ""}
+    </span>
+  </div></div>`;
+}
+
+/* ===================== rendu : racine ===================== */
+
+function render(){
+  renderNav();
+  const pane = document.getElementById("pane");
+  const keepTop = pane.scrollTop;
+  pane.innerHTML = state.loading && !state.posts.size
+    ? `<div class="pane-pad"><p class="hint">Chargement de tes posts…</p></div>`
+    : state.view === "calendar"
+      ? (state.posts.size === 0 ? emptyHTML("queue") : renderCalendar())
+      : renderList(state.view);
+  pane.scrollTop = keepTop;
+  if (state.editing) renderSheet();
+}
+
+/* ===================== composeur ===================== */
+
+function openPost(id){
+  const p = state.posts.get(id);
+  if (!p) return;
+  state.editing = {id, isNew:false, text:p.text||"", platforms:[...(p.platforms||[])],
+                   day:dayOf(p.at)||todayKey(), time:timeOf(p.at)||"09:00",
+                   status:p.status||"draft", example:!!p.example,
+                   media:[...(p.media||[])], newFile:null, newUrl:null, removeMedia:false};
+  state.previewOn = state.editing.platforms[0] || "instagram";
+  state.confirmDel = false;
+  renderSheet();
+}
+
+function openNew(day){
+  state.editing = {id:uid(), isNew:true, text:"", platforms:["instagram"],
+                   day:day||todayKey(), time:"09:00", status:"scheduled", example:false,
+                   media:[], newFile:null, newUrl:null, removeMedia:false};
+  state.previewOn = "instagram";
+  state.confirmDel = false;
+  renderSheet();
+}
+
+function closeSheet(){
+  if (state.editing?.newUrl) URL.revokeObjectURL(state.editing.newUrl);
+  state.editing = null; state.confirmDel = false;
+  document.getElementById("sheet")?.remove();
+  document.getElementById("scrim")?.remove();
+  document.getElementById("btnNew")?.focus();
+}
+
+function countersHTML(e){
+  if (!e.platforms.length) return `<p class="hint">Choisis au moins un réseau pour voir les limites de caractères.</p>`;
+  return e.platforms.map(k => {
+    const lim = PLATFORMS[k].limit, n = e.text.length, over = n > lim;
+    return `<span class="count ${over?"over":""}">
+      <span class="count-name">${PLATFORMS[k].name}</span>
+      <span class="bar"><i style="width:${Math.min(100, n/lim*100)}%"></i></span>
+      <span class="count-n">${n} / ${lim.toLocaleString("fr-FR")}</span>
+    </span>`;
+  }).join("");
+}
+
+/** Le visuel tel qu'il apparaîtra : le fichier choisi à l'instant, sinon celui déjà dans le dépôt. */
+function mediaView(e){
+  if (e.newFile) return {url: e.newUrl, type: e.newFile.type.startsWith("video/") ? "video" : "image", name: e.newFile.name, size: e.newFile.size};
+  const m = !e.removeMedia && e.media?.[0];
+  return m ? {url: GH.rawUrl(m.path), type: m.type, name: m.path.split("/").pop().replace(/^[a-z0-9]+-/, "")} : null;
+}
+
+/** Ce que chaque réseau exige comme visuel, en clair. */
+function mediaNeeds(e, mv){
+  const out = [];
+  if (e.platforms.includes("instagram") && !mv) out.push("Instagram a besoin d’une image ou d’une vidéo.");
+  const vid = e.platforms.filter(k => k === "tiktok" || k === "youtube").map(k => PLATFORMS[k].name);
+  if (vid.length && mv?.type !== "video") out.push(`${vid.join(" et ")} ${vid.length > 1 ? "ont" : "a"} besoin d’une vidéo.`);
+  if (e.platforms.includes("linkedin") && mv?.type === "video") out.push("LinkedIn n’accepte pas encore de vidéo depuis Cadence.");
+  return out;
+}
+
+function mediaFieldHTML(e){
+  if (Store.mode !== "github") return `<div class="field">
+      <span class="lbl">Visuel</span>
+      <p class="hint">Connecte Cadence à GitHub pour joindre une image ou une vidéo.</p>
+    </div>`;
+  const mv = mediaView(e);
+  const thumb = mv && (mv.type === "video"
+    ? `<video class="media-thumb" src="${esc(mv.url)}" muted playsinline preload="metadata"></video>`
+    : `<img class="media-thumb" src="${esc(mv.url)}" alt="">`);
+  return `<div class="field">
+      <span class="lbl">Visuel</span>
+      ${mv ? `<div class="media-box">
+          ${thumb}
+          <span class="media-name">${esc(mv.name)}<small>${mv.type === "video" ? "Vidéo" : "Image"}${mv.size ? " · " + sizeLabel(mv.size) : ""}</small></span>
+          <button type="button" class="btn btn-ghost" data-sheet="unmedia">Retirer</button>
+        </div>`
+      : `<label class="btn media-pick" for="f-media">Ajouter une image JPEG ou une vidéo MP4</label>`}
+      <input type="file" id="f-media" class="sr-only" accept="image/jpeg,video/mp4,video/quicktime">
+      ${mediaNeeds(e, mv).map(t => `<p class="warn">${t}</p>`).join("")}
+    </div>`;
+}
+
+function renderSheet(){
+  const e = state.editing;
+  if (!e) return;
+  const prevOn = e.platforms.includes(state.previewOn) ? state.previewOn : (e.platforms[0] || "instagram");
+  state.previewOn = prevOn;
+
+  let sheet = document.getElementById("sheet");
+  if (!sheet){
+    const scrim = document.createElement("div");
+    scrim.className = "scrim"; scrim.id = "scrim";
+    scrim.addEventListener("click", closeSheet);
+    document.body.appendChild(scrim);
+    sheet = document.createElement("aside");
+    sheet.className = "sheet"; sheet.id = "sheet";
+    sheet.setAttribute("role","dialog"); sheet.setAttribute("aria-modal","true");
+    document.body.appendChild(sheet);
+  }
+  sheet.setAttribute("aria-label", e.isNew ? "Nouveau post" : "Modifier le post");
+
+  const manualNote = e.platforms.includes("x")
+    ? `<p class="hint"><b>X se publie à la main.</b> Le jour J, ouvre ce post et copie le texte en un clic.</p>` : "";
+  const saved = state.posts.get(e.id);
+  const failure = saved?.status === "failed" && saved.error
+    ? `<p class="alert">${esc(saved.error)}\nCorrige ce qui bloque, puis repasse le post en « Programmé » : seuls les réseaux en échec repartiront.</p>` : "";
+  const xPending = saved && ((saved.manual||[]).includes("x")
+    || ((saved.platforms||[]).every(k => PLATFORMS[k]?.manual) && saved.status === "scheduled"));
+
+  sheet.innerHTML = `
+    <div class="sheet-head">
+      <h2>${e.isNew ? "Nouveau post" : "Modifier le post"}</h2>
+      <span class="spacer"></span>
+      <button type="button" class="btn btn-ghost" data-sheet="copy">Copier le texte</button>
+      <button type="button" class="btn btn-ghost" data-sheet="close" aria-label="Fermer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="sheet-body">
+      <div class="form">
+        ${failure}
+        <div class="field">
+          <label for="f-text">Texte du post</label>
+          <textarea id="f-text" placeholder="Écris ton post. Les hashtags sont mis en avant dans l’aperçu.">${esc(e.text)}</textarea>
+        </div>
+
+        <div class="field">
+          <span class="lbl">Réseaux</span>
+          <div class="plats">${PKEYS.map(k =>
+            `<button type="button" class="plat-pick" data-pick="${k}" aria-pressed="${e.platforms.includes(k)}">
+               ${tileHTML(k)}${PLATFORMS[k].name}
+             </button>`).join("")}</div>
+          ${manualNote}
+        </div>
+
+        ${mediaFieldHTML(e)}
+
+        <div class="field"><span class="lbl">Longueur</span><div class="counts" id="counts">${countersHTML(e)}</div></div>
+
+        <div class="row">
+          <div class="field">
+            <label for="f-day">Date</label>
+            <input class="inp" type="date" id="f-day" value="${esc(e.day)}">
+          </div>
+          <div class="field">
+            <label for="f-time">Heure</label>
+            <input class="inp" type="time" id="f-time" value="${esc(e.time)}">
+          </div>
+          <div class="field">
+            <label for="f-status">État</label>
+            <select class="inp" id="f-status">
+              ${Object.entries(STATUS).map(([k,v]) => `<option value="${k}"${e.status===k?" selected":""}>${v.label}</option>`).join("")}
+              ${!STATUS[e.status] ? `<option value="${esc(e.status)}" selected>${esc(STATE_LABEL[e.status]?.label || e.status)}</option>` : ""}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="prev">
+        <div class="prev-tabs" role="tablist">${(e.platforms.length ? e.platforms : ["instagram"]).map(k =>
+          `<button type="button" role="tab" class="prev-tab" data-prev="${k}" aria-selected="${prevOn===k}">${PLATFORMS[k].name}</button>`).join("")}</div>
+        <div id="prevCard">${previewHTML(prevOn, e.text, mediaView(e))}</div>
+        <p class="hint">Aperçu indicatif : chaque réseau rogne et recadre à sa façon.</p>
+      </div>
+    </div>
+
+    <div class="sheet-foot">
+      ${!e.isNew ? `<button type="button" class="btn ${state.confirmDel?"btn-danger":"btn-ghost"}" data-sheet="del">${state.confirmDel ? "Confirmer la suppression" : "Supprimer"}</button>` : ""}
+      <span class="spacer"></span>
+      ${xPending ? `<button type="button" class="btn" data-sheet="xdone">C’est posté sur X</button>` : ""}
+      <button type="button" class="btn btn-ghost" data-sheet="close">Annuler</button>
+      <button type="button" class="btn btn-primary" data-sheet="save">${e.isNew ? "Programmer" : "Enregistrer"}</button>
+    </div>`;
+
+  if (e.isNew && e.focusText !== false) sheet.querySelector("#f-text").focus();
+}
+
+const cardTextHTML = text => esc(text || "Ton texte apparaîtra ici.")
+  .replace(/(^|\s)(#[\p{L}\p{N}_]+)/gu, "$1<span class=\"tag\">$2</span>");
+
+function previewHTML(k, text, mv){
+  const P = PLATFORMS[k];
+  const body = cardTextHTML(text);
+  const media = {wide:" wide", tall:" tall"}[P.shape] || "";
+  const ratio = {wide:"16:9", tall:"9:16", square:"1:1"}[P.shape];
+  const round = (k === "linkedin" || k === "facebook") ? " sq" : "";
+  const name = (k === "linkedin" || k === "facebook") ? "Ton entreprise" : "Ton compte";
+  return `<div class="card">
+    <div class="card-top">
+      <span class="av${round}">${esc(P.mono)}</span>
+      <span class="card-who"><b>${name}</b><span>${esc(P.handle)}</span></span>
+    </div>
+    ${P.shape === "none" ? "" : `<div class="card-media${media}">${
+      !mv ? `Visuel ${ratio}`
+      : mv.type === "video" ? `<video src="${esc(mv.url)}" muted playsinline loop autoplay></video>`
+      : `<img src="${esc(mv.url)}" alt="">`}</div>`}
+    <div class="card-txt${k==="instagram"||k==="linkedin"?" clip":""}">${body}</div>
+    <div class="card-bar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.7-7 9-7 9z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-3.2-6.4L20 5v5h-5"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 1 3 6.2L4 20l1-3.4A8 8 0 0 1 4 12z"/></svg>
+    </div>
+  </div>`;
+}
+
+/* ===================== actions ===================== */
+
+function setSaving(on){
+  const b = document.querySelector('[data-sheet="save"]');
+  if (!b) return;
+  b.disabled = on;
+  b.textContent = on ? "Enregistrement…" : (state.editing?.isNew ? "Programmer" : "Enregistrer");
+}
+
+async function saveSheet(){
+  const e = state.editing;
+  if (!e || state.busy) return;
+  if (!e.text.trim()){ toast("Écris d’abord le texte du post."); return; }
+  if (!e.platforms.length){ toast("Choisis au moins un réseau."); return; }
+  // Un brouillon peut rester incomplet ; un post programmé doit pouvoir partir.
+  const missing = Store.mode === "github" ? mediaNeeds(e, mediaView(e)) : [];
+  if (e.status === "scheduled" && missing.length){ toast(`${missing[0]} Ajoute-la, ou enregistre en brouillon.`); return; }
+
+  state.busy = true; setSaving(true);
+  try{
+    const prev = state.posts.get(e.id) || {};
+    let media = e.removeMedia ? [] : (e.media || []);
+    if (e.newFile){
+      toast(e.newFile.type.startsWith("video/") ? "Envoi de la vidéo vers GitHub…" : "Envoi de l’image vers GitHub…");
+      media = [await Store.upload(e.id, e.newFile)];
+    }
+    if ((e.newFile || e.removeMedia) && e.media?.length){
+      for (const m of e.media) await GH.remove(m.path, "Cadence : ancien visuel retiré").catch(() => {});
+    }
+    const body = {...prev, text:e.text.trim(), platforms:e.platforms, at:joinAt(e.day, e.time),
+                  timezone: prev.timezone || TZ, status:e.status, media, updatedAt:new Date().toISOString()};
+    if (e.status !== "failed") delete body.error;
+    if (e.example) body.example = true;
+    await Store.put(e.id, body);
+    const isNew = e.isNew;
+    closeSheet();
+    toast(isNew ? (body.status === "scheduled" ? "Post programmé." : "Post enregistré.") : "Modifications enregistrées.");
+    render();
+  }catch(err){
+    toast(`GitHub a refusé l’enregistrement : ${err.message}`);
+  }finally{
+    state.busy = false; setSaving(false);
+  }
+}
+
+async function delSheet(){
+  if (!state.confirmDel){ state.confirmDel = true; renderSheet(); return; }
+  const id = state.editing.id;
+  try{
+    await Store.drop(id);
+    closeSheet();
+    toast("Post supprimé.");
+    render();
+  }catch(err){ toast(`GitHub a refusé la suppression : ${err.message}`); }
+}
+
+/* X se publie à la main : ce bouton note que c'est fait. */
+async function markXDone(){
+  const id = state.editing?.id, p = state.posts.get(id);
+  if (!p || state.busy) return;
+  state.busy = true;
+  try{
+    const onlyManual = (p.platforms||[]).every(k => PLATFORMS[k]?.manual);
+    await Store.put(id, {...p, manual: (p.manual||[]).filter(n => n !== "x"),
+                         status: onlyManual ? "published" : p.status, updatedAt: new Date().toISOString()});
+    closeSheet();
+    toast("Noté : posté sur X.");
+    render();
+  }catch(err){ toast(`GitHub a refusé l’enregistrement : ${err.message}`); }
+  finally{ state.busy = false; }
+}
+
+async function seedExamples(){
+  const base = new Date();
+  for (const x of EXAMPLES){
+    await Store.put(uid(), {text:x.text, platforms:x.platforms, at:joinAt(ymd(addDays(base, x.offset)), x.time),
+                            timezone:TZ, status:x.status, example:true, updatedAt:new Date().toISOString()});
+  }
+  toast("Exemples chargés, en brouillon : ils ne partiront jamais seuls.");
+  render();
+}
+
+async function wipeExamples(){
+  for (const [id,p] of [...state.posts]) if (p.example) await Store.drop(id);
+  toast("Exemples retirés.");
+  render();
+}
+
+async function moveTo(id, day){
+  const p = state.posts.get(id);
+  if (!p || dayOf(p.at) === day) return;
+  try{
+    await Store.put(id, {...p, at: joinAt(day, timeOf(p.at) || "09:00"), updatedAt:new Date().toISOString()});
+    render();
+    toast("Post déplacé.");
+  }catch(err){ toast(`GitHub a refusé le déplacement : ${err.message}`); }
+}
+
+/* Export .ics : chaque post daté devient un rendez-vous de 15 minutes dans ton agenda. */
+function icsText(rows){
+  const stamp = d => `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+  const fold = s => s.replace(/[\\;,]/g, m => "\\" + m).replace(/\n/g, "\\n");
+  const out = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Cadence//FR","CALSCALE:GREGORIAN","X-WR-CALNAME:Cadence"];
+  for (const p of rows){
+    const d = parseAt(p.at), end = new Date(d.getTime() + 15*60000);
+    const names = (p.platforms||[]).map(k => PLATFORMS[k].name).join(", ") || "Réseaux";
+    out.push("BEGIN:VEVENT", `UID:${p.id}@cadence`, `DTSTAMP:${stamp(new Date())}`,
+      `DTSTART:${stamp(d)}`, `DTEND:${stamp(end)}`,
+      `SUMMARY:${fold("Post " + names)}`, `DESCRIPTION:${fold(p.text||"")}`, "END:VEVENT");
+  }
+  out.push("END:VCALENDAR");
+  return out.join("\r\n");
+}
+
+function exportIcs(){
+  const rows = [...state.posts.entries()].map(([id,p]) => ({id, ...p}))
+    .filter(p => p.status !== "draft" && parseAt(p.at));
+  if (!rows.length){ toast("Rien à exporter : programme d’abord un post."); return; }
+  const url = URL.createObjectURL(new Blob([icsText(rows)], {type:"text/calendar"}));
+  const a = Object.assign(document.createElement("a"), {href:url, download:"cadence.ics"});
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+  toast(`${rows.length} post${rows.length>1?"s":""} exporté${rows.length>1?"s":""}.`);
+}
+
+let toastT = null;
+function toast(msg){
+  document.getElementById("toast")?.remove();
+  const el = document.createElement("div");
+  el.className = "toast"; el.id = "toast"; el.setAttribute("role","status");
+  el.textContent = msg;
+  document.body.appendChild(el);
+  clearTimeout(toastT);
+  toastT = setTimeout(() => el.remove(), 2600);
+}
+
+/* ===================== évènements ===================== */
+
+document.addEventListener("click", ev => {
+  const t = ev.target;
+
+  const nav = t.closest("[data-view]");
+  if (nav){ state.view = nav.dataset.view; render(); return; }
+
+  const plat = t.closest("[data-plat]");
+  if (plat){
+    const k = plat.dataset.plat;
+    state.hidden.has(k) ? state.hidden.delete(k) : state.hidden.add(k);
+    render(); return;
+  }
+
+  const act = t.closest("[data-act]");
+  if (act){
+    if (act.dataset.act === "new") openNew();
+    if (act.dataset.act === "seed") seedExamples();
+    return;
+  }
+
+  const add = t.closest("[data-add]");
+  if (add){ openNew(add.dataset.add); return; }
+
+  if (t.closest("[data-jump]")){ state.view = "queue"; render(); return; }
+
+  const open = t.closest("[data-open]");
+  if (open){ openPost(open.dataset.open); return; }
+
+  const pick = t.closest("[data-pick]");
+  if (pick && state.editing){
+    const k = pick.dataset.pick, arr = state.editing.platforms, i = arr.indexOf(k);
+    i >= 0 ? arr.splice(i,1) : arr.push(k);
+    state.editing.focusText = false;
+    renderSheet(); return;
+  }
+
+  const prev = t.closest("[data-prev]");
+  if (prev && state.editing){ state.previewOn = prev.dataset.prev; state.editing.focusText = false; renderSheet(); return; }
+
+  const sh = t.closest("[data-sheet]");
+  if (sh){
+    const a = sh.dataset.sheet;
+    if (a === "close") closeSheet();
+    if (a === "save") saveSheet();
+    if (a === "del") delSheet();
+    if (a === "xdone") markXDone();
+    if (a === "unmedia" && state.editing){
+      const e = state.editing;
+      if (e.newUrl) URL.revokeObjectURL(e.newUrl);
+      Object.assign(e, {newFile:null, newUrl:null, removeMedia: Boolean(e.media?.length), focusText:false});
+      renderSheet();
+    }
+    if (a === "copy"){
+      const txt = state.editing?.text || "";
+      const fallback = () => { document.getElementById("f-text")?.select(); toast("Texte sélectionné : copie-le avec ⌘C."); };
+      try{ navigator.clipboard.writeText(txt).then(() => toast("Texte copié."), fallback); }catch(_){ fallback(); }
+    }
+  }
+});
+
+document.addEventListener("input", ev => {
+  const e = state.editing;
+  if (!e) return;
+  const id = ev.target.id;
+  if (id === "f-text"){
+    e.text = ev.target.value;
+    // Compteurs et aperçu mis à jour sans reconstruire le champ de saisie.
+    document.getElementById("counts").innerHTML = countersHTML(e);
+    const txt = document.querySelector("#prevCard .card-txt");
+    if (txt) txt.innerHTML = cardTextHTML(e.text);
+    return;
+  }
+  if (id === "f-day") e.day = ev.target.value || todayKey();
+  if (id === "f-time") e.time = ev.target.value || "09:00";
+});
+
+document.addEventListener("change", ev => {
+  const e = state.editing;
+  if (!e) return;
+  if (ev.target.id === "f-status") e.status = ev.target.value;
+  if (ev.target.id === "f-media"){
+    const file = ev.target.files?.[0];
+    if (!file) return;
+    if (file.size > 95e6){ toast("Fichier trop lourd : GitHub refuse les fichiers de plus de 100 Mo."); ev.target.value = ""; return; }
+    if (e.newUrl) URL.revokeObjectURL(e.newUrl);
+    Object.assign(e, {newFile:file, newUrl:URL.createObjectURL(file), removeMedia:false, focusText:false});
+    renderSheet();
+  }
+});
+
+document.addEventListener("keydown", ev => {
+  if (!document.getElementById("gate").hidden) return;
+  if (ev.key === "Escape" && state.editing){ closeSheet(); return; }
+  if (state.editing){
+    if ((ev.metaKey || ev.ctrlKey) && ev.key === "Enter"){ ev.preventDefault(); saveSheet(); }
+    return;
+  }
+  if (ev.target.matches("input,textarea,select")) return;
+  if (ev.key === "n" || ev.key === "N"){ ev.preventDefault(); openNew(); }
+  if (state.view === "calendar"){
+    if (ev.key === "ArrowLeft") step(-1);
+    if (ev.key === "ArrowRight") step(1);
+  }
+});
+
+/* Glisser-déposer un post d'un jour à l'autre. */
+let dragId = null;
+document.addEventListener("dragstart", ev => {
+  const chip = ev.target.closest?.(".chip");
+  if (!chip) return;
+  dragId = chip.dataset.open;
+  chip.classList.add("dragging");
+  ev.dataTransfer.effectAllowed = "move";
+  try{ ev.dataTransfer.setData("text/plain", dragId); }catch(_){}
+});
+document.addEventListener("dragend", ev => {
+  ev.target.closest?.(".chip")?.classList.remove("dragging");
+  document.querySelectorAll(".day.drop").forEach(d => d.classList.remove("drop"));
+  dragId = null;
+});
+document.addEventListener("dragover", ev => {
+  const day = ev.target.closest?.(".day");
+  if (!day || !dragId) return;
+  ev.preventDefault();
+  document.querySelectorAll(".day.drop").forEach(d => d !== day && d.classList.remove("drop"));
+  day.classList.add("drop");
+});
+document.addEventListener("drop", ev => {
+  const day = ev.target.closest?.(".day");
+  if (!day || !dragId) return;
+  ev.preventDefault();
+  day.classList.remove("drop");
+  const id = dragId; dragId = null;
+  moveTo(id, day.dataset.day);
+});
+
+function step(n){
+  state.cursor = new Date(state.cursor.getFullYear(), state.cursor.getMonth() + n, 1);
+  render();
+}
+
+document.getElementById("btnPrev").addEventListener("click", () => step(-1));
+document.getElementById("btnNext").addEventListener("click", () => step(1));
+document.getElementById("btnToday").addEventListener("click", () => {
+  const n = new Date();
+  state.cursor = new Date(n.getFullYear(), n.getMonth(), 1);
+  render();
+});
+document.getElementById("btnNew").addEventListener("click", () => openNew());
+document.getElementById("btnIcs").addEventListener("click", exportIcs);
+document.getElementById("btnWipe").addEventListener("click", wipeExamples);
+document.getElementById("btnTheme").addEventListener("click", () => {
+  const cur = document.documentElement.getAttribute("data-theme");
+  const dark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  const next = dark ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  try{ localStorage.setItem("cadence.theme", next); }catch(_){}
+});
+
+try{
+  const th = localStorage.getItem("cadence.theme");
+  if (th === "dark" || th === "light") document.documentElement.setAttribute("data-theme", th);
+}catch(_){}
+
+/* ===================== connexion et démarrage ===================== */
+
+function showGate(message){
+  document.getElementById("gate").hidden = false;
+  document.getElementById("g-owner").value = GH.owner || "";
+  document.getElementById("g-repo").value = GH.repo || "cadence";
+  document.getElementById("g-token").value = "";
+  const err = document.getElementById("gateErr");
+  err.hidden = !message;
+  err.textContent = message || "";
+  document.getElementById(GH.owner ? "g-token" : "g-owner").focus();
+}
+const hideGate = () => { document.getElementById("gate").hidden = true; };
+const setLocalChoice = on => { try{ on ? localStorage.setItem("cadence.local", "1") : localStorage.removeItem("cadence.local"); }catch(_){} };
+
+async function reload(){
+  state.loading = true; render();
+  try{ await Store.load(); }
+  catch(err){ toast(`Impossible de lire tes posts sur GitHub : ${err.message}`); }
+  finally{ state.loading = false; render(); }
+}
+
+document.getElementById("gateForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const owner = document.getElementById("g-owner").value.trim();
+  const repo = document.getElementById("g-repo").value.trim();
+  const token = document.getElementById("g-token").value.trim();
+  const err = document.getElementById("gateErr");
+  if (!owner || !repo || !token){ err.textContent = "Remplis les trois champs."; err.hidden = false; return; }
+
+  const go = document.getElementById("gateGo");
+  go.disabled = true; go.textContent = "Vérification…";
+  Object.assign(GH, {owner, repo, token});
+  try{
+    await GH.check();
+    GH.remember(); setLocalChoice(false);
+    Store.mode = "github";
+    hideGate();
+    await reload();
+    toast(`Connecté à ${owner}/${repo}.`);
+  }catch(e){
+    GH.token = "";
+    showGate(e.status === 401 ? "GitHub refuse ce jeton : vérifie-le, ou crée-en un nouveau." : e.message);
+  }finally{
+    go.disabled = false; go.textContent = "Se connecter";
+  }
+});
+
+document.getElementById("gateLocal").addEventListener("click", async () => {
+  setLocalChoice(true);
+  Store.mode = "local";
+  hideGate();
+  await reload();
+});
+
+document.getElementById("btnAccount").addEventListener("click", async () => {
+  if (Store.mode === "github"){
+    GH.forget();
+    Store.mode = "local";
+    state.posts = new Map();
+    render();
+    showGate();
+    toast("Déconnecté.");
+    return;
+  }
+  showGate();
+});
+
+async function boot(){
+  GH.restore();
+  let localChoice = false;
+  try{ localChoice = localStorage.getItem("cadence.local") === "1"; }catch(_){}
+
+  if (GH.ready){
+    Store.mode = "github";
+    try{ await GH.check(); await reload(); }
+    catch(e){
+      Store.mode = "local"; GH.token = "";
+      render();
+      showGate(e.status === 401 ? "Ton jeton GitHub a expiré ou a été révoqué : colles-en un nouveau." : e.message);
+    }
+    return;
+  }
+  await reload();
+  if (!localChoice) showGate();
+}
+
+boot();
+</script>
+</body>
+</html>

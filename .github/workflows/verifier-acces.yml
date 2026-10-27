@@ -1,0 +1,26 @@
+# Chaque matin, vérifie que les accès Meta et LinkedIn marchent encore.
+# L'accès LinkedIn expire tous les 60 jours : tu es prévenu 7 jours avant, par e-mail.
+name: Vérifier les accès
+
+on:
+  schedule:
+    - cron: "17 6 * * *"   # 7 h 17 à Paris en hiver, 8 h 17 en été
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node robot/publish.mjs --check
+        env:
+          META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
+          LINKEDIN_TOKEN: ${{ secrets.LINKEDIN_TOKEN }}
+          LINKEDIN_TOKEN_EXPIRES: ${{ secrets.LINKEDIN_TOKEN_EXPIRES }}
