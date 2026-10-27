@@ -314,8 +314,18 @@ async function checkAccess() {
 
   if (env.META_PAGE_TOKEN) {
     try {
-      await call(`${GRAPH}/me?fields=id&access_token=${encodeURIComponent(env.META_PAGE_TOKEN)}`);
-      ok.push("Meta (Instagram, Facebook) : accès valide");
+      const t = encodeURIComponent(env.META_PAGE_TOKEN);
+      await call(`${GRAPH}/me?fields=id&access_token=${t}`);
+      // La clé s'inspecte elle-même : expires_at vaut 0 quand elle n'expire jamais.
+      let expiresAt = null;
+      try {
+        const {body} = await call(`${GRAPH}/debug_token?input_token=${t}&access_token=${t}`);
+        expiresAt = body?.data?.expires_at ?? null;
+      } catch { /* l'inspection est un plus : l'accès lui-même est déjà validé */ }
+      const days = expiresAt ? Math.floor((expiresAt * 1000 - NOW) / 86_400_000) : null;
+      if (expiresAt === 0) ok.push("Meta (Instagram, Facebook) : accès valide, n'expire pas");
+      else if (days !== null && days <= 7) problems.push(`Meta : la clé expire dans ${Math.max(days, 0)} jour${days > 1 ? "s" : ""}. Régénère META_PAGE_TOKEN.`);
+      else ok.push(`Meta (Instagram, Facebook) : accès valide${days !== null ? `, encore ${days} jours` : ""}`);
     } catch (e) { problems.push(`Meta : l'accès ne fonctionne plus (${e.message}). Régénère META_PAGE_TOKEN.`); }
   }
 
