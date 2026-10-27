@@ -102,18 +102,36 @@ Programme un post de test dans Cadence pour dans quelques minutes, puis va dans 
 ## À savoir
 
 - **Tes posts programmés sont visibles dans le dépôt public** avant leur publication. C'est nécessaire : Instagram, Facebook et Zernio téléchargent tes visuels depuis un lien public.
-- **Formats de visuels** : une seule image ou une seule vidéo par post. Instagram n'accepte que le **JPEG** pour les images, et la vidéo y est publiée en Reel. TikTok et YouTube exigent une vidéo.
-- **YouTube** : la première ligne du texte devient le titre (100 caractères au plus), et le texte entier la description. Une vidéo verticale de moins de 3 minutes est classée en Short.
+- **Visuels** : un post porte **une vidéo**, ou **une à plusieurs images**. Plusieurs images forment un carrousel, dans l'ordre choisi (Instagram, TikTok, Facebook). Pour LinkedIn, tu peux ajouter un **PDF** : il est publié en carrousel à faire défiler, à la place des images.
+- **YouTube** : la première ligne du texte devient le titre (100 caractères au plus), et le texte entier la description. Une vidéo verticale de 3 minutes au plus devient un Short.
 - **LinkedIn** : un même texte publié deux fois est refusé par LinkedIn, même à plusieurs semaines d'écart.
 - **Taille des vidéos** : GitHub refuse les fichiers de plus de 100 Mo. Supprimer une vidéo ne libère pas de place, car Git garde l'historique. Pour des vidéos courtes et peu nombreuses, ça va.
 - **Ponctualité** : le robot passe chaque heure, à la 7e minute, et GitHub le lance parfois avec un peu de retard. Un post prévu à 9 h 00 part donc vers 9 h 10 ou un peu plus tard.
 - **Plus de 48 h de retard** : un post en retard de plus de 48 h n'est pas publié. Il passe en échec pour que tu décides.
 - **60 jours sans activité** : sur un dépôt public, GitHub suspend les tâches planifiées si le dépôt ne bouge pas pendant 60 jours, et prévient par e-mail. Publier régulièrement suffit à l'éviter.
 
+## Les règles de chaque réseau
+
+Cadence vérifie chaque post avant de le programmer : dans le composeur, chaque réseau coché affiche « Prêt » ou ce qu'il faut corriger. Un post qui enfreint une règle ne peut être enregistré qu'en brouillon. Le robot refait ces vérifications au moment de publier.
+
+| Réseau | Texte | Images | Vidéo |
+|---|---|---|---|
+| Instagram | 2 200 caractères, 30 hashtags, 20 mentions | JPEG, 8 Mo, proportions entre 4:5 et 1,91:1, 10 par carrousel | MP4 ou MOV, 3 s à 15 min, 300 Mo (Reel) |
+| Facebook | 63 206 caractères | JPEG ou PNG, 10 Mo | MP4 ou MOV, 20 min |
+| TikTok | 2 200 caractères (4 000 pour un carrousel photo) | JPEG, PNG ou WebP, 20 Mo, 35 par carrousel | MP4, MOV ou WebM, 3 s à 10 min, verticale conseillée |
+| YouTube | titre 100 caractères, description 5 000 | — | obligatoire, 15 min au plus sans vérification de la chaîne |
+| LinkedIn | 3 000 caractères | JPEG, PNG ou GIF, 8 Mo, 20 par post ; ou un PDF de 100 Mo | MP4 ou MOV, 3 s à 30 min |
+| X | 280 caractères | — | — (publication à la main) |
+
+Pour tous : GitHub refuse les fichiers de plus de 100 Mo. Ces limites sont toutes dans `rules.js`. Si un réseau les change, c'est le seul fichier à mettre à jour.
+
 ## Les fichiers
 
 ```
 index.html                               l'app Cadence (GitHub Pages)
+rules.js                                 les règles de chaque réseau (lues par l'app et le robot)
+confidentialite.html                     règles de confidentialité et conditions (exigées par Google)
+logo/                                    le logo, en SVG et en PNG
 posts/<id>.json                          un fichier par post
 media/<id>/…                             le visuel du post
 robot/publish.mjs                        le robot : publication, vérification, aide

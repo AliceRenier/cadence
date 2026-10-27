@@ -2,3 +2,6 @@
 node_modules/
 # Ancienne version (artifact Claude + Supabase), remplacée par index.html
 cadence.html
+
+# Réglages locaux de Claude Code
+.claude/

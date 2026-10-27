@@ -16,9 +16,12 @@
 //
 // Variables : DRY_RUN=1 valide sans rien publier ; NOW=2026-10-28T08:20:00Z simule une heure.
 
-import { readdir, readFile, writeFile, appendFile } from "node:fs/promises";
+import { readdir, readFile, writeFile, appendFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import "../rules.js";   // règles de chaque réseau, partagées avec l'interface
+
+const { check: checkRules } = globalThis.CadenceRules;
 
 const env = process.env;
 const DRY_RUN = env.DRY_RUN === "1";
@@ -89,12 +92,26 @@ function rawUrl(p) {
   return `https://raw.githubusercontent.com/${env.GITHUB_REPOSITORY}/${ref}/${file}`;
 }
 
+/**
+ * Les visuels d'un post : une vidéo, OU une à plusieurs images (carrousel),
+ * plus éventuellement un PDF réservé à LinkedIn.
+ */
 function mediaOf(post) {
-  const m = (post.media || [])[0];
-  if (!m?.path) return null;
-  const type = m.type || (/\.(mp4|mov|m4v|webm)$/i.test(m.path) ? "video" : "image");
-  return {path: m.path, type, url: rawUrl(m.path)};
+  const items = (post.media || []).filter(m => m?.path).map(m => ({
+    path: m.path,
+    type: m.type || (/\.(mp4|mov|m4v|webm)$/i.test(m.path) ? "video" : /\.pdf$/i.test(m.path) ? "document" : "image"),
+    url: rawUrl(m.path),
+  }));
+  return {
+    video: items.find(i => i.type === "video") || null,
+    images: items.filter(i => i.type === "image"),
+    document: items.find(i => i.type === "document") || null,
+  };
 }
+
+/** Les visuels au format Zernio : la vidéo, sinon les images dans l'ordre choisi. */
+const zernioVisuals = m => m.video ? [{url: m.video.url, type: "video"}]
+  : m.images.map(i => ({url: i.url, type: "image"}));
 
 const firstLine = (text, max) =>
   (String(text || "").split("\n").find(l => l.trim()) || "Nouvelle vidéo").trim().slice(0, max);
@@ -118,51 +135,73 @@ async function googleAccessToken() {
 /* Réseaux : chaque réseau valide d'abord, puis publie                 */
 /* ------------------------------------------------------------------ */
 
+/** Instagram télécharge puis traite chaque média : on attend qu'il soit prêt (5 min au plus). */
+async function waitInstagram(containerId, access_token) {
+  for (let i = 0; ; i++) {
+    const {body: s} = await call(
+      `${GRAPH}/${containerId}?fields=status_code&access_token=${encodeURIComponent(access_token)}`);
+    if (s.status_code === "FINISHED") return;
+    if (s.status_code === "ERROR" || s.status_code === "EXPIRED")
+      throw new Error(`Instagram a refusé un média (${s.status_code}). Vérifie son format et sa taille.`);
+    if (i >= 30) throw new Error("Instagram met plus de 5 minutes à traiter le média.");
+    await sleep(10_000);
+  }
+}
+
 const NETWORKS = {
   facebook: {
     validate() {},
-    async publish(post, media) {
+    async publish(post, m) {
       need("META_PAGE_ID", "META_PAGE_TOKEN");
       const page = env.META_PAGE_ID, access_token = env.META_PAGE_TOKEN;
-      if (!media) {
-        const {body} = await call(`${GRAPH}/${page}/feed`,
-          {method: "POST", body: form({message: post.text, access_token})});
-        return body.id;
-      }
-      if (media.type === "video") {
+      if (m.video) {
         const {body} = await call(`${GRAPH_VIDEO}/${page}/videos`,
-          {method: "POST", body: form({file_url: media.url, description: post.text, access_token})});
+          {method: "POST", body: form({file_url: m.video.url, description: post.text, access_token})});
         return body.id;
       }
-      const {body} = await call(`${GRAPH}/${page}/photos`,
-        {method: "POST", body: form({url: media.url, message: post.text, access_token})});
-      return body.post_id || body.id;
+      if (m.images.length === 1) {
+        const {body} = await call(`${GRAPH}/${page}/photos`,
+          {method: "POST", body: form({url: m.images[0].url, message: post.text, access_token})});
+        return body.post_id || body.id;
+      }
+      // Plusieurs images : on les dépose sans les publier, puis un seul post les regroupe.
+      const attached = {};
+      for (const [n, img] of m.images.entries()) {
+        const {body} = await call(`${GRAPH}/${page}/photos`,
+          {method: "POST", body: form({url: img.url, published: "false", access_token})});
+        attached[`attached_media[${n}]`] = JSON.stringify({media_fbid: body.id});
+      }
+      const {body} = await call(`${GRAPH}/${page}/feed`,
+        {method: "POST", body: form({message: post.text, ...attached, access_token})});
+      return body.id;
     },
   },
 
   instagram: {
-    validate(post, media) {
-      if (!media) throw new Error("Instagram exige une image ou une vidéo.");
+    validate(post, m) {
+      if (!m.video && !m.images.length) throw new Error("Instagram exige une image ou une vidéo.");
+      if (!m.video && m.images.length > 10) throw new Error("Instagram accepte 10 images au plus dans un carrousel.");
     },
-    async publish(post, media) {
+    async publish(post, m) {
       need("META_IG_USER_ID", "META_PAGE_TOKEN");
       const ig = env.META_IG_USER_ID, access_token = env.META_PAGE_TOKEN;
-      const params = media.type === "video"
-        ? {media_type: "REELS", video_url: media.url, caption: post.text}
-        : {image_url: media.url, caption: post.text};
+      let params;
+      if (m.video) params = {media_type: "REELS", video_url: m.video.url, caption: post.text};
+      else if (m.images.length === 1) params = {image_url: m.images[0].url, caption: post.text};
+      else {
+        // Carrousel : un conteneur par image, puis un conteneur qui les regroupe.
+        const children = [];
+        for (const img of m.images) {
+          const {body} = await call(`${GRAPH}/${ig}/media`,
+            {method: "POST", body: form({image_url: img.url, is_carousel_item: "true", access_token})});
+          await waitInstagram(body.id, access_token);
+          children.push(body.id);
+        }
+        params = {media_type: "CAROUSEL", children: children.join(","), caption: post.text};
+      }
       const {body: container} = await call(`${GRAPH}/${ig}/media`,
         {method: "POST", body: form({...params, access_token})});
-
-      // Instagram télécharge puis traite le média : on attend qu'il soit prêt (5 min au plus).
-      for (let i = 0; ; i++) {
-        const {body: s} = await call(
-          `${GRAPH}/${container.id}?fields=status_code&access_token=${encodeURIComponent(access_token)}`);
-        if (s.status_code === "FINISHED") break;
-        if (s.status_code === "ERROR" || s.status_code === "EXPIRED")
-          throw new Error(`Instagram a refusé le média (${s.status_code}). Vérifie son format et sa taille.`);
-        if (i >= 30) throw new Error("Instagram met plus de 5 minutes à traiter le média.");
-        await sleep(10_000);
-      }
+      await waitInstagram(container.id, access_token);
       const {body} = await call(`${GRAPH}/${ig}/media_publish`,
         {method: "POST", body: form({creation_id: container.id, access_token})});
       return body.id;
@@ -170,13 +209,13 @@ const NETWORKS = {
   },
 
   youtube: {
-    validate(post, media) {
-      if (media?.type !== "video") throw new Error("YouTube exige une vidéo.");
+    validate(post, m) {
+      if (!m.video) throw new Error("YouTube exige une vidéo.");
     },
-    async publish(post, media) {
+    async publish(post, m) {
       const token = await googleAccessToken();
-      const bytes = await readFile(media.path);
-      const type = /\.mov$/i.test(media.path) ? "video/quicktime" : "video/mp4";
+      const bytes = await readFile(m.video.path);
+      const type = /\.mov$/i.test(m.video.path) ? "video/quicktime" : "video/mp4";
 
       // Envoi en deux temps : on décrit la vidéo, YouTube répond avec l'adresse où déposer le fichier.
       const init = await fetch(
@@ -204,33 +243,58 @@ const NETWORKS = {
     },
   },
 
-  tiktok: zernioNetwork("tiktok", "ZERNIO_TIKTOK_ID", {needsVideo: true}),
-  linkedin: zernioNetwork("linkedin", "ZERNIO_LINKEDIN_ID"),
+  tiktok: {
+    validate(post, m) {
+      if (!m.video && !m.images.length) throw new Error("TikTok exige une vidéo ou des images.");
+      if (!m.video && m.images.length > 35) throw new Error("TikTok accepte 35 images au plus dans un carrousel.");
+    },
+    publish(post, m) {
+      // TikTok exige ces confirmations sur chaque post (obligation légale de leur côté).
+      const tiktokSettings = {
+        privacyLevel: "PUBLIC_TO_EVERYONE",
+        allowComment: true,
+        contentPreviewConfirmed: true,
+        expressConsentGiven: true,
+        ...(m.video ? {allowDuet: true, allowStitch: true}
+                    : {photoCoverIndex: 0, autoAddMusic: true}),
+      };
+      return zernioPost("tiktok", "ZERNIO_TIKTOK_ID", post, zernioVisuals(m), {tiktokSettings});
+    },
+  },
+
+  linkedin: {
+    validate() {},
+    publish(post, m) {
+      // Le PDF fourni pour LinkedIn passe avant les autres visuels : c'est le format carrousel de LinkedIn.
+      if (m.document) {
+        const title = firstLine(post.text, 100);
+        return zernioPost("linkedin", "ZERNIO_LINKEDIN_ID", post,
+          [{url: m.document.url, type: "document", title}], {}, {documentTitle: title});
+      }
+      return zernioPost("linkedin", "ZERNIO_LINKEDIN_ID", post, zernioVisuals(m));
+    },
+  },
 };
 
-/** Réseaux passant par Zernio. Pour LinkedIn, la page cible a été choisie à la connexion du compte. */
-function zernioNetwork(platform, accountVar, {needsVideo = false} = {}) {
-  return {
-    validate(post, media) {
-      if (needsVideo && media?.type !== "video") throw new Error(`${NAMES[platform]} exige une vidéo.`);
-    },
-    async publish(post, media) {
-      need("ZERNIO_API_KEY", accountVar);
-      // Un appel par réseau : si l'un échoue, l'autre n'est pas republié au prochain essai.
-      const {res, body} = await call(`${ZERNIO}/posts`, {
-        method: "POST",
-        headers: {Authorization: `Bearer ${env.ZERNIO_API_KEY}`, "Content-Type": "application/json"},
-        body: JSON.stringify({
-          content: post.text,
-          ...(media ? {mediaItems: [{url: media.url, type: media.type}]} : {}),
-          platforms: [{platform, accountId: env[accountVar]}],
-          publishNow: true,
-        }),
-      });
-      if (res.status === 207) throw new Error(`Zernio n'a pas pu publier : ${JSON.stringify(body).slice(0, 300)}`);
-      return body?.post?._id || body?._id || body?.postId || null;
-    },
-  };
+/**
+ * Publication via Zernio. Un appel par réseau : si l'un échoue, l'autre n'est pas
+ * republié au prochain essai. Pour LinkedIn, la page cible a été choisie à la connexion du compte.
+ */
+async function zernioPost(platform, accountVar, post, mediaItems, extra = {}, platformSpecificData) {
+  need("ZERNIO_API_KEY", accountVar);
+  const {res, body} = await call(`${ZERNIO}/posts`, {
+    method: "POST",
+    headers: {Authorization: `Bearer ${env.ZERNIO_API_KEY}`, "Content-Type": "application/json"},
+    body: JSON.stringify({
+      content: post.text,
+      ...(mediaItems.length ? {mediaItems} : {}),
+      platforms: [{platform, accountId: env[accountVar], ...(platformSpecificData ? {platformSpecificData} : {})}],
+      publishNow: true,
+      ...extra,
+    }),
+  });
+  if (res.status === 207) throw new Error(`Zernio n'a pas pu publier : ${JSON.stringify(body).slice(0, 300)}`);
+  return body?.post?._id || body?._id || body?.postId || null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -267,12 +331,18 @@ async function publishDue() {
     }
 
     const media = mediaOf(post);
+    // Le poids réel des fichiers, pour vérifier les limites même sur un ancien post.
+    for (const m of post.media || []) {
+      if (m?.path && !m.size) m.size = await stat(m.path).then(s => s.size, () => undefined);
+    }
     const errors = [];
     for (const net of auto) {
       if (post.results[net]?.ok) continue;   // déjà publié lors d'un essai précédent
       const n = NETWORKS[net];
       try {
         if (!n) throw new Error("réseau inconnu");
+        const blocking = checkRules({...post, platforms: [net]}).filter(i => i.net === net && i.level === "error");
+        if (blocking.length) throw new Error(blocking.map(i => i.msg).join(" "));
         n.validate(post, media);
         const id = DRY_RUN ? "essai" : await n.publish(post, media);
         post.results[net] = {ok: true, id: id ?? null, at: new Date().toISOString()};

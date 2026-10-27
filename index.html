@@ -427,6 +427,31 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
 .warn{margin:0;font-size:12px;color:var(--warn)}
 .card-media img,.card-media video{width:100%;height:100%;object-fit:cover;display:block}
 
+/* ---------- visuels et contrôle par réseau ---------- */
+.thumbs{display:flex;gap:8px;flex-wrap:wrap}
+.thumb{position:relative;width:84px;height:84px;border-radius:10px;overflow:hidden;background:var(--hairline-2);flex:none}
+.thumb img,.thumb video{width:100%;height:100%;object-fit:cover;display:block}
+.thumb-n{position:absolute;left:5px;top:5px;font:600 10px/1.5 var(--font-num);background:rgba(16,16,16,.72);color:#fff;border-radius:6px;padding:0 5px}
+.thumb-tools{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:flex-end;gap:2px;padding:3px;background:rgba(16,16,16,.55)}
+.thumb-tools button{color:#fff;width:22px;height:20px;border-radius:6px;font-size:12px;line-height:1}
+.thumb-tools button:hover{background:rgba(255,255,255,.22)}
+.media-actions{display:flex;gap:8px;flex-wrap:wrap}
+.pdf-ico{width:52px;height:52px;border-radius:8px;flex:none;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-ink);font:700 12px var(--font-display)}
+.card-media{position:relative}
+.count-badge{position:absolute;right:8px;top:8px;background:rgba(16,16,16,.72);color:#fff;font:600 11px/1.6 var(--font-num);border-radius:20px;padding:0 8px}
+.doc-prev{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--fg-2);font-size:12px;padding:12px;text-align:center}
+.doc-prev b{font:700 18px var(--font-display);color:var(--accent-ink)}
+.checks{display:flex;flex-direction:column;gap:6px}
+.chk{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;padding:7px 9px;border-radius:9px;background:var(--panel-2)}
+.chk.bad{background:var(--crit-soft)}
+.chk .tile{margin-top:2px}
+.chk-name{width:72px;flex:none;font-weight:600;color:var(--fg)}
+.chk-msgs{display:flex;flex-direction:column;gap:2px;min-width:0}
+.chk-ok{color:var(--ok);font-weight:560}
+.chk-error{color:var(--crit)}
+.chk-warn{color:var(--warn)}
+.chk-info{color:var(--fg-3)}
+
 /* ---------- échecs du robot ---------- */
 .pill-failed{background:var(--crit-soft);color:var(--crit)}
 .chip.s-failed{border-left-color:var(--crit)}
@@ -566,6 +591,7 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
   </form>
 </div>
 
+<script src="rules.js"></script>
 <script>
 "use strict";
 
@@ -812,7 +838,7 @@ const Store = {
       .replace(/[^\w.-]+/g, "-").slice(-80) || "visuel";
     const path = `media/${id}/${Date.now().toString(36)}-${safe}`;
     await GH.put(path, b64FromBytes(new Uint8Array(await file.arrayBuffer())), `Cadence : visuel ${safe}`);
-    return {path, type: file.type.startsWith("video/") ? "video" : "image"};
+    return {path, type: file.type === "application/pdf" ? "document" : file.type.startsWith("video/") ? "video" : "image"};
   },
 };
 
@@ -1053,7 +1079,7 @@ function openPost(id){
   state.editing = {id, isNew:false, text:p.text||"", platforms:[...(p.platforms||[])],
                    day:dayOf(p.at)||todayKey(), time:timeOf(p.at)||"09:00",
                    status:p.status||"draft", example:!!p.example,
-                   media:[...(p.media||[])], newFile:null, newUrl:null, removeMedia:false};
+                   visuals:visualsFrom(p.media), pdf:pdfFrom(p.media), toDelete:[]};
   state.previewOn = state.editing.platforms[0] || "instagram";
   state.confirmDel = false;
   renderSheet();
@@ -1062,14 +1088,14 @@ function openPost(id){
 function openNew(day){
   state.editing = {id:uid(), isNew:true, text:"", platforms:["instagram"],
                    day:day||todayKey(), time:"09:00", status:"scheduled", example:false,
-                   media:[], newFile:null, newUrl:null, removeMedia:false};
+                   visuals:[], pdf:null, toDelete:[]};
   state.previewOn = "instagram";
   state.confirmDel = false;
   renderSheet();
 }
 
 function closeSheet(){
-  if (state.editing?.newUrl) URL.revokeObjectURL(state.editing.newUrl);
+  for (const v of state.editing?.visuals || []) if (v.file) URL.revokeObjectURL(v.url);
   state.editing = null; state.confirmDel = false;
   document.getElementById("sheet")?.remove();
   document.getElementById("scrim")?.remove();
@@ -1088,42 +1114,133 @@ function countersHTML(e){
   }).join("");
 }
 
-/** Le visuel tel qu'il apparaîtra : le fichier choisi à l'instant, sinon celui déjà dans le dépôt. */
-function mediaView(e){
-  if (e.newFile) return {url: e.newUrl, type: e.newFile.type.startsWith("video/") ? "video" : "image", name: e.newFile.name, size: e.newFile.size};
-  const m = !e.removeMedia && e.media?.[0];
-  return m ? {url: GH.rawUrl(m.path), type: m.type, name: m.path.split("/").pop().replace(/^[a-z0-9]+-/, "")} : null;
+/* ===================== visuels ===================== */
+
+/** Ce qu'on sait d'un fichier : type, poids, dimensions, durée. Sert au contrôle par réseau. */
+const META_KEYS = ["mime", "size", "width", "height", "duration"];
+const metaFields = meta => Object.fromEntries(META_KEYS.filter(k => meta?.[k] != null)
+  .map(k => [k, k === "duration" ? Math.round(meta[k] * 10) / 10 : meta[k]]));
+const shortName = path => String(path).split("/").pop().replace(/^[a-z0-9]+-/, "");
+
+function visualsFrom(media){
+  return (media || []).filter(m => m.type !== "document")
+    .map(m => ({path: m.path, type: m.type, url: GH.rawUrl(m.path), name: shortName(m.path), meta: metaFields(m)}));
 }
 
-/** Ce que chaque réseau exige comme visuel, en clair. */
-function mediaNeeds(e, mv){
-  const out = [];
-  if (e.platforms.includes("instagram") && !mv) out.push("Instagram a besoin d’une image ou d’une vidéo.");
-  const vid = e.platforms.filter(k => k === "tiktok" || k === "youtube").map(k => PLATFORMS[k].name);
-  if (vid.length && mv?.type !== "video") out.push(`${vid.join(" et ")} ${vid.length > 1 ? "ont" : "a"} besoin d’une vidéo.`);
-  return out;
+function pdfFrom(media){
+  const d = (media || []).find(m => m.type === "document");
+  return d ? {path: d.path, name: shortName(d.path), meta: metaFields(d)} : null;
+}
+
+/** Retire des visuels : ceux déjà dans le dépôt seront supprimés à l'enregistrement. */
+function dropVisuals(e, keepOut){
+  e.visuals = e.visuals.filter((v, idx) => {
+    if (!keepOut(v, idx)) return true;
+    if (v.file) URL.revokeObjectURL(v.url); else e.toDelete.push(v.path);
+    return false;
+  });
+}
+
+/** Lit le type, le poids, les dimensions et la durée d'un fichier choisi. */
+function readMeta(file){
+  const meta = {mime: file.type, size: file.size};
+  const url = URL.createObjectURL(file);
+  return new Promise(resolve => {
+    if (file.type.startsWith("image/")){
+      const img = new Image();
+      img.onload = () => resolve({url, meta: {...meta, width: img.naturalWidth, height: img.naturalHeight}});
+      img.onerror = () => resolve({url, meta});
+      img.src = url;
+    } else if (file.type.startsWith("video/")){
+      const v = document.createElement("video");
+      v.preload = "metadata"; v.muted = true;
+      v.onloadedmetadata = () => resolve({url, meta: {...meta, width: v.videoWidth, height: v.videoHeight, duration: v.duration}});
+      v.onerror = () => resolve({url, meta});
+      v.src = url;
+    } else resolve({url, meta});
+  });
+}
+
+/** Les points à signaler pour le post en cours, réseau par réseau (règles de rules.js). */
+function postIssues(e){
+  const media = [
+    ...e.visuals.map(v => ({type: v.type, path: v.path || v.name, ...v.meta})),
+    ...(e.pdf ? [{type: "document", path: e.pdf.path || e.pdf.name, ...e.pdf.meta}] : []),
+  ];
+  const issues = CadenceRules.check({text: e.text, platforms: e.platforms, media});
+  // Sans GitHub, on ne peut pas joindre de visuel : son absence n'est alors qu'un avertissement.
+  return Store.mode === "github" ? issues
+    : issues.map(i => i.code === "needs" ? {...i, level: "warn"} : i);
+}
+
+/** Le visuel montré dans l'aperçu de chaque réseau. */
+function mediaView(e, k){
+  if (k === "linkedin" && e.pdf) return {type: "document", name: e.pdf.name};
+  const v = e.visuals[0];
+  return v ? {url: v.url, type: v.type, count: e.visuals.length} : null;
 }
 
 function mediaFieldHTML(e){
   if (Store.mode !== "github") return `<div class="field">
-      <span class="lbl">Visuel</span>
-      <p class="hint">Connecte Cadence à GitHub pour joindre une image ou une vidéo.</p>
+      <span class="lbl">Visuels</span>
+      <p class="hint">Connecte Cadence à GitHub pour joindre des images, une vidéo ou un PDF.</p>
     </div>`;
-  const mv = mediaView(e);
-  const thumb = mv && (mv.type === "video"
-    ? `<video class="media-thumb" src="${esc(mv.url)}" muted playsinline preload="metadata"></video>`
-    : `<img class="media-thumb" src="${esc(mv.url)}" alt="">`);
-  return `<div class="field">
-      <span class="lbl">Visuel</span>
-      ${mv ? `<div class="media-box">
-          ${thumb}
-          <span class="media-name">${esc(mv.name)}<small>${mv.type === "video" ? "Vidéo" : "Image"}${mv.size ? " · " + sizeLabel(mv.size) : ""}</small></span>
-          <button type="button" class="btn btn-ghost" data-sheet="unmedia">Retirer</button>
+  const hasVideo = e.visuals.some(v => v.type === "video");
+  const thumbs = e.visuals.map((v, i) => `<div class="thumb">
+        ${v.type === "video"
+          ? `<video src="${esc(v.url)}" muted playsinline preload="metadata"></video>`
+          : `<img src="${esc(v.url)}" alt="">`}
+        <span class="thumb-n">${v.type === "video" ? "Vidéo" : i + 1}</span>
+        <span class="thumb-tools">
+          ${e.visuals.length > 1 ? `<button type="button" data-vmove="-1" data-vi="${i}" aria-label="Avancer l'image ${i + 1}">←</button>
+          <button type="button" data-vmove="1" data-vi="${i}" aria-label="Reculer l'image ${i + 1}">→</button>` : ""}
+          <button type="button" data-vdel="${i}" aria-label="Retirer ${v.type === "video" ? "la vidéo" : `l'image ${i + 1}`}">✕</button>
+        </span>
+      </div>`).join("");
+  const pdf = !e.platforms.includes("linkedin") ? "" : `<div class="field">
+      <span class="lbl">Carrousel LinkedIn (PDF)</span>
+      ${e.pdf ? `<div class="media-box">
+          <span class="pdf-ico">PDF</span>
+          <span class="media-name">${esc(e.pdf.name)}<small>${e.pdf.meta?.size ? sizeLabel(e.pdf.meta.size) : "Document"}</small></span>
+          <button type="button" class="btn btn-ghost" data-sheet="unpdf">Retirer</button>
         </div>`
-      : `<label class="btn media-pick" for="f-media">Ajouter une image JPEG ou une vidéo MP4</label>`}
-      <input type="file" id="f-media" class="sr-only" accept="image/jpeg,video/mp4,video/quicktime">
-      ${mediaNeeds(e, mv).map(t => `<p class="warn">${t}</p>`).join("")}
+      : `<label class="btn media-pick" for="f-pdf">Ajouter le PDF</label>`}
+      <input type="file" id="f-pdf" class="sr-only" accept="application/pdf">
+      <p class="hint">Facultatif. Avec un PDF, LinkedIn publie ton carrousel ; sans PDF, il reprend les visuels ci-dessus.</p>
     </div>`;
+  return `<div class="field">
+      <span class="lbl">Visuels</span>
+      ${thumbs ? `<div class="thumbs">${thumbs}</div>` : ""}
+      <div class="media-actions">
+        ${hasVideo ? "" : `<label class="btn media-pick" for="f-images">${e.visuals.length ? "Ajouter des images" : "Images"}</label>`}
+        <label class="btn media-pick" for="f-video">${hasVideo ? "Remplacer la vidéo" : "Vidéo"}</label>
+      </div>
+      <input type="file" id="f-images" class="sr-only" accept="image/jpeg,image/png" multiple>
+      <input type="file" id="f-video" class="sr-only" accept="video/mp4,video/quicktime">
+      <p class="hint">Une vidéo, ou une à plusieurs images : plusieurs images forment un carrousel, dans l'ordre affiché.</p>
+    </div>
+    ${pdf}`;
+}
+
+const LEVELS = {error: 0, warn: 1, info: 2};
+
+/** Le verdict de chaque réseau coché : prêt, ou ce qu'il faut corriger. */
+function checksHTML(e){
+  if (!e.platforms.length) return `<p class="hint">Choisis au moins un réseau.</p>`;
+  const issues = postIssues(e);
+  const rows = e.platforms.map(k => {
+    const mine = issues.filter(i => i.net === k).sort((a, b) => LEVELS[a.level] - LEVELS[b.level]);
+    const bad = mine.some(i => i.level === "error");
+    return `<div class="chk${bad ? " bad" : ""}">
+        ${tileHTML(k, "sm")}
+        <span class="chk-name">${PLATFORMS[k].name}</span>
+        <span class="chk-msgs">${mine.length
+          ? mine.map(i => `<span class="chk-${i.level}">${esc(i.msg)}</span>`).join("")
+          : `<span class="chk-ok">Prêt${PLATFORMS[k].manual ? " · à publier à la main" : ""}</span>`}</span>
+      </div>`;
+  });
+  const github = issues.filter(i => i.net === "github").map(i => `<p class="alert">${esc(i.msg)}</p>`);
+  return rows.join("") + github.join("");
 }
 
 function renderSheet(){
@@ -1186,6 +1303,8 @@ function renderSheet(){
 
         <div class="field"><span class="lbl">Longueur</span><div class="counts" id="counts">${countersHTML(e)}</div></div>
 
+        <div class="field"><span class="lbl">Contrôle par réseau</span><div class="checks" id="checks">${checksHTML(e)}</div></div>
+
         <div class="row">
           <div class="field">
             <label for="f-day">Date</label>
@@ -1208,7 +1327,7 @@ function renderSheet(){
       <div class="prev">
         <div class="prev-tabs" role="tablist">${(e.platforms.length ? e.platforms : ["instagram"]).map(k =>
           `<button type="button" role="tab" class="prev-tab" data-prev="${k}" aria-selected="${prevOn===k}">${PLATFORMS[k].name}</button>`).join("")}</div>
-        <div id="prevCard">${previewHTML(prevOn, e.text, mediaView(e))}</div>
+        <div id="prevCard">${previewHTML(prevOn, e.text, mediaView(e, prevOn))}</div>
         <p class="hint">Aperçu indicatif : chaque réseau rogne et recadre à sa façon.</p>
       </div>
     </div>
@@ -1241,8 +1360,9 @@ function previewHTML(k, text, mv){
     </div>
     ${P.shape === "none" ? "" : `<div class="card-media${media}">${
       !mv ? `Visuel ${ratio}`
+      : mv.type === "document" ? `<span class="doc-prev"><b>PDF</b>${esc(mv.name)}</span>`
       : mv.type === "video" ? `<video src="${esc(mv.url)}" muted playsinline loop autoplay></video>`
-      : `<img src="${esc(mv.url)}" alt="">`}</div>`}
+      : `<img src="${esc(mv.url)}" alt="">${mv.count > 1 ? `<span class="count-badge">1/${mv.count}</span>` : ""}`}</div>`}
     <div class="card-txt${k==="instagram"||k==="linkedin"?" clip":""}">${body}</div>
     <div class="card-bar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.7-7 9-7 9z"/></svg>
@@ -1266,21 +1386,29 @@ async function saveSheet(){
   if (!e || state.busy) return;
   if (!e.text.trim()){ toast("Écris d’abord le texte du post."); return; }
   if (!e.platforms.length){ toast("Choisis au moins un réseau."); return; }
-  // Un brouillon peut rester incomplet ; un post programmé doit pouvoir partir.
-  const missing = Store.mode === "github" ? mediaNeeds(e, mediaView(e)) : [];
-  if (e.status === "scheduled" && missing.length){ toast(`${missing[0]} Ajoute-la, ou enregistre en brouillon.`); return; }
+  // Un brouillon peut rester incomplet ; un post programmé doit respecter chaque réseau.
+  const blocking = postIssues(e).filter(i => i.level === "error");
+  if (e.status === "scheduled" && blocking.length){
+    const i = blocking[0];
+    toast(`${PLATFORMS[i.net] ? PLATFORMS[i.net].name + " : " : ""}${i.msg} Corrige-le, ou enregistre en brouillon.`);
+    return;
+  }
 
   state.busy = true; setSaving(true);
   try{
     const prev = state.posts.get(e.id) || {};
-    let media = e.removeMedia ? [] : (e.media || []);
-    if (e.newFile){
-      toast(e.newFile.type.startsWith("video/") ? "Envoi de la vidéo vers GitHub…" : "Envoi de l’image vers GitHub…");
-      media = [await Store.upload(e.id, e.newFile)];
+    const todo = e.visuals.filter(v => v.file).length + (e.pdf?.file ? 1 : 0);
+    if (todo) toast(`Envoi de ${todo} fichier${todo > 1 ? "s" : ""} vers GitHub…`);
+    const media = [];
+    for (const v of e.visuals){
+      media.push(v.file ? {...await Store.upload(e.id, v.file), ...metaFields(v.meta)}
+                        : {path: v.path, type: v.type, ...metaFields(v.meta)});
     }
-    if ((e.newFile || e.removeMedia) && e.media?.length){
-      for (const m of e.media) await GH.remove(m.path, "Cadence : ancien visuel retiré").catch(() => {});
+    if (e.pdf){
+      media.push(e.pdf.file ? {...await Store.upload(e.id, e.pdf.file), ...metaFields(e.pdf.meta)}
+                            : {path: e.pdf.path, type: "document", ...metaFields(e.pdf.meta)});
     }
+    for (const path of e.toDelete) await GH.remove(path, "Cadence : visuel retiré").catch(() => {});
     const body = {...prev, text:e.text.trim(), platforms:e.platforms, at:joinAt(e.day, e.time),
                   timezone: prev.timezone || TZ, status:e.status, media, updatedAt:new Date().toISOString()};
     if (e.status !== "failed") delete body.error;
@@ -1429,6 +1557,22 @@ document.addEventListener("click", ev => {
   const prev = t.closest("[data-prev]");
   if (prev && state.editing){ state.previewOn = prev.dataset.prev; state.editing.focusText = false; renderSheet(); return; }
 
+  const move = t.closest("[data-vmove]");
+  if (move && state.editing){
+    const e = state.editing, i = Number(move.dataset.vi), j = i + Number(move.dataset.vmove);
+    if (j >= 0 && j < e.visuals.length){
+      [e.visuals[i], e.visuals[j]] = [e.visuals[j], e.visuals[i]];
+      e.focusText = false; renderSheet();
+    }
+    return;
+  }
+  const del = t.closest("[data-vdel]");
+  if (del && state.editing){
+    dropVisuals(state.editing, (v, idx) => idx === Number(del.dataset.vdel));
+    state.editing.focusText = false; renderSheet();
+    return;
+  }
+
   const sh = t.closest("[data-sheet]");
   if (sh){
     const a = sh.dataset.sheet;
@@ -1436,11 +1580,10 @@ document.addEventListener("click", ev => {
     if (a === "save") saveSheet();
     if (a === "del") delSheet();
     if (a === "xdone") markXDone();
-    if (a === "unmedia" && state.editing){
+    if (a === "unpdf" && state.editing){
       const e = state.editing;
-      if (e.newUrl) URL.revokeObjectURL(e.newUrl);
-      Object.assign(e, {newFile:null, newUrl:null, removeMedia: Boolean(e.media?.length), focusText:false});
-      renderSheet();
+      if (e.pdf?.path) e.toDelete.push(e.pdf.path);
+      e.pdf = null; e.focusText = false; renderSheet();
     }
     if (a === "copy"){
       const txt = state.editing?.text || "";
@@ -1458,6 +1601,7 @@ document.addEventListener("input", ev => {
     e.text = ev.target.value;
     // Compteurs et aperçu mis à jour sans reconstruire le champ de saisie.
     document.getElementById("counts").innerHTML = countersHTML(e);
+    document.getElementById("checks").innerHTML = checksHTML(e);
     const txt = document.querySelector("#prevCard .card-txt");
     if (txt) txt.innerHTML = cardTextHTML(e.text);
     return;
@@ -1466,18 +1610,34 @@ document.addEventListener("input", ev => {
   if (id === "f-time") e.time = ev.target.value || "09:00";
 });
 
-document.addEventListener("change", ev => {
+document.addEventListener("change", async ev => {
   const e = state.editing;
   if (!e) return;
-  if (ev.target.id === "f-status") e.status = ev.target.value;
-  if (ev.target.id === "f-media"){
-    const file = ev.target.files?.[0];
-    if (!file) return;
-    if (file.size > 95e6){ toast("Fichier trop lourd : GitHub refuse les fichiers de plus de 100 Mo."); ev.target.value = ""; return; }
-    if (e.newUrl) URL.revokeObjectURL(e.newUrl);
-    Object.assign(e, {newFile:file, newUrl:URL.createObjectURL(file), removeMedia:false, focusText:false});
-    renderSheet();
+  const id = ev.target.id;
+  if (id === "f-status") e.status = ev.target.value;
+  if (id !== "f-images" && id !== "f-video" && id !== "f-pdf") return;
+
+  const files = [...(ev.target.files || [])];
+  ev.target.value = "";
+  if (!files.length) return;
+
+  if (id === "f-images"){
+    dropVisuals(e, v => v.type === "video");   // un post porte une vidéo OU des images
+    for (const f of files.filter(f => f.type.startsWith("image/"))){
+      const {url, meta} = await readMeta(f);
+      e.visuals.push({file: f, type: "image", url, name: f.name, meta});
+    }
   }
+  if (id === "f-video"){
+    dropVisuals(e, () => true);
+    const {url, meta} = await readMeta(files[0]);
+    e.visuals = [{file: files[0], type: "video", url, name: files[0].name, meta}];
+  }
+  if (id === "f-pdf"){
+    if (e.pdf?.path) e.toDelete.push(e.pdf.path);
+    e.pdf = {file: files[0], name: files[0].name, meta: {mime: files[0].type || "application/pdf", size: files[0].size}};
+  }
+  if (state.editing === e){ e.focusText = false; renderSheet(); }
 });
 
 document.addEventListener("keydown", ev => {
