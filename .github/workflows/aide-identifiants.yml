@@ -1,16 +1,9 @@
-# À lancer à la main pendant la mise en route, pour retrouver tes identifiants.
-# N'affiche jamais de secret, seulement des identifiants de compte.
+# À lancer à la main pendant la mise en route : affiche tes comptes Zernio
+# (TikTok, LinkedIn) et leurs identifiants. N'affiche jamais de secret.
 name: Aide — trouver mes identifiants
 
 on:
   workflow_dispatch:
-    inputs:
-      quoi:
-        description: "Que veux-tu retrouver ?"
-        type: choice
-        options:
-          - Mes comptes Zernio (TikTok, YouTube)
-          - Mon identifiant LinkedIn
 
 permissions:
   contents: read
@@ -25,12 +18,6 @@ jobs:
         with:
           node-version: 22
       - name: Comptes Zernio
-        if: startsWith(inputs.quoi, 'Mes comptes Zernio')
         run: node robot/publish.mjs --zernio-accounts
         env:
           ZERNIO_API_KEY: ${{ secrets.ZERNIO_API_KEY }}
-      - name: Identifiant LinkedIn
-        if: startsWith(inputs.quoi, 'Mon identifiant LinkedIn')
-        run: node robot/publish.mjs --linkedin-me
-        env:
-          LINKEDIN_TOKEN: ${{ secrets.LINKEDIN_TOKEN }}

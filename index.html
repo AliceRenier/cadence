@@ -574,7 +574,7 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
 const PLATFORMS = {
   instagram:{name:"Instagram", mono:"IG", limit:2200,  handle:"@tonprofil",      shape:"square"},
   facebook: {name:"Facebook",  mono:"f",  limit:63206, handle:"Page · 2 h",      shape:"wide"},
-  linkedin: {name:"LinkedIn",  mono:"in", limit:3000,  handle:"Fondateur · 2 h", shape:"wide"},
+  linkedin: {name:"LinkedIn",  mono:"in", limit:3000,  handle:"Page · 2 h",      shape:"wide"},
   x:        {name:"X",         mono:"X",  limit:280,   handle:"@tonprofil",      shape:"none", manual:true},
   tiktok:   {name:"TikTok",    mono:"TT", limit:2200,  handle:"@tonprofil",      shape:"tall"},
   youtube:  {name:"YouTube",   mono:"YT", limit:5000,  handle:"Ta chaîne",       shape:"wide"},
@@ -1101,7 +1101,6 @@ function mediaNeeds(e, mv){
   if (e.platforms.includes("instagram") && !mv) out.push("Instagram a besoin d’une image ou d’une vidéo.");
   const vid = e.platforms.filter(k => k === "tiktok" || k === "youtube").map(k => PLATFORMS[k].name);
   if (vid.length && mv?.type !== "video") out.push(`${vid.join(" et ")} ${vid.length > 1 ? "ont" : "a"} besoin d’une vidéo.`);
-  if (e.platforms.includes("linkedin") && mv?.type === "video") out.push("LinkedIn n’accepte pas encore de vidéo depuis Cadence.");
   return out;
 }
 
@@ -1146,8 +1145,10 @@ function renderSheet(){
   }
   sheet.setAttribute("aria-label", e.isNew ? "Nouveau post" : "Modifier le post");
 
-  const manualNote = e.platforms.includes("x")
-    ? `<p class="hint"><b>X se publie à la main.</b> Le jour J, ouvre ce post et copie le texte en un clic.</p>` : "";
+  const manualNote = (e.platforms.includes("x")
+      ? `<p class="hint"><b>X se publie à la main.</b> Le jour J, ouvre ce post et copie le texte en un clic.</p>` : "")
+    + (e.platforms.includes("youtube")
+      ? `<p class="hint"><b>YouTube :</b> la première ligne du texte devient le titre de la vidéo (100 caractères au plus).</p>` : "");
   const saved = state.posts.get(e.id);
   const failure = saved?.status === "failed" && saved.error
     ? `<p class="alert">${esc(saved.error)}\nCorrige ce qui bloque, puis repasse le post en « Programmé » : seuls les réseaux en échec repartiront.</p>` : "";

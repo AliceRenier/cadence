@@ -1,5 +1,5 @@
-# Chaque matin, vérifie que les accès Meta et LinkedIn marchent encore.
-# L'accès LinkedIn expire tous les 60 jours : tu es prévenu 7 jours avant, par e-mail.
+# Chaque matin, vérifie que les accès Meta, YouTube et Zernio marchent encore.
+# Si l'un d'eux ne fonctionne plus, la tâche échoue et GitHub t'envoie un e-mail.
 name: Vérifier les accès
 
 on:
@@ -22,5 +22,7 @@ jobs:
       - run: node robot/publish.mjs --check
         env:
           META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
-          LINKEDIN_TOKEN: ${{ secrets.LINKEDIN_TOKEN }}
-          LINKEDIN_TOKEN_EXPIRES: ${{ secrets.LINKEDIN_TOKEN_EXPIRES }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          ZERNIO_API_KEY: ${{ secrets.ZERNIO_API_KEY }}

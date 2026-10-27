@@ -5,15 +5,14 @@
 // puis réécrit le fichier avec le résultat. Il ne touche jamais aux brouillons.
 //
 //   Instagram, Facebook : Graph API de Meta, en direct
-//   LinkedIn            : API officielle, en direct
-//   TikTok, YouTube     : Zernio (offre gratuite, 2 comptes)
+//   YouTube             : API YouTube de Google, en direct
+//   TikTok, LinkedIn    : Zernio (offre gratuite, 2 comptes) — LinkedIn publie sur ta page
 //   X                   : à la main, le robot n'y touche pas
 //
 // Modes :
 //   node robot/publish.mjs                    publie ce qui est dû
 //   node robot/publish.mjs --check            vérifie que les accès sont valides
 //   node robot/publish.mjs --zernio-accounts  affiche tes comptes Zernio et leurs identifiants
-//   node robot/publish.mjs --linkedin-me      affiche ton identifiant LinkedIn (urn:li:person:…)
 //
 // Variables : DRY_RUN=1 valide sans rien publier ; NOW=2026-10-28T08:20:00Z simule une heure.
 
@@ -29,7 +28,6 @@ const POSTS_DIR = env.POSTS_DIR || "posts";
 
 const GRAPH = "https://graph.facebook.com/v26.0";
 const GRAPH_VIDEO = "https://graph-video.facebook.com/v26.0";
-const LINKEDIN_VERSION = env.LINKEDIN_VERSION || "202610";
 const ZERNIO = "https://zernio.com/api/v1";
 
 const NAMES = {instagram:"Instagram", facebook:"Facebook", linkedin:"LinkedIn",
@@ -78,7 +76,7 @@ async function call(url, init = {}) {
   let body = {};
   try { body = text ? JSON.parse(text) : {}; } catch { body = {raw: text}; }
   if (!res.ok) {
-    const msg = body?.error?.message || body?.message || body?.error || text.slice(0, 300);
+    const msg = body?.error?.message || body?.error_description || body?.message || body?.error || text.slice(0, 300);
     throw new Error(`${res.status} — ${typeof msg === "string" ? msg : JSON.stringify(msg)}`);
   }
   return {res, body};
@@ -101,8 +99,20 @@ function mediaOf(post) {
 const firstLine = (text, max) =>
   (String(text || "").split("\n").find(l => l.trim()) || "Nouvelle vidéo").trim().slice(0, max);
 
-/** LinkedIn interprète certains caractères ; une parenthèse non échappée coupe le post. */
-const escapeLinkedIn = s => String(s).replace(/[\\|{}@[\]()<>*_~]/g, c => "\\" + c);
+/** YouTube refuse les chevrons dans le titre et la description. */
+const youtubeText = (s, max) => String(s || "").replace(/[<>]/g, "").trim().slice(0, max);
+
+/** Échange la clé longue durée de Google contre un accès valable une heure. */
+async function googleAccessToken() {
+  need("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "YOUTUBE_REFRESH_TOKEN");
+  const {body} = await call("https://oauth2.googleapis.com/token", {method: "POST", body: form({
+    client_id: env.GOOGLE_CLIENT_ID,
+    client_secret: env.GOOGLE_CLIENT_SECRET,
+    refresh_token: env.YOUTUBE_REFRESH_TOKEN,
+    grant_type: "refresh_token",
+  })});
+  return body.access_token;
+}
 
 /* ------------------------------------------------------------------ */
 /* Réseaux : chaque réseau valide d'abord, puis publie                 */
@@ -159,67 +169,61 @@ const NETWORKS = {
     },
   },
 
-  linkedin: {
+  youtube: {
     validate(post, media) {
-      if (media?.type === "video")
-        throw new Error("Cadence ne sait pas encore envoyer de vidéo sur LinkedIn : retire LinkedIn de ce post ou publie-le à la main.");
+      if (media?.type !== "video") throw new Error("YouTube exige une vidéo.");
     },
     async publish(post, media) {
-      need("LINKEDIN_TOKEN", "LINKEDIN_AUTHOR");
-      const headers = {
-        Authorization: `Bearer ${env.LINKEDIN_TOKEN}`,
-        "LinkedIn-Version": LINKEDIN_VERSION,
-        "X-Restli-Protocol-Version": "2.0.0",
-        "Content-Type": "application/json",
-      };
-      let content;
-      if (media) {
-        const {body: init} = await call("https://api.linkedin.com/rest/images?action=initializeUpload",
-          {method: "POST", headers, body: JSON.stringify({initializeUploadRequest: {owner: env.LINKEDIN_AUTHOR}})});
-        const up = await fetch(init.value.uploadUrl, {
-          method: "PUT", headers: {Authorization: `Bearer ${env.LINKEDIN_TOKEN}`},
-          body: await readFile(media.path),
+      const token = await googleAccessToken();
+      const bytes = await readFile(media.path);
+      const type = /\.mov$/i.test(media.path) ? "video/quicktime" : "video/mp4";
+
+      // Envoi en deux temps : on décrit la vidéo, YouTube répond avec l'adresse où déposer le fichier.
+      const init = await fetch(
+        "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json; charset=UTF-8",
+            "X-Upload-Content-Type": type,
+            "X-Upload-Content-Length": String(bytes.length),
+          },
+          body: JSON.stringify({
+            snippet: {
+              title: youtubeText(firstLine(post.text, 100), 100) || "Nouvelle vidéo",
+              description: youtubeText(post.text, 5000),
+              categoryId: "22",
+            },
+            status: {privacyStatus: "public", selfDeclaredMadeForKids: false},
+          }),
         });
-        if (!up.ok) throw new Error(`LinkedIn a refusé l'image (${up.status}).`);
-        content = {media: {id: init.value.image}};
-      }
-      const {res} = await call("https://api.linkedin.com/rest/posts", {
-        method: "POST", headers,
-        body: JSON.stringify({
-          author: env.LINKEDIN_AUTHOR,
-          commentary: escapeLinkedIn(post.text),
-          visibility: "PUBLIC",
-          distribution: {feedDistribution: "MAIN_FEED", targetEntities: [], thirdPartyDistributionChannels: []},
-          ...(content ? {content} : {}),
-          lifecycleState: "PUBLISHED",
-          isReshareDisabledByAuthor: false,
-        }),
-      });
-      return res.headers.get("x-restli-id");
+      if (!init.ok) throw new Error(`YouTube a refusé l'envoi (${init.status}) : ${(await init.text()).slice(0, 300)}`);
+      const {body} = await call(init.headers.get("location"),
+        {method: "PUT", headers: {"Content-Type": type}, body: bytes});
+      return body.id;
     },
   },
 
-  tiktok: zernioNetwork("tiktok", "ZERNIO_TIKTOK_ID"),
-  youtube: zernioNetwork("youtube", "ZERNIO_YOUTUBE_ID"),
+  tiktok: zernioNetwork("tiktok", "ZERNIO_TIKTOK_ID", {needsVideo: true}),
+  linkedin: zernioNetwork("linkedin", "ZERNIO_LINKEDIN_ID"),
 };
 
-function zernioNetwork(platform, accountVar) {
+/** Réseaux passant par Zernio. Pour LinkedIn, la page cible a été choisie à la connexion du compte. */
+function zernioNetwork(platform, accountVar, {needsVideo = false} = {}) {
   return {
     validate(post, media) {
-      if (media?.type !== "video") throw new Error(`${NAMES[platform]} exige une vidéo.`);
+      if (needsVideo && media?.type !== "video") throw new Error(`${NAMES[platform]} exige une vidéo.`);
     },
     async publish(post, media) {
       need("ZERNIO_API_KEY", accountVar);
-      const target = {platform, accountId: env[accountVar]};
-      if (platform === "youtube") target.platformSpecificData = {title: firstLine(post.text, 100)};
       // Un appel par réseau : si l'un échoue, l'autre n'est pas republié au prochain essai.
       const {res, body} = await call(`${ZERNIO}/posts`, {
         method: "POST",
         headers: {Authorization: `Bearer ${env.ZERNIO_API_KEY}`, "Content-Type": "application/json"},
         body: JSON.stringify({
           content: post.text,
-          mediaItems: [{url: media.url, type: "video"}],
-          platforms: [target],
+          ...(media ? {mediaItems: [{url: media.url, type: media.type}]} : {}),
+          platforms: [{platform, accountId: env[accountVar]}],
           publishNow: true,
         }),
       });
@@ -315,16 +319,22 @@ async function checkAccess() {
     } catch (e) { problems.push(`Meta : l'accès ne fonctionne plus (${e.message}). Régénère META_PAGE_TOKEN.`); }
   }
 
-  if (env.LINKEDIN_TOKEN) {
-    const until = env.LINKEDIN_TOKEN_EXPIRES ? new Date(env.LINKEDIN_TOKEN_EXPIRES + "T00:00:00Z") : null;
-    if (!until || isNaN(until)) {
-      problems.push("LinkedIn : renseigne LINKEDIN_TOKEN_EXPIRES (AAAA-MM-JJ) pour être prévenu avant l'expiration.");
-    } else {
-      const days = Math.floor((until - NOW) / 86_400_000);
-      if (days < 0) problems.push("LinkedIn : l'accès a expiré. Reconnecte-toi et remplace LINKEDIN_TOKEN.");
-      else if (days <= 7) problems.push(`LinkedIn : l'accès expire dans ${days} jour${days > 1 ? "s" : ""}. Reconnecte-toi et remplace LINKEDIN_TOKEN.`);
-      else ok.push(`LinkedIn : accès valide encore ${days} jours`);
-    }
+  if (env.YOUTUBE_REFRESH_TOKEN) {
+    try {
+      const token = await googleAccessToken();
+      const {body} = await call("https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true",
+        {headers: {Authorization: `Bearer ${token}`}});
+      const channel = body.items?.[0]?.snippet?.title;
+      if (channel) ok.push(`YouTube : accès valide, chaîne « ${channel} »`);
+      else problems.push("YouTube : l'accès marche, mais ce compte Google n'a pas de chaîne. Régénère la clé en choisissant la chaîne Risktakeur.");
+    } catch (e) { problems.push(`YouTube : l'accès ne fonctionne plus (${e.message}). Régénère YOUTUBE_REFRESH_TOKEN.`); }
+  }
+
+  if (env.ZERNIO_API_KEY) {
+    try {
+      await call(`${ZERNIO}/accounts`, {headers: {Authorization: `Bearer ${env.ZERNIO_API_KEY}`}});
+      ok.push("Zernio (TikTok, LinkedIn) : clé valide");
+    } catch (e) { problems.push(`Zernio : la clé ne fonctionne plus (${e.message}). Crée-en une nouvelle et remplace ZERNIO_API_KEY.`); }
   }
 
   const text = ["## Cadence — vérification des accès",
@@ -335,7 +345,7 @@ async function checkAccess() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Aides à la mise en route (n'affichent jamais de secret)             */
+/* Aide à la mise en route (n'affiche jamais de secret)                */
 /* ------------------------------------------------------------------ */
 
 async function zernioAccounts() {
@@ -345,19 +355,11 @@ async function zernioAccounts() {
     const list = body.accounts || body.data || (Array.isArray(body) ? body : []);
     if (!list.length) return console.log("Aucun compte connecté chez Zernio pour l'instant.");
     for (const a of list) console.log(`${a.platform || "?"}\t${a._id || a.id}\t${a.username || a.name || ""}`);
-    console.log("\nCopie l'identifiant TikTok dans ZERNIO_TIKTOK_ID et celui de YouTube dans ZERNIO_YOUTUBE_ID.");
+    console.log("\nCopie l'identifiant TikTok dans ZERNIO_TIKTOK_ID et celui de LinkedIn dans ZERNIO_LINKEDIN_ID.");
   } catch (e) {
     console.log(`Impossible de lister les comptes (${e.message}). Copie les identifiants depuis le tableau de bord Zernio.`);
     process.exitCode = 1;
   }
-}
-
-async function linkedinMe() {
-  need("LINKEDIN_TOKEN");
-  const {body} = await call("https://api.linkedin.com/v2/userinfo",
-    {headers: {Authorization: `Bearer ${env.LINKEDIN_TOKEN}`}});
-  console.log(`Ton identifiant LinkedIn : urn:li:person:${body.sub}`);
-  console.log("Copie-le dans le secret LINKEDIN_AUTHOR.");
 }
 
 /* ------------------------------------------------------------------ */
@@ -365,7 +367,6 @@ async function linkedinMe() {
 const mode = process.argv[2];
 const run = mode === "--check" ? checkAccess
           : mode === "--zernio-accounts" ? zernioAccounts
-          : mode === "--linkedin-me" ? linkedinMe
           : publishDue;
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
