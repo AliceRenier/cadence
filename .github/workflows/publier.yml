@@ -21,7 +21,7 @@ concurrency:
 jobs:
   publier:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 50   # une vidéo 4K à recoller, ou à copier en 1080p pour Instagram
     steps:
       - uses: actions/checkout@v5
 

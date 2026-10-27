@@ -19,7 +19,10 @@
 // Après chaque passage, il supprime les visuels des posts publiés depuis plus de 24 h, une fois
 // que chaque réseau a confirmé le post en ligne (voir cleanPublished).
 
-import { readdir, readFile, writeFile, appendFile, stat, rm } from "node:fs/promises";
+import { readdir, readFile, writeFile, appendFile, stat, rm, mkdtemp } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import "../rules.js";   // règles de chaque réseau, partagées avec l'interface
@@ -107,8 +110,11 @@ function mediaOf(post) {
   const items = (post.media || []).filter(m => m?.path).map(m => ({
     path: m.path,
     ref: m.ref,
+    size: m.size,
     type: m.type || (/\.(mp4|mov|m4v|webm)$/i.test(m.path) ? "video" : /\.pdf$/i.test(m.path) ? "document" : "image"),
-    url: rawUrl(m.path, m.ref),
+    // Une grosse vidéo est servie depuis la release « visuels », une fois recollée par le robot.
+    url: m.asset?.url || rawUrl(m.path, m.ref),
+    source: m,   // l'entrée du post, pour y noter une copie préparée (Instagram)
   }));
   return {
     video: items.find(i => i.type === "video") || null,
@@ -125,6 +131,128 @@ const firstLine = (text, max) =>
   (String(text || "").split("\n").find(l => l.trim()) || "Nouvelle vidéo").trim().slice(0, max);
 
 /** Échange la clé longue durée de Google contre un accès valable une heure. */
+/* ------------------------------------------------------------------ */
+/* Grosses vidéos : la release « visuels »                             */
+/* ------------------------------------------------------------------ */
+//
+// GitHub refuse les fichiers de plus de 100 Mo dans le code. Cadence envoie donc une grosse vidéo
+// en morceaux sur la branche des visuels ; le robot les recolle, tels quels, dans un seul fichier
+// de la release « visuels » (2 Go par fichier). Ce fichier est servi avec son vrai type (video/mp4),
+// et il est supprimé comme les autres visuels, une fois le post confirmé en ligne.
+
+const GH_API = () => `https://api.github.com/repos/${env.GITHUB_REPOSITORY}`;
+const ghHeaders = () => ({Authorization: `Bearer ${env.GITHUB_TOKEN}`, Accept: "application/vnd.github+json"});
+const MIME = {mp4: "video/mp4", m4v: "video/mp4", mov: "video/quicktime", webm: "video/webm", pdf: "application/pdf",
+              jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", gif: "image/gif"};
+const mimeOfPath = p => MIME[p.split(".").pop().toLowerCase()] || "application/octet-stream";
+const assetName = (p, suffix = "") => p.replace(/^media\//, "").replace(/\//g, "-") + suffix;
+
+let release = null;
+async function mediaRelease() {
+  if (release) return release;
+  const found = await fetch(`${GH_API()}/releases/tags/visuels`, {headers: ghHeaders()});
+  if (found.ok) return (release = await found.json());
+  const {body} = await call(`${GH_API()}/releases`, {method: "POST", headers: ghHeaders(), body: JSON.stringify({
+    tag_name: "visuels", name: "Visuels de Cadence", prerelease: true,
+    body: "Les grosses vidéos en attente de publication. Le robot les supprime une fois le post confirmé en ligne.",
+  })});
+  return (release = body);
+}
+
+/** Dépose un fichier dans la release « visuels » et renvoie {id, url}. Un fichier du même nom est remplacé. */
+async function uploadAsset(name, bytes, type) {
+  const rel = await mediaRelease();
+  const send = () => fetch(`https://uploads.github.com/repos/${env.GITHUB_REPOSITORY}/releases/${rel.id}/assets?name=${encodeURIComponent(name)}`,
+    {method: "POST", headers: {...ghHeaders(), "Content-Type": type, "Content-Length": String(bytes.length)}, body: bytes});
+  let res = await send();
+  if (res.status === 422) {   // déjà là, d'un essai interrompu : on le remplace
+    const {body: assets} = await call(`${GH_API()}/releases/${rel.id}/assets?per_page=100`, {headers: ghHeaders()});
+    const old = assets.find(a => a.name === name);
+    if (old) await deleteAsset(old.id);
+    res = await send();
+  }
+  if (!res.ok) throw new Error(`GitHub a refusé le fichier (${res.status}) : ${(await res.text()).slice(0, 200)}`);
+  const body = await res.json();
+  return {id: body.id, url: body.browser_download_url};
+}
+
+async function deleteAsset(id) {
+  const res = await fetch(`${GH_API()}/releases/assets/${id}`, {method: "DELETE", headers: ghHeaders()});
+  if (!res.ok && res.status !== 404) throw new Error(`GitHub a répondu ${res.status}`);
+}
+
+/** Recolle les grosses vidéos envoyées en morceaux, avant l'heure de publication. */
+async function prepareMedia() {
+  const files = (await readdir(POSTS_DIR).catch(() => [])).filter(f => f.endsWith(".json")).sort();
+  for (const f of files) {
+    const file = path.join(POSTS_DIR, f);
+    const post = JSON.parse(await readFile(file, "utf8"));
+    const todo = (post.media || []).filter(m => m.parts?.length && !m.asset);
+    if (!todo.length || post.status === "published") continue;
+    let changed = false;
+    for (const m of todo) {
+      if (DRY_RUN) { console.log(`Essai : recollerait ${m.parts.length} morceaux de ${m.path}`); continue; }
+      try {
+        const chunks = [];
+        for (const p of m.parts) chunks.push(await download(rawUrl(p, m.ref)));
+        const bytes = Buffer.concat(chunks);
+        if (m.size && bytes.length !== m.size) throw new Error(`${bytes.length} octets recollés au lieu de ${m.size}`);
+        m.asset = await uploadAsset(assetName(m.path), bytes, mimeOfPath(m.path));
+        for (const p of m.parts) await deleteFromBranch(p, m.ref).catch(e => console.log(`Morceau ${p} gardé : ${e.message}`));
+        delete m.parts;
+        changed = true;
+        console.log(`Vidéo recollée : ${m.path} (${Math.round(bytes.length / 1e6)} Mo)`);
+      } catch (e) {
+        console.log(`Vidéo de « ${firstLine(post.text, 50)} » pas encore recollée : ${e.message}`);
+      }
+    }
+    if (changed) await writeFile(file, JSON.stringify(post, null, 2) + "\n");
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Instagram : copie 1080p au-delà de 300 Mo                           */
+/* ------------------------------------------------------------------ */
+
+const exec = promisify(execFile);
+const IG_MAX = globalThis.CadenceRules.RULES.instagram.video.maxBytes;
+
+async function ensureFfmpeg() {
+  try { await exec("ffmpeg", ["-version"]); }
+  catch { await exec("sudo", ["apt-get", "update", "-qq"]); await exec("sudo", ["apt-get", "install", "-y", "-qq", "ffmpeg"]); }
+}
+
+/**
+ * Instagram n'accepte pas plus de 300 Mo par ce moyen, et réduit de toute façon chaque vidéo en 1080p.
+ * Pour une vidéo plus lourde (4K), on lui envoie une copie 1080p de haute qualité (H.264, CRF 18 au départ),
+ * faite une seule fois et rangée à côté de l'originale. Les autres réseaux reçoivent l'originale.
+ */
+async function instagramCopy(video) {
+  const m = video.source;
+  if (m.igAsset) return m.igAsset.url;
+  await ensureFfmpeg();
+  const dir = await mkdtemp(path.join(os.tmpdir(), "cadence-"));
+  const src = path.join(dir, "source"), out = path.join(dir, "instagram.mp4");
+  try {
+    await writeFile(src, await download(video.url));
+    for (const crf of [18, 21, 24]) {
+      await exec("ffmpeg", ["-y", "-loglevel", "error", "-i", src,
+        "-vf", "scale=w='if(lt(iw,ih),min(1080,iw),-2)':h='if(lt(iw,ih),-2,min(1080,ih))'",
+        "-c:v", "libx264", "-preset", "medium", "-crf", String(crf), "-profile:v", "high", "-pix_fmt", "yuv420p",
+        "-fpsmax", "60", "-c:a", "aac", "-b:a", "256k", "-ar", "48000", "-movflags", "+faststart", out],
+        {maxBuffer: 1e7, timeout: 30 * 60_000});
+      const size = (await stat(out)).size;
+      if (size <= IG_MAX) {
+        m.igAsset = await uploadAsset(assetName(m.path, "-instagram.mp4"), await readFile(out), "video/mp4");
+        return m.igAsset.url;
+      }
+    }
+    throw new Error("même en 1080p, la vidéo dépasse 300 Mo : raccourcis-la pour Instagram.");
+  } finally {
+    await rm(dir, {recursive: true, force: true});
+  }
+}
+
 /** Télécharge un visuel de la branche des visuels, tel quel. */
 async function download(url) {
   const res = await fetch(url);
@@ -200,7 +328,8 @@ const NETWORKS = {
       const ig = env.META_IG_USER_ID, access_token = env.META_PAGE_TOKEN;
       const caption = compose(post, "instagram", Boolean(m.video)).text;
       let params;
-      if (m.video) params = {media_type: "REELS", video_url: m.video.url, caption};
+      if (m.video) params = {media_type: "REELS", caption,
+        video_url: m.video.size > IG_MAX ? await instagramCopy(m.video) : m.video.url};
       else if (m.images.length === 1) params = {image_url: m.images[0].url, caption};
       else {
         // Carrousel : un conteneur par image, puis un conteneur qui les regroupe.
@@ -337,6 +466,11 @@ async function publishDue() {
 
     const label = firstLine(post.text, 50);
     post.results ||= {};
+
+    if ((post.media || []).some(m => m.parts?.length && !m.asset)) {
+      report.push(`- ⏳ « ${label} » : la vidéo n'est pas encore recollée, il partira au prochain passage`);
+      continue;
+    }
 
     const lateHours = (NOW - due) / 3_600_000;
     if (lateHours > MAX_LATE_HOURS) {
@@ -602,6 +736,10 @@ async function cleanPublished() {
     if (DRY_RUN) { console.log(`Essai : supprimerait ${post.media.length} visuel(s) de « ${label} »`); continue; }
     try {
       for (const m of post.media) {
+        if (m.asset) await deleteAsset(m.asset.id);
+        if (m.igAsset) await deleteAsset(m.igAsset.id);
+        for (const p of m.parts || []) await deleteFromBranch(p, m.ref);
+        if (m.asset || m.parts) continue;
         if (m.ref) await deleteFromBranch(m.path, m.ref);
         else await rm(m.path, {force: true});
       }
@@ -618,6 +756,7 @@ async function cleanPublished() {
 }
 
 async function publishAndClean() {
+  await prepareMedia();
   await publishDue();
   await cleanPublished();
 }

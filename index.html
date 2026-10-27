@@ -746,12 +746,12 @@ img.av{object-fit:cover;padding:0}
   </form>
 </div>
 
-<script src="rules.js?v=6"></script>
+<script src="rules.js?v=7"></script>
 <script>
 "use strict";
 
 /* La page et rules.js doivent aller ensemble (voir l'en-tête de rules.js). */
-const RULES_VERSION = 6;
+const RULES_VERSION = 7;
 const rulesOk = window.CadenceRules?.VERSION === RULES_VERSION;
 
 /* ===================== modèle ===================== */
@@ -972,6 +972,16 @@ const GH = {
     }
   },
 
+  /**
+   * Supprime un visuel où qu'il soit : fichier de la branche des visuels, morceaux d'une grosse
+   * vidéo pas encore recollée, ou fichier recollé par le robot dans la release « visuels ».
+   */
+  async removeMedia(m, message){
+    if (m.asset?.id) await this.api(`/releases/assets/${m.asset.id}`, {method: "DELETE"}).catch(e => { if (e.status !== 404) throw e; });
+    for (const part of m.parts || []) await this.remove(part, message, m.ref);
+    if (!m.parts && !m.asset) await this.remove(m.path, message, m.ref);
+  },
+
   rawUrl(path, ref = this.branch){
     const file = path.split("/").map(encodeURIComponent).join("/");
     return `https://raw.githubusercontent.com/${this.owner}/${this.repo}/${ref}/${file}`;
@@ -1010,6 +1020,14 @@ const Store = {
       // un réseau déjà servi ne sera jamais republié.
       const remote = await GH.readJson(path).catch(() => null);
       if (remote?.results) body = {...body, results: {...(body.results || {}), ...remote.results}};
+      // Une grosse vidéo recollée par le robot entre-temps : ses morceaux n'existent plus, on garde le fichier recollé.
+      const ready = new Map((remote?.media || []).filter(m => m.asset).map(m => [m.path, m]));
+      if (ready.size) body = {...body, media: (body.media || []).map(m => {
+        const r = ready.get(m.path);
+        if (!r || m.asset) return m;
+        const {parts, ...rest} = m;
+        return {...rest, asset: r.asset};
+      })};
       await GH.put(path, b64FromText(JSON.stringify({id, ...body}, null, 2) + "\n"), `Cadence : ${firstWords(body.text)}`);
     }
     state.posts.set(id, body);
@@ -1019,20 +1037,39 @@ const Store = {
   async drop(id){
     const p = state.posts.get(id);
     if (this.mode === "github"){
-      for (const m of p?.media || []) await GH.remove(m.path, "Cadence : visuel supprimé", m.ref).catch(() => {});
+      for (const m of p?.media || []) await GH.removeMedia(m, "Cadence : visuel supprimé").catch(() => {});
       await GH.remove(`posts/${id}.json`, `Cadence : post supprimé`);
     }
     state.posts.delete(id);
     if (this.mode === "local") this.saveLocal();
   },
 
-  async upload(id, file){
+  /**
+   * Envoie un visuel tel quel, sans le compresser. GitHub refuse les fichiers de plus de 100 Mo :
+   * au-delà de PART_SIZE, le fichier part en morceaux, que le robot recolle ensuite
+   * dans la release « visuels » (2 Go par fichier).
+   */
+  PART_SIZE: 30 * 1e6,
+
+  async upload(id, file, progress = () => {}){
     const safe = file.name.normalize("NFD").replace(/[̀-ͯ]/g, "")
       .replace(/[^\w.-]+/g, "-").slice(-80) || "visuel";
     const path = `media/${id}/${Date.now().toString(36)}-${safe}`;
+    const type = file.type === "application/pdf" ? "document" : file.type.startsWith("video/") ? "video" : "image";
     await GH.ensureMediaBranch();
-    await GH.put(path, b64FromBytes(new Uint8Array(await file.arrayBuffer())), `Cadence : visuel ${safe}`, GH.MEDIA);
-    return {path, ref: GH.MEDIA, type: file.type === "application/pdf" ? "document" : file.type.startsWith("video/") ? "video" : "image"};
+    if (file.size <= this.PART_SIZE * 1.5){
+      await GH.put(path, b64FromBytes(new Uint8Array(await file.arrayBuffer())), `Cadence : visuel ${safe}`, GH.MEDIA);
+      return {path, ref: GH.MEDIA, type};
+    }
+    const parts = [], count = Math.ceil(file.size / this.PART_SIZE);
+    for (let i = 0; i < count; i++){
+      progress(i + 1, count);
+      const part = `${path}.part${String(i + 1).padStart(3, "0")}`;
+      const bytes = new Uint8Array(await file.slice(i * this.PART_SIZE, (i + 1) * this.PART_SIZE).arrayBuffer());
+      await GH.put(part, b64FromBytes(bytes), `Cadence : ${safe}, morceau ${i + 1}/${count}`, GH.MEDIA);
+      parts.push(part);
+    }
+    return {path, ref: GH.MEDIA, type, parts};
   },
 };
 
@@ -1403,19 +1440,20 @@ const shortName = path => String(path).split("/").pop().replace(/^[a-z0-9]+-/, "
 
 function visualsFrom(media){
   return (media || []).filter(m => m.type !== "document")
-    .map(m => ({path: m.path, ref: m.ref, type: m.type, url: GH.rawUrl(m.path, m.ref), name: shortName(m.path), meta: metaFields(m)}));
+    .map(m => ({path: m.path, ref: m.ref, parts: m.parts, asset: m.asset, type: m.type, name: shortName(m.path), meta: metaFields(m),
+                url: m.asset?.url || (m.parts ? "" : GH.rawUrl(m.path, m.ref))}));
 }
 
 function pdfFrom(media){
   const d = (media || []).find(m => m.type === "document");
-  return d ? {path: d.path, ref: d.ref, name: shortName(d.path), meta: metaFields(d)} : null;
+  return d ? {path: d.path, ref: d.ref, parts: d.parts, asset: d.asset, name: shortName(d.path), meta: metaFields(d)} : null;
 }
 
 /** Retire des visuels : ceux déjà dans le dépôt seront supprimés à l'enregistrement. */
 function dropVisuals(e, keepOut){
   e.visuals = e.visuals.filter((v, idx) => {
     if (!keepOut(v, idx)) return true;
-    if (v.file) URL.revokeObjectURL(v.url); else e.toDelete.push({path: v.path, ref: v.ref});
+    if (v.file) URL.revokeObjectURL(v.url); else e.toDelete.push({path: v.path, ref: v.ref, parts: v.parts, asset: v.asset});
     return false;
   });
 }
@@ -1460,7 +1498,8 @@ function mediaFieldHTML(e){
     </div>`;
   const hasVideo = e.visuals.some(v => v.type === "video");
   const thumbs = e.visuals.map((v, i) => `<div class="thumb">
-        ${v.type === "video"
+        ${!v.url ? `<span class="pv-ph">en préparation</span>`
+          : v.type === "video"
           ? `<video src="${esc(v.url)}" muted playsinline preload="metadata"></video>`
           : `<img src="${esc(v.url)}" alt="">`}
         <span class="thumb-n">${v.type === "video" ? "Vidéo" : i + 1}</span>
@@ -1782,7 +1821,8 @@ function refreshLive(c){
 
 const ratioOf = v => v?.meta?.width && v?.meta?.height ? v.meta.width / v.meta.height : null;
 const within = (r, lo, hi) => Math.min(hi, Math.max(lo, r));
-const mediaEl = v => v.type === "video"
+const mediaEl = v => !v.url ? placeholder("Vidéo en préparation : le robot la recolle d'ici 15 minutes")
+  : v.type === "video"
   ? `<video src="${esc(v.url)}" muted playsinline loop autoplay></video>`
   : `<img src="${esc(v.url)}" alt="">`;
 const barHTML = (items, cls = "") => `<div class="pv-bar ${cls}">${items.map(([n, label]) => `<span>${ico(n)}${label}</span>`).join("")}</div>`;
@@ -1970,15 +2010,16 @@ async function saveSheet(){
     const todo = e.visuals.filter(v => v.file).length + (e.pdf?.file ? 1 : 0);
     if (todo) toast(`Envoi de ${todo} fichier${todo > 1 ? "s" : ""} vers GitHub…`);
     const media = [];
+    const progress = (i, n) => toast(`Envoi de la vidéo, sans compression : morceau ${i} sur ${n}… Garde cette page ouverte.`);
+    const kept = (m, type) => ({path: m.path, ...(m.ref ? {ref: m.ref} : {}), ...(m.parts ? {parts: m.parts} : {}),
+                                ...(m.asset ? {asset: m.asset} : {}), type, ...metaFields(m.meta)});
     for (const v of e.visuals){
-      media.push(v.file ? {...await Store.upload(e.id, v.file), ...metaFields(v.meta)}
-                        : {path: v.path, ...(v.ref ? {ref: v.ref} : {}), type: v.type, ...metaFields(v.meta)});
+      media.push(v.file ? {...await Store.upload(e.id, v.file, progress), ...metaFields(v.meta)} : kept(v, v.type));
     }
     if (e.pdf){
-      media.push(e.pdf.file ? {...await Store.upload(e.id, e.pdf.file), ...metaFields(e.pdf.meta)}
-                            : {path: e.pdf.path, ...(e.pdf.ref ? {ref: e.pdf.ref} : {}), type: "document", ...metaFields(e.pdf.meta)});
+      media.push(e.pdf.file ? {...await Store.upload(e.id, e.pdf.file, progress), ...metaFields(e.pdf.meta)} : kept(e.pdf, "document"));
     }
-    for (const m of e.toDelete) await GH.remove(m.path, "Cadence : visuel retiré", m.ref).catch(() => {});
+    for (const m of e.toDelete) await GH.removeMedia(m, "Cadence : visuel retiré").catch(() => {});
     const body = {...prev, title:e.title.trim(), text:e.text.trim(),
                   hashtags:CadenceRules.parseTags(e.hashtags).join(" "), platforms:e.platforms, at:joinAt(e.day, e.time),
                   tiktok: e.platforms.includes("tiktok") ? tiktokFor(e) : prev.tiktok,
@@ -2187,7 +2228,7 @@ document.addEventListener("click", ev => {
     if (a === "xdone") markXDone();
     if (a === "unpdf" && state.editing){
       const e = state.editing;
-      if (e.pdf?.path) e.toDelete.push({path: e.pdf.path, ref: e.pdf.ref});
+      if (e.pdf?.path) e.toDelete.push({path: e.pdf.path, ref: e.pdf.ref, parts: e.pdf.parts, asset: e.pdf.asset});
       e.pdf = null; e.focusText = false; renderSheet();
     }
     if (a === "copy"){
@@ -2248,7 +2289,7 @@ document.addEventListener("change", async ev => {
     e.visuals = [{file: files[0], type: "video", url, name: files[0].name, meta}];
   }
   if (id === "f-pdf"){
-    if (e.pdf?.path) e.toDelete.push({path: e.pdf.path, ref: e.pdf.ref});
+    if (e.pdf?.path) e.toDelete.push({path: e.pdf.path, ref: e.pdf.ref, parts: e.pdf.parts, asset: e.pdf.asset});
     e.pdf = {file: files[0], name: files[0].name, meta: {mime: files[0].type || "application/pdf", size: files[0].size}};
   }
   if (state.editing === e){ e.focusText = false; renderSheet(); }

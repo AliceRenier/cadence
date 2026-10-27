@@ -117,7 +117,9 @@ Programme un post de test dans Cadence pour dans quelques minutes, puis va dans 
 - **YouTube** : une vidéo verticale de 3 minutes au plus devient un Short. Au-delà de 15 hashtags, YouTube ignore tous les hashtags de la vidéo : Cadence bloque.
 - **LinkedIn** : un même texte publié deux fois est refusé par LinkedIn, même à plusieurs semaines d'écart.
 - **Qualité** : Cadence et le robot envoient tes fichiers d'origine, octet pour octet, sans les compresser ni les réencoder. Seuls les réseaux réencodent ensuite, comme pour tout envoi. Pour le meilleur rendu : MP4 en H.264, 1080 × 1920 pour les formats verticaux, 30 ou 60 images par seconde, et la vidéo HDR de l'iPhone désactivée (les réseaux la rendent souvent délavée).
-- **Taille des vidéos** : GitHub refuse les fichiers de plus de 100 Mo. Les vidéos publiées sont supprimées et la branche `media` est réduite à un seul commit : GitHub efface ensuite ces fichiers de son côté, en général sous quelques jours.
+- **Grosses vidéos (4K)** : jusqu'à 2 Go par fichier. Au-delà de 45 Mo, Cadence envoie la vidéo en morceaux de 30 Mo, sans la compresser. Garde la page ouverte pendant l'envoi. Au passage suivant, le robot recolle les morceaux, tels quels, dans la release GitHub « visuels ». Le post part dès que sa vidéo est recollée.
+- **Instagram et les vidéos de plus de 300 Mo** : Instagram n'accepte pas plus de 300 Mo par ce moyen, et réduit de toute façon chaque vidéo en 1080p. Le robot lui envoie donc une copie 1080p de haute qualité. YouTube, TikTok, Facebook (1 Go au plus) et LinkedIn reçoivent l'originale.
+- **Place prise** : les vidéos publiées sont supprimées, de la release comme de la branche `media`, et cette branche est réduite à un seul commit. GitHub efface ensuite ces fichiers de son côté, en général sous quelques jours.
 - **Ponctualité** : le robot passe toutes les 15 minutes (à 7, 22, 37 et 52), et GitHub le lance parfois avec un peu de retard, ou saute un passage quand il est chargé. Un post prévu à 9 h 00 part donc vers 9 h 10, parfois un peu plus tard. Pour qu'il parte tout de suite, utilise « Publier maintenant ».
 - **Plus de 48 h de retard** : un post en retard de plus de 48 h n'est pas publié. Il passe en échec pour que tu décides.
 - **60 jours sans activité** : sur un dépôt public, GitHub suspend les tâches planifiées si le dépôt ne bouge pas pendant 60 jours, et prévient par e-mail. Publier régulièrement suffit à l'éviter.
@@ -128,14 +130,14 @@ Cadence vérifie chaque post avant de le programmer : dans le composeur, chaque 
 
 | Réseau | Texte | Images | Vidéo |
 |---|---|---|---|
-| Instagram | 2 200 caractères, 30 hashtags, 20 mentions | JPEG, 8 Mo, proportions entre 4:5 et 1,91:1, 10 par carrousel | MP4 ou MOV, 3 s à 15 min, 300 Mo (Reel) |
+| Instagram | 2 200 caractères, 30 hashtags, 20 mentions | JPEG, 8 Mo, proportions entre 4:5 et 1,91:1, 10 par carrousel | MP4 ou MOV, 3 s à 15 min (Reel) ; au-delà de 300 Mo, copie 1080p faite par le robot |
 | Facebook | 63 206 caractères | JPEG ou PNG, 10 Mo | MP4 ou MOV, 20 min |
 | TikTok | 2 200 caractères (4 000 pour un carrousel photo), 5 hashtags, titre de 90 caractères obligatoire pour un carrousel | JPEG, PNG ou WebP, 20 Mo, 35 par carrousel | MP4, MOV ou WebM, 3 s à 10 min, verticale conseillée |
 | YouTube | titre 100 caractères, description 5 000, 15 hashtags | — | obligatoire, 15 min au plus sans vérification de la chaîne |
 | LinkedIn | 3 000 caractères, 5 hashtags conseillés | JPEG, PNG ou GIF, 8 Mo, 20 par post ; ou un PDF de 100 Mo | MP4 ou MOV, 3 s à 30 min |
 | X | 280 caractères | — | — (publication à la main) |
 
-Pour tous : GitHub refuse les fichiers de plus de 100 Mo. Ces limites sont toutes dans `rules.js`. Si un réseau les change, c'est le seul fichier à mettre à jour.
+Pour tous : 2 Go par fichier. Ces limites sont toutes dans `rules.js`. Si un réseau les change, c'est le seul fichier à mettre à jour.
 
 ## Les fichiers
 
