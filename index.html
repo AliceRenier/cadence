@@ -468,6 +468,13 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
 .track-txt small{font-size:11px;color:var(--fg-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .track-play{width:34px;justify-content:center;padding:6px 0}
 
+/* ---------- publier maintenant, mode aperçu ---------- */
+.side-foot button.side-cta{background:var(--accent);color:var(--accent-fg);font-weight:600;margin-bottom:6px}
+.side-foot button.side-cta:hover{background:var(--accent);filter:brightness(1.06);color:var(--accent-fg)}
+.banner{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex:none;background:var(--accent-soft);color:var(--accent-ink);
+  font-size:13px;font-weight:560;padding-block:8px;padding-left:16px;padding-right:max(16px,env(safe-area-inset-right,0px))}
+.banner .btn{padding:4px 10px}
+
 /* ---------- échecs du robot ---------- */
 .pill-failed{background:var(--crit-soft);color:var(--crit)}
 .chip.s-failed{border-left-color:var(--crit)}
@@ -529,6 +536,10 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
     <div class="side-group" id="navPlats"></div>
 
     <div class="side-foot">
+      <button type="button" id="btnPublish" class="side-cta" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h12m0 0-5-5m5 5-5 5"/></svg>
+        Publier maintenant
+      </button>
       <button type="button" id="btnIcs">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
         Exporter vers mon agenda
@@ -550,6 +561,10 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
   </aside>
 
   <main class="main">
+    <div class="banner" id="banner" hidden>
+      <span>Mode aperçu : tes posts restent dans ce navigateur et rien n’est publié.</span>
+      <button type="button" class="btn btn-primary" data-act="connect">Se connecter à GitHub</button>
+    </div>
     <header class="toolbar">
       <div class="stepper" id="stepper">
         <button type="button" id="btnPrev" aria-label="Mois précédent">
@@ -598,7 +613,7 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
       <label for="g-token">Jeton d’accès</label>
       <input class="inp" id="g-token" type="password" spellcheck="false" autocomplete="current-password" placeholder="github_pat_…">
     </div>
-    <p class="hint">Crée-le sur <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub, jetons à grain fin</a> : accès à ce seul dépôt, permission <b>Contents</b> en lecture et écriture. Il reste sur cet appareil.</p>
+    <p class="hint">Crée-le sur <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub, jetons à grain fin</a> : accès à ce seul dépôt, permissions <b>Contents</b> et <b>Actions</b> en lecture et écriture. Il reste sur cet appareil.</p>
     <p class="gate-err" id="gateErr" hidden></p>
     <div class="gate-actions">
       <button type="submit" class="btn btn-primary" id="gateGo">Se connecter</button>
@@ -607,9 +622,13 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
   </form>
 </div>
 
-<script src="rules.js"></script>
+<script src="rules.js?v=4"></script>
 <script>
 "use strict";
+
+/* La page et rules.js doivent aller ensemble (voir l'en-tête de rules.js). */
+const RULES_VERSION = 4;
+const rulesOk = window.CadenceRules?.VERSION === RULES_VERSION;
 
 /* ===================== modèle ===================== */
 
@@ -799,6 +818,17 @@ const GH = {
     this.shas.delete(path);
   },
 
+  /** Lance une tâche GitHub (publier, sons TikTok) : le jeton doit avoir la permission Actions. */
+  async dispatch(workflow){
+    try{
+      await this.api(`/actions/workflows/${workflow}/dispatches`, {method: "POST", body: JSON.stringify({ref: this.branch})});
+    }catch(e){
+      if (e.status === 403 || e.status === 404)
+        throw new Error("ton jeton GitHub n’a pas la permission Actions. Ajoute-la en lecture et écriture sur github.com/settings/personal-access-tokens");
+      throw e;
+    }
+  },
+
   rawUrl(path){
     const file = path.split("/").map(encodeURIComponent).join("/");
     return `https://raw.githubusercontent.com/${this.owner}/${this.repo}/${this.branch}/${file}`;
@@ -915,6 +945,8 @@ function renderNav(){
   document.getElementById("btnWipe").hidden = !hasExamples();
 
   const online = Store.mode === "github";
+  document.getElementById("btnPublish").hidden = !online;
+  document.getElementById("banner").hidden = online || state.loading;
   document.getElementById("accountLabel").textContent = online ? "Se déconnecter" : "Se connecter à GitHub";
   const note = document.getElementById("storeNote");
   note.classList.toggle("ok", online);
@@ -1299,7 +1331,8 @@ function musicHTML(e){
   if (Store.mode !== "github") return `<p class="hint">Connecte Cadence à GitHub pour voir les sons tendance.</p>`;
   const m = state.music;
   if (!m){ loadMusic(); return `<p class="hint">Chargement des sons tendance…</p>`; }
-  if (!m.tracks?.length) return `<p class="warn">La liste des sons n’est pas disponible${m.error ? ` (${esc(m.error)})` : ""}. Lance la tâche « Musique TikTok » dans Actions, ou choisis le son dans l’app TikTok.</p>`;
+  if (!m.tracks?.length) return `<p class="warn">La liste des sons n’est pas disponible${m.error ? ` (${esc(m.error)})` : ""}. Mets-la à jour, ou choisis le son dans l’app TikTok.</p>
+    <button type="button" class="btn" data-act="music-refresh">Mettre à jour les sons</button>`;
   const chosen = e.tiktok.music?.id;
   return `<div class="tracks">${m.tracks.map((t, i) => `<div class="track${t.id === chosen ? " on" : ""}">
         ${t.thumbnailUrl ? `<img src="${esc(t.thumbnailUrl)}" alt="">` : `<span class="track-ph"></span>`}
@@ -1327,7 +1360,16 @@ function stopMusic(){
   state.playing = null;
 }
 
+/** Si le composeur rencontre un problème, il le dit au lieu de se figer. */
 function renderSheet(){
+  try{ renderSheetUnsafe(); }
+  catch(err){
+    console.error(err);
+    toast("Le composeur a rencontré un problème : recharge la page avec ⌘ + Maj + R.");
+  }
+}
+
+function renderSheetUnsafe(){
   const e = state.editing;
   if (!e) return;
   const prevOn = e.platforms.includes(state.previewOn) ? state.previewOn : (e.platforms[0] || "instagram");
@@ -1508,7 +1550,8 @@ async function saveSheet(){
     await Store.put(e.id, body);
     const isNew = e.isNew;
     closeSheet();
-    toast(isNew ? (body.status === "scheduled" ? "Post programmé." : "Post enregistré.") : "Modifications enregistrées.");
+    toast(Store.mode !== "github" ? "Enregistré dans l’aperçu seulement : connecte Cadence à GitHub pour qu’il soit publié."
+      : isNew ? (body.status === "scheduled" ? "Post programmé." : "Post enregistré.") : "Modifications enregistrées.");
     render();
   }catch(err){
     toast(`GitHub a refusé l’enregistrement : ${err.message}`);
@@ -1627,6 +1670,8 @@ document.addEventListener("click", ev => {
   if (act){
     if (act.dataset.act === "new") openNew();
     if (act.dataset.act === "seed") seedExamples();
+    if (act.dataset.act === "connect") showGate();
+    if (act.dataset.act === "music-refresh") refreshMusic();
     return;
   }
 
@@ -1890,6 +1935,23 @@ document.getElementById("gateLocal").addEventListener("click", async () => {
   await reload();
 });
 
+/** Lance le robot tout de suite, puis relit les statuts une fois qu'il a eu le temps de publier. */
+document.getElementById("btnPublish").addEventListener("click", async () => {
+  try{
+    await GH.dispatch("publier.yml");
+    toast("Le robot démarre : les posts dont l’heure est passée partent d’ici une à deux minutes.");
+    for (const delay of [90e3, 180e3]) setTimeout(() => { if (Store.mode === "github" && !state.editing) reload(); }, delay);
+  }catch(err){ toast(`Impossible de lancer le robot : ${err.message}.`); }
+});
+
+async function refreshMusic(){
+  try{
+    await GH.dispatch("musique-tiktok.yml");
+    toast("Mise à jour des sons lancée : rouvre ce choix dans une minute.");
+    setTimeout(() => { state.music = null; if (state.editing) renderSheet(); }, 75e3);
+  }catch(err){ toast(`Impossible de mettre à jour les sons : ${err.message}.`); }
+}
+
 document.getElementById("btnAccount").addEventListener("click", async () => {
   if (Store.mode === "github"){
     GH.forget();
@@ -1904,6 +1966,7 @@ document.getElementById("btnAccount").addEventListener("click", async () => {
 });
 
 async function boot(){
+  if (!rulesOk) toast("Cadence vient d’être mis à jour : recharge la page avec ⌘ + Maj + R.");
   GH.restore();
   let localChoice = false;
   try{ localChoice = localStorage.getItem("cadence.local") === "1"; }catch(_){}

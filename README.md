@@ -29,7 +29,7 @@ Planifie tes posts dans un calendrier. Un robot GitHub les publie à l'heure pr�
    Cadence sera en ligne à l'adresse `https://<ton-compte>.github.io/cadence/`.
 3. Crée le jeton qui sert à te connecter à Cadence : [Jetons à grain fin](https://github.com/settings/personal-access-tokens/new).
    - *Repository access* : **Only select repositories** → `cadence`
-   - *Permissions* : **Contents → Read and write**
+   - *Permissions* : **Contents → Read and write** et **Actions → Read and write** (pour le bouton « Publier maintenant »)
    - Colle-le dans l'écran de connexion de Cadence. Il reste dans ton navigateur, sur cet appareil.
 
 ### 2. Zernio : TikTok et ta page LinkedIn

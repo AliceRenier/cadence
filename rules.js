@@ -7,6 +7,11 @@
  * check(post) renvoie la liste des points à signaler, réseau par réseau :
  *   {net, level, msg}  level = "error" (bloque la publication), "warn" ou "info"
  * Les messages ne nomment pas le réseau : l'affichage s'en charge.
+ *
+ * À chaque modification de ce fichier, augmente VERSION ici ET dans index.html
+ * (balise <script src="rules.js?v=…"> et RULES_VERSION) : le navigateur garde
+ * les fichiers en mémoire 10 minutes, et une page récente ne doit jamais
+ * tourner avec un ancien rules.js.
  */
 (function (root) {
   "use strict";
@@ -194,7 +199,8 @@
     return issues;
   }
 
-  const api = {RULES, check, mimeOf, tiktokMode};
+  const VERSION = 4;
+  const api = {VERSION, RULES, check, mimeOf, tiktokMode};
   root.CadenceRules = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);
