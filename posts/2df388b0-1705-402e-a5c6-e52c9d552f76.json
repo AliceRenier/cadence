@@ -9,7 +9,7 @@
     "mode": "auto"
   },
   "timezone": "Europe/Paris",
-  "status": "scheduled",
+  "status": "published",
   "media": [
     {
       "path": "media/2df388b0-1705-402e-a5c6-e52c9d552f76/mvr72k7q-37.png",
@@ -76,5 +76,14 @@
       "height": 1350
     }
   ],
-  "updatedAt": "2026-10-27T21:39:30.747Z"
+  "updatedAt": "2026-10-27T21:39:30.747Z",
+  "results": {
+    "tiktok": {
+      "ok": true,
+      "id": "6ae11a784e05ee322d9fd5f3",
+      "at": "2026-10-27T21:41:26.984Z"
+    }
+  },
+  "manual": [],
+  "publishedAt": "2026-10-27T21:41:26.984Z"
 }
