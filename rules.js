@@ -34,16 +34,16 @@
       video: {mimes: [MP4, MOV], maxBytes: 1000 * MB, maxSec: 20 * 60},
     },
     tiktok: {
-      name: "TikTok", text: 2200, photoText: 4000, needs: "visual",
+      name: "TikTok", text: 2200, photoText: 4000, photoTitle: 90, needs: "visual",
       image: {mimes: [JPEG, PNG, WEBP], maxBytes: 20 * MB, max: 35},
       video: {mimes: [MP4, MOV, WEBM], maxBytes: 4000 * MB, minSec: 3, maxSec: 10 * 60, vertical: true},
     },
     youtube: {
-      name: "YouTube", titleMax: 100, descMax: 5000, needs: "video",
+      name: "YouTube", titleMax: 100, descMax: 5000, hashtags: 15, needs: "video",
       video: {mimes: [MP4, MOV], maxSec: 15 * 60, shortSec: 3 * 60},
     },
     linkedin: {
-      name: "LinkedIn", text: 3000,
+      name: "LinkedIn", text: 3000, hashtagsAdvised: 5,
       image: {mimes: [JPEG, PNG, GIF], maxBytes: 8 * MB, max: 20},
       video: {mimes: [MP4, MOV], maxBytes: 5000 * MB, minSec: 3, maxSec: 30 * 60},
       document: {mimes: ["application/pdf"], maxBytes: 100 * MB},
@@ -80,6 +80,37 @@
     return mode || (hasVideo ? "none" : "draft");
   }
 
+  const TAG = /(^|\s)#[\p{L}\p{N}_]+/gu;
+  const countTags = s => (String(s).match(TAG) || []).length;
+  const stripTags = s => String(s).replace(TAG, " ").replace(/\s+/g, " ").trim();
+  const firstLineOf = s => (String(s || "").split("\n").find(l => l.trim()) || "").trim();
+
+  /** Les hashtags saisis à part : « atelier, #conseils diy » → ["#atelier", "#conseils", "#diy"]. */
+  function parseTags(s) {
+    const tags = String(s || "").split(/[\s,;]+/).map(t => t.replace(/^#+/, "").trim()).filter(Boolean);
+    return [...new Set(tags.map(t => "#" + t))];
+  }
+
+  /**
+   * Ce que reçoit chaque réseau à partir du titre, du texte et des hashtags.
+   *   text  : le texte publié, hashtags à la fin
+   *   title : YouTube (sans hashtags, 100 caractères), carrousel TikTok (90),
+   *           PDF LinkedIn (titre du document). Sans titre saisi : la première ligne du texte.
+   */
+  function compose(post, net, hasVideo) {
+    const body = String(post.text || "").trim();
+    const tagLine = parseTags(post.hashtags).join(" ");
+    const text = [body, tagLine].filter(Boolean).join("\n\n");
+    const rawTitle = String(post.title || "").trim() || firstLineOf(body);
+    if (net === "youtube") return {
+      title: stripTags(rawTitle).replace(/[<>]/g, "").slice(0, 100) || "Nouvelle vidéo",
+      text: text.replace(/[<>]/g, "").slice(0, 5000),
+    };
+    if (net === "tiktok" && !hasVideo) return {title: stripTags(rawTitle).slice(0, 90), text};
+    if (net === "linkedin") return {title: stripTags(rawTitle).slice(0, 100) || "Document", text};
+    return {text};
+  }
+
   function split(media) {
     const items = (media || []).map(m => ({...m, mime: mimeOf(m)}));
     return {
@@ -93,20 +124,31 @@
   function check(post) {
     const issues = [];
     const add = (net, level, msg, code) => issues.push({net, level, msg, code});
-    const text = String(post.text || "");
     const {video, images, document, all} = split(post.media);
+    const rawTitle = String(post.title || "").trim() || firstLineOf(post.text);
+
+    // Hashtags saisis à part : un caractère interdit couperait le hashtag sur tous les réseaux
+    for (const tag of parseTags(post.hashtags)) {
+      if (!/^#[\p{L}\p{N}_]+$/u.test(tag))
+        add("texte", "error", `Le hashtag « ${tag} » contient un caractère interdit : lettres, chiffres et _ seulement.`);
+    }
 
     for (const net of post.platforms || []) {
       const r = RULES[net];
       if (!r) continue;
+      const photoPost = net === "tiktok" && !video && images.length;
+      const text = compose(post, net, Boolean(video)).text;
 
-      // Texte
-      if (r.text && text.length > r.text)
-        add(net, "error", `${text.length} caractères : le maximum est ${r.text.toLocaleString("fr-FR")}.`);
-      if (r.hashtags) {
-        const n = (text.match(/#[\p{L}\p{N}_]+/gu) || []).length;
-        if (n > r.hashtags) add(net, "error", `${n} hashtags : le maximum est ${r.hashtags}.`);
-      }
+      // Texte, hashtags compris
+      const max = photoPost ? r.photoText : r.text;
+      if (max && text.length > max)
+        add(net, "error", `${text.length} caractères avec les hashtags : le maximum est ${max.toLocaleString("fr-FR")}.`);
+      if (r.hashtags && countTags(text) > r.hashtags)
+        add(net, "error", net === "youtube"
+          ? `${countTags(text)} hashtags : au-delà de ${r.hashtags}, YouTube les ignore tous. Garde-en ${r.hashtags} au plus.`
+          : `${countTags(text)} hashtags : le maximum est ${r.hashtags}.`);
+      if (r.hashtagsAdvised && countTags(text) > r.hashtagsAdvised)
+        add(net, "info", `${countTags(text)} hashtags : ${r.name} conseille d'en mettre ${r.hashtagsAdvised} au plus.`);
       if (r.mentions) {
         const n = (text.match(/(^|\s)@[\w.]+/g) || []).length;
         if (n > r.mentions) add(net, "error", `${n} mentions : le maximum est ${r.mentions}.`);
@@ -158,8 +200,6 @@
               add(net, "error", `${n} est trop ${ratio < im.ratio[0] ? "haute" : "large"} : les proportions doivent rester entre ${im.ratioLabel}. Recadre-la, par exemple en 4:5.`);
           }
         });
-        if (net === "tiktok" && text.length > r.photoText)
-          add(net, "error", `${text.length} caractères : le maximum est ${r.photoText} pour un carrousel photo.`);
       }
 
       // PDF LinkedIn
@@ -181,12 +221,16 @@
           add(net, "info", "Arrivera en brouillon dans ton app TikTok : tu y choisis le son, puis tu publies.");
       }
 
-      // YouTube : titre et description
+      // Titres : YouTube, carrousel TikTok, PDF LinkedIn
+      const titleMax = net === "youtube" ? r.titleMax : photoPost ? r.photoTitle : (net === "linkedin" && document) ? 100 : 0;
+      if (titleMax) {
+        const title = stripTags(rawTitle);
+        if (!title) add(net, "warn", "Pas de titre : ajoute un titre, ou une première ligne au texte.");
+        else if (title.length > titleMax) add(net, "warn", `Titre de ${title.length} caractères : il sera coupé à ${titleMax}.`);
+        if (countTags(rawTitle)) add(net, "info", "Les hashtags du titre en sont retirés ; ceux du champ Hashtags vont dans la description.");
+      }
       if (net === "youtube") {
-        const title = (text.split("\n").find(l => l.trim()) || "").trim();
-        if (title.length > r.titleMax)
-          add(net, "warn", `Titre de ${title.length} caractères : il sera coupé à ${r.titleMax}.`);
-        if (/[<>]/.test(text)) add(net, "warn", "Les signes < et > seront retirés : YouTube les refuse.");
+        if (/[<>]/.test(rawTitle + (post.text || ""))) add(net, "warn", "Les signes < et > seront retirés : YouTube les refuse.");
         if (text.length > r.descMax) add(net, "warn", `Description coupée à ${r.descMax} caractères.`);
       }
     }
@@ -199,8 +243,8 @@
     return issues;
   }
 
-  const VERSION = 4;
-  const api = {VERSION, RULES, check, mimeOf, tiktokMode};
+  const VERSION = 5;
+  const api = {VERSION, RULES, check, compose, parseTags, mimeOf, tiktokMode};
   root.CadenceRules = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

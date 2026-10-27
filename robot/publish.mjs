@@ -21,7 +21,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import "../rules.js";   // règles de chaque réseau, partagées avec l'interface
 
-const { check: checkRules, tiktokMode } = globalThis.CadenceRules;
+const { check: checkRules, compose, tiktokMode } = globalThis.CadenceRules;
 
 const env = process.env;
 const DRY_RUN = env.DRY_RUN === "1";
@@ -116,9 +116,6 @@ const zernioVisuals = m => m.video ? [{url: m.video.url, type: "video"}]
 const firstLine = (text, max) =>
   (String(text || "").split("\n").find(l => l.trim()) || "Nouvelle vidéo").trim().slice(0, max);
 
-/** YouTube refuse les chevrons dans le titre et la description. */
-const youtubeText = (s, max) => String(s || "").replace(/[<>]/g, "").trim().slice(0, max);
-
 /** Échange la clé longue durée de Google contre un accès valable une heure. */
 async function googleAccessToken() {
   need("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "YOUTUBE_REFRESH_TOKEN");
@@ -154,14 +151,15 @@ const NETWORKS = {
     async publish(post, m) {
       need("META_PAGE_ID", "META_PAGE_TOKEN");
       const page = env.META_PAGE_ID, access_token = env.META_PAGE_TOKEN;
+      const {text} = compose(post, "facebook", Boolean(m.video));
       if (m.video) {
         const {body} = await call(`${GRAPH_VIDEO}/${page}/videos`,
-          {method: "POST", body: form({file_url: m.video.url, description: post.text, access_token})});
+          {method: "POST", body: form({file_url: m.video.url, description: text, access_token})});
         return body.id;
       }
       if (m.images.length === 1) {
         const {body} = await call(`${GRAPH}/${page}/photos`,
-          {method: "POST", body: form({url: m.images[0].url, message: post.text, access_token})});
+          {method: "POST", body: form({url: m.images[0].url, message: text, access_token})});
         return body.post_id || body.id;
       }
       // Plusieurs images : on les dépose sans les publier, puis un seul post les regroupe.
@@ -172,7 +170,7 @@ const NETWORKS = {
         attached[`attached_media[${n}]`] = JSON.stringify({media_fbid: body.id});
       }
       const {body} = await call(`${GRAPH}/${page}/feed`,
-        {method: "POST", body: form({message: post.text, ...attached, access_token})});
+        {method: "POST", body: form({message: text, ...attached, access_token})});
       return body.id;
     },
   },
@@ -185,9 +183,10 @@ const NETWORKS = {
     async publish(post, m) {
       need("META_IG_USER_ID", "META_PAGE_TOKEN");
       const ig = env.META_IG_USER_ID, access_token = env.META_PAGE_TOKEN;
+      const caption = compose(post, "instagram", Boolean(m.video)).text;
       let params;
-      if (m.video) params = {media_type: "REELS", video_url: m.video.url, caption: post.text};
-      else if (m.images.length === 1) params = {image_url: m.images[0].url, caption: post.text};
+      if (m.video) params = {media_type: "REELS", video_url: m.video.url, caption};
+      else if (m.images.length === 1) params = {image_url: m.images[0].url, caption};
       else {
         // Carrousel : un conteneur par image, puis un conteneur qui les regroupe.
         const children = [];
@@ -197,7 +196,7 @@ const NETWORKS = {
           await waitInstagram(body.id, access_token);
           children.push(body.id);
         }
-        params = {media_type: "CAROUSEL", children: children.join(","), caption: post.text};
+        params = {media_type: "CAROUSEL", children: children.join(","), caption};
       }
       const {body: container} = await call(`${GRAPH}/${ig}/media`,
         {method: "POST", body: form({...params, access_token})});
@@ -228,11 +227,7 @@ const NETWORKS = {
             "X-Upload-Content-Length": String(bytes.length),
           },
           body: JSON.stringify({
-            snippet: {
-              title: youtubeText(firstLine(post.text, 100), 100) || "Nouvelle vidéo",
-              description: youtubeText(post.text, 5000),
-              categoryId: "22",
-            },
+            snippet: {...(({title, text}) => ({title, description: text}))(compose(post, "youtube", true)), categoryId: "22"},
             status: {privacyStatus: "public", selfDeclaredMadeForKids: false},
           }),
         });
@@ -260,7 +255,11 @@ const NETWORKS = {
         ...(mode === "draft" ? {draft: true} : {}),
         ...(mode === "music" ? {musicSoundInfo: {musicSoundId: post.tiktok.music.id}} : {}),
       };
-      const id = await zernioPost("tiktok", "ZERNIO_TIKTOK_ID", post, zernioVisuals(m), {tiktokSettings});
+      // Carrousel photo : un titre court (90 caractères) et la description complète, hashtags compris.
+      const {title, text} = compose(post, "tiktok", Boolean(m.video));
+      if (!m.video) tiktokSettings.description = text;
+      const id = await zernioPost("tiktok", "ZERNIO_TIKTOK_ID", m.video ? text : (title || text.slice(0, 90)),
+        zernioVisuals(m), {tiktokSettings});
       return mode === "draft" ? {id, draft: true} : id;
     },
   },
@@ -268,13 +267,13 @@ const NETWORKS = {
   linkedin: {
     validate() {},
     publish(post, m) {
+      const {title, text} = compose(post, "linkedin", Boolean(m.video));
       // Le PDF fourni pour LinkedIn passe avant les autres visuels : c'est le format carrousel de LinkedIn.
       if (m.document) {
-        const title = firstLine(post.text, 100);
-        return zernioPost("linkedin", "ZERNIO_LINKEDIN_ID", post,
+        return zernioPost("linkedin", "ZERNIO_LINKEDIN_ID", text,
           [{url: m.document.url, type: "document", title}], {}, {documentTitle: title});
       }
-      return zernioPost("linkedin", "ZERNIO_LINKEDIN_ID", post, zernioVisuals(m));
+      return zernioPost("linkedin", "ZERNIO_LINKEDIN_ID", text, zernioVisuals(m));
     },
   },
 };
@@ -283,13 +282,13 @@ const NETWORKS = {
  * Publication via Zernio. Un appel par réseau : si l'un échoue, l'autre n'est pas
  * republié au prochain essai. Pour LinkedIn, la page cible a été choisie à la connexion du compte.
  */
-async function zernioPost(platform, accountVar, post, mediaItems, extra = {}, platformSpecificData) {
+async function zernioPost(platform, accountVar, content, mediaItems, extra = {}, platformSpecificData) {
   need("ZERNIO_API_KEY", accountVar);
   const {res, body} = await call(`${ZERNIO}/posts`, {
     method: "POST",
     headers: {Authorization: `Bearer ${env.ZERNIO_API_KEY}`, "Content-Type": "application/json"},
     body: JSON.stringify({
-      content: post.text,
+      content,
       ...(mediaItems.length ? {mediaItems} : {}),
       platforms: [{platform, accountId: env[accountVar], ...(platformSpecificData ? {platformSpecificData} : {})}],
       publishNow: true,

@@ -475,6 +475,11 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
   font-size:13px;font-weight:560;padding-block:8px;padding-left:16px;padding-right:max(16px,env(safe-area-inset-right,0px))}
 .banner .btn{padding:4px 10px}
 
+/* ---------- titre et hashtags ---------- */
+.opt{font-weight:400;text-transform:none;letter-spacing:0;color:var(--fg-3)}
+.card-title{padding:11px 11px 0;font-size:14px;font-weight:650;letter-spacing:-.01em}
+.card-title:empty{display:none}
+
 /* ---------- échecs du robot ---------- */
 .pill-failed{background:var(--crit-soft);color:var(--crit)}
 .chip.s-failed{border-left-color:var(--crit)}
@@ -622,12 +627,12 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
   </form>
 </div>
 
-<script src="rules.js?v=4"></script>
+<script src="rules.js?v=5"></script>
 <script>
 "use strict";
 
 /* La page et rules.js doivent aller ensemble (voir l'en-tête de rules.js). */
-const RULES_VERSION = 4;
+const RULES_VERSION = 5;
 const rulesOk = window.CadenceRules?.VERSION === RULES_VERSION;
 
 /* ===================== modèle ===================== */
@@ -644,9 +649,9 @@ const PKEYS = Object.keys(PLATFORMS);
 
 /* États que tu choisis dans le composeur. */
 const STATUS = {
-  draft:    {label:"Brouillon"},
-  scheduled:{label:"Programmé"},
-  published:{label:"Publié"},
+  draft:    {label:"Brouillon", option:"Brouillon : ne part pas"},
+  scheduled:{label:"Programmé", option:"Programmé : le robot le publie"},
+  published:{label:"Publié",    option:"Déjà publié, à la main"},
 };
 /* « Échec » est posé par le robot : affiché, jamais proposé. */
 const STATE_LABEL = {...STATUS, failed:{label:"Échec"}};
@@ -1131,7 +1136,7 @@ function openPost(id){
   if (!p) return;
   state.editing = {id, isNew:false, text:p.text||"", platforms:[...(p.platforms||[])],
                    day:dayOf(p.at)||todayKey(), time:timeOf(p.at)||"09:00",
-                   status:p.status||"draft", example:!!p.example,
+                   status:p.status||"draft", example:!!p.example, title:p.title||"", hashtags:p.hashtags||"",
                    visuals:visualsFrom(p.media), pdf:pdfFrom(p.media), toDelete:[],
                    tiktok:{...(p.tiktok || {})}};
   state.previewOn = state.editing.platforms[0] || "instagram";
@@ -1141,7 +1146,7 @@ function openPost(id){
 
 function openNew(day){
   state.editing = {id:uid(), isNew:true, text:"", platforms:["instagram"],
-                   day:day||todayKey(), time:"09:00", status:"scheduled", example:false,
+                   day:day||todayKey(), time:"09:00", status:"scheduled", example:false, title:"", hashtags:"",
                    visuals:[], pdf:null, toDelete:[], tiktok:{}};
   state.previewOn = "instagram";
   state.confirmDel = false;
@@ -1160,7 +1165,9 @@ function closeSheet(){
 function countersHTML(e){
   if (!e.platforms.length) return `<p class="hint">Choisis au moins un réseau pour voir les limites de caractères.</p>`;
   return e.platforms.map(k => {
-    const lim = PLATFORMS[k].limit, n = e.text.length, over = n > lim;
+    const photo = k === "tiktok" && !e.visuals?.some(v => v.type === "video") && e.visuals?.length;
+    const lim = photo ? CadenceRules.RULES.tiktok.photoText : PLATFORMS[k].limit;
+    const n = composedFor(e, k).text.length, over = n > lim;
     return `<span class="count ${over?"over":""}">
       <span class="count-name">${PLATFORMS[k].name}</span>
       <span class="bar"><i style="width:${Math.min(100, n/lim*100)}%"></i></span>
@@ -1222,7 +1229,8 @@ function postIssues(e){
     ...e.visuals.map(v => ({type: v.type, path: v.path || v.name, ...v.meta})),
     ...(e.pdf ? [{type: "document", path: e.pdf.path || e.pdf.name, ...e.pdf.meta}] : []),
   ];
-  const issues = CadenceRules.check({text: e.text, platforms: e.platforms, media, tiktok: e.tiktok});
+  const issues = CadenceRules.check({title: e.title, text: e.text, hashtags: e.hashtags,
+    platforms: e.platforms, media, tiktok: e.tiktok});
   // Sans GitHub, on ne peut pas joindre de visuel : son absence n'est alors qu'un avertissement.
   return Store.mode === "github" ? issues
     : issues.map(i => i.code === "needs" ? {...i, level: "warn"} : i);
@@ -1294,7 +1302,7 @@ function checksHTML(e){
           : `<span class="chk-ok">Prêt${PLATFORMS[k].manual ? " · à publier à la main" : ""}</span>`}</span>
       </div>`;
   });
-  const github = issues.filter(i => i.net === "github").map(i => `<p class="alert">${esc(i.msg)}</p>`);
+  const github = issues.filter(i => !PLATFORMS[i.net]).map(i => `<p class="alert">${esc(i.msg)}</p>`);
   return rows.join("") + github.join("");
 }
 
@@ -1360,6 +1368,28 @@ function stopMusic(){
   state.playing = null;
 }
 
+/** Le champ Titre n'apparaît que pour les réseaux qui en ont un. */
+function titleFieldHTML(e){
+  const uses = [e.platforms.includes("youtube") && "YouTube",
+                e.platforms.includes("tiktok") && "un carrousel TikTok",
+                e.platforms.includes("linkedin") && "le PDF LinkedIn"].filter(Boolean);
+  if (!uses.length) return "";
+  return `<div class="field">
+      <label for="f-title">Titre <span class="opt">facultatif</span></label>
+      <input class="inp" id="f-title" maxlength="150" value="${esc(e.title)}" placeholder="Sinon, la première ligne du texte">
+      <p class="hint">Sert de titre pour ${uses.join(", ")}.</p>
+    </div>`;
+}
+
+/** Rappelle ce que fait l'état choisi, pour qu'un post ne reste jamais bloqué par erreur. */
+function statusHint(e, saved){
+  if (e.status === "draft") return `<p class="hint">Un brouillon ne part pas : choisis « Programmé » quand il est prêt.</p>`;
+  const robotPublished = Object.values(saved?.results || {}).some(r => r.ok);
+  if (e.status === "published" && !robotPublished)
+    return `<p class="warn">« Déjà publié » : le robot ne publiera pas ce post. Choisis « Programmé » pour qu’il parte.</p>`;
+  return "";
+}
+
 /** Si le composeur rencontre un problème, il le dit au lieu de se figer. */
 function renderSheet(){
   try{ renderSheetUnsafe(); }
@@ -1413,9 +1443,16 @@ function renderSheetUnsafe(){
     <div class="sheet-body">
       <div class="form">
         ${failure}
+        ${titleFieldHTML(e)}
         <div class="field">
           <label for="f-text">Texte du post</label>
-          <textarea id="f-text" placeholder="Écris ton post. Les hashtags sont mis en avant dans l’aperçu.">${esc(e.text)}</textarea>
+          <textarea id="f-text" placeholder="Écris ton post. Les hashtags vont dans leur champ, juste en dessous.">${esc(e.text)}</textarea>
+        </div>
+
+        <div class="field">
+          <label for="f-tags">Hashtags</label>
+          <input class="inp" id="f-tags" value="${esc(e.hashtags)}" placeholder="#atelier #conseils" spellcheck="false" autocapitalize="off" autocomplete="off">
+          <p class="hint">Ajoutés à la fin du texte sur chaque réseau. Sépare-les par des espaces ; le # est facultatif.</p>
         </div>
 
         <div class="field">
@@ -1447,17 +1484,18 @@ function renderSheetUnsafe(){
           <div class="field">
             <label for="f-status">État</label>
             <select class="inp" id="f-status">
-              ${Object.entries(STATUS).map(([k,v]) => `<option value="${k}"${e.status===k?" selected":""}>${v.label}</option>`).join("")}
+              ${Object.entries(STATUS).map(([k,v]) => `<option value="${k}"${e.status===k?" selected":""}>${v.option}</option>`).join("")}
               ${!STATUS[e.status] ? `<option value="${esc(e.status)}" selected>${esc(STATE_LABEL[e.status]?.label || e.status)}</option>` : ""}
             </select>
           </div>
         </div>
+        ${statusHint(e, saved)}
       </div>
 
       <div class="prev">
         <div class="prev-tabs" role="tablist">${(e.platforms.length ? e.platforms : ["instagram"]).map(k =>
           `<button type="button" role="tab" class="prev-tab" data-prev="${k}" aria-selected="${prevOn===k}">${PLATFORMS[k].name}</button>`).join("")}</div>
-        <div id="prevCard">${previewHTML(prevOn, e.text, mediaView(e, prevOn))}</div>
+        <div id="prevCard">${previewHTML(prevOn, e, mediaView(e, prevOn))}</div>
         <p class="hint">Aperçu indicatif : chaque réseau rogne et recadre à sa façon.</p>
       </div>
     </div>
@@ -1479,9 +1517,19 @@ function renderSheetUnsafe(){
 const cardTextHTML = text => esc(text || "Ton texte apparaîtra ici.")
   .replace(/(^|\s)(#[\p{L}\p{N}_]+)/gu, "$1<span class=\"tag\">$2</span>");
 
-function previewHTML(k, text, mv){
+/** Le titre et le texte exactement tels que le réseau k les recevra (voir compose dans rules.js). */
+function composedFor(e, k){
+  const hasVideo = e.visuals?.some(v => v.type === "video");
+  const c = CadenceRules.compose({title: e.title, text: e.text, hashtags: e.hashtags}, k, hasVideo);
+  // Le bloc titre existe dès que le réseau en a un, même vide : la saisie en direct le remplit.
+  const showTitle = k === "youtube" || (k === "tiktok" && !hasVideo) || Boolean(k === "linkedin" && e.pdf);
+  return {...c, showTitle};
+}
+
+function previewHTML(k, e, mv){
   const P = PLATFORMS[k];
-  const body = cardTextHTML(text);
+  const c = composedFor(e, k);
+  const body = cardTextHTML(c.text);
   const media = {wide:" wide", tall:" tall"}[P.shape] || "";
   const ratio = {wide:"16:9", tall:"9:16", square:"1:1"}[P.shape];
   const round = (k === "linkedin" || k === "facebook") ? " sq" : "";
@@ -1496,6 +1544,7 @@ function previewHTML(k, text, mv){
       : mv.type === "document" ? `<span class="doc-prev"><b>PDF</b>${esc(mv.name)}</span>`
       : mv.type === "video" ? `<video src="${esc(mv.url)}" muted playsinline loop autoplay></video>`
       : `<img src="${esc(mv.url)}" alt="">${mv.count > 1 ? `<span class="count-badge">1/${mv.count}</span>` : ""}`}</div>`}
+    ${c.showTitle ? `<div class="card-title">${esc(c.title)}</div>` : ""}
     <div class="card-txt${k==="instagram"||k==="linkedin"?" clip":""}">${body}</div>
     <div class="card-bar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.7-7 9-7 9z"/></svg>
@@ -1542,7 +1591,8 @@ async function saveSheet(){
                             : {path: e.pdf.path, type: "document", ...metaFields(e.pdf.meta)});
     }
     for (const path of e.toDelete) await GH.remove(path, "Cadence : visuel retiré").catch(() => {});
-    const body = {...prev, text:e.text.trim(), platforms:e.platforms, at:joinAt(e.day, e.time),
+    const body = {...prev, title:e.title.trim(), text:e.text.trim(),
+                  hashtags:CadenceRules.parseTags(e.hashtags).join(" "), platforms:e.platforms, at:joinAt(e.day, e.time),
                   tiktok: e.platforms.includes("tiktok") ? tiktokFor(e) : prev.tiktok,
                   timezone: prev.timezone || TZ, status:e.status, media, updatedAt:new Date().toISOString()};
     if (e.status !== "failed") delete body.error;
@@ -1746,7 +1796,7 @@ document.addEventListener("click", ev => {
       e.pdf = null; e.focusText = false; renderSheet();
     }
     if (a === "copy"){
-      const txt = state.editing?.text || "";
+      const txt = state.editing ? composedFor(state.editing, "x").text : "";
       const fallback = () => { document.getElementById("f-text")?.select(); toast("Texte sélectionné : copie-le avec ⌘C."); };
       try{ navigator.clipboard.writeText(txt).then(() => toast("Texte copié."), fallback); }catch(_){ fallback(); }
     }
@@ -1757,13 +1807,17 @@ document.addEventListener("input", ev => {
   const e = state.editing;
   if (!e) return;
   const id = ev.target.id;
-  if (id === "f-text"){
-    e.text = ev.target.value;
-    // Compteurs et aperçu mis à jour sans reconstruire le champ de saisie.
+  if (id === "f-text" || id === "f-title" || id === "f-tags"){
+    if (id === "f-text") e.text = ev.target.value;
+    if (id === "f-title") e.title = ev.target.value;
+    if (id === "f-tags") e.hashtags = ev.target.value;
+    // Compteurs, contrôles et aperçu mis à jour sans reconstruire les champs de saisie.
     document.getElementById("counts").innerHTML = countersHTML(e);
     document.getElementById("checks").innerHTML = checksHTML(e);
-    const txt = document.querySelector("#prevCard .card-txt");
-    if (txt) txt.innerHTML = cardTextHTML(e.text);
+    const c = composedFor(e, state.previewOn);
+    const txt = document.querySelector("#prevCard .card-txt"), title = document.querySelector("#prevCard .card-title");
+    if (txt) txt.innerHTML = cardTextHTML(c.text);
+    if (title) title.textContent = c.title;
     return;
   }
   if (id === "f-day") e.day = ev.target.value || todayKey();
@@ -1774,7 +1828,7 @@ document.addEventListener("change", async ev => {
   const e = state.editing;
   if (!e) return;
   const id = ev.target.id;
-  if (id === "f-status") e.status = ev.target.value;
+  if (id === "f-status"){ e.status = ev.target.value; e.focusText = false; renderSheet(); return; }
   if (ev.target.name === "tt-mode"){
     e.tiktok = {...e.tiktok, mode: ev.target.value};
     if (ev.target.value !== "music") stopMusic();
