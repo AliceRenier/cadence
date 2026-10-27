@@ -108,7 +108,8 @@ Programme un post de test dans Cadence pour dans quelques minutes, puis va dans 
   - **Ici** : tu écoutes et choisis parmi les 100 sons tendance de la bibliothèque commerciale, et le robot publie tout seul. Cette liste n'est disponible que si TikTok est connecté à Zernio via l'app *TikTok for Business*.
   - **TikTok choisit**, sans écoute préalable, ou **sans musique** (une vidéo garde alors son propre son).
 - **Titre, texte et hashtags** : le composeur a trois champs, et le robot assemble pour chaque réseau ce qu'il attend.
-  - Le **titre** sert à YouTube (100 caractères), au carrousel photo TikTok (90 caractères) et au document PDF LinkedIn. Laissé vide, c'est la première ligne du texte. Les hashtags y sont retirés.
+  - Le **titre** sert à YouTube (100 caractères), au carrousel photo TikTok (90 caractères) et au document PDF LinkedIn. Les hashtags y sont retirés. Laissé vide, c'est la première ligne du texte, sauf pour TikTok.
+  - **TikTok** affiche le titre en gras, juste au-dessus du texte. Pour un carrousel, il est donc obligatoire, et le texte ne doit pas commencer par la même phrase : Cadence te prévient sinon.
   - Le **texte** devient la légende, ou la description sur YouTube.
   - Les **hashtags** s'ajoutent à la fin du texte, sur une ligne à part. Ils s'écrivent sans espace ni ponctuation ; le # est ajouté s'il manque.
 - **YouTube** : une vidéo verticale de 3 minutes au plus devient un Short. Au-delà de 15 hashtags, YouTube ignore tous les hashtags de la vidéo : Cadence bloque.
@@ -126,7 +127,7 @@ Cadence vérifie chaque post avant de le programmer : dans le composeur, chaque 
 |---|---|---|---|
 | Instagram | 2 200 caractères, 30 hashtags, 20 mentions | JPEG, 8 Mo, proportions entre 4:5 et 1,91:1, 10 par carrousel | MP4 ou MOV, 3 s à 15 min, 300 Mo (Reel) |
 | Facebook | 63 206 caractères | JPEG ou PNG, 10 Mo | MP4 ou MOV, 20 min |
-| TikTok | 2 200 caractères (4 000 pour un carrousel photo) | JPEG, PNG ou WebP, 20 Mo, 35 par carrousel | MP4, MOV ou WebM, 3 s à 10 min, verticale conseillée |
+| TikTok | 2 200 caractères (4 000 pour un carrousel photo), 5 hashtags, titre de 90 caractères obligatoire pour un carrousel | JPEG, PNG ou WebP, 20 Mo, 35 par carrousel | MP4, MOV ou WebM, 3 s à 10 min, verticale conseillée |
 | YouTube | titre 100 caractères, description 5 000, 15 hashtags | — | obligatoire, 15 min au plus sans vérification de la chaîne |
 | LinkedIn | 3 000 caractères, 5 hashtags conseillés | JPEG, PNG ou GIF, 8 Mo, 20 par post ; ou un PDF de 100 Mo | MP4 ou MOV, 3 s à 30 min |
 | X | 280 caractères | — | — (publication à la main) |

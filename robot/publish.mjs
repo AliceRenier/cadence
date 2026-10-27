@@ -258,7 +258,7 @@ const NETWORKS = {
       // Carrousel photo : un titre court (90 caractères) et la description complète, hashtags compris.
       const {title, text} = compose(post, "tiktok", Boolean(m.video));
       if (!m.video) tiktokSettings.description = text;
-      const id = await zernioPost("tiktok", "ZERNIO_TIKTOK_ID", m.video ? text : (title || text.slice(0, 90)),
+      const id = await zernioPost("tiktok", "ZERNIO_TIKTOK_ID", m.video ? text : title,
         zernioVisuals(m), {tiktokSettings});
       return mode === "draft" ? {id, draft: true} : id;
     },

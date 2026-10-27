@@ -34,7 +34,7 @@
       video: {mimes: [MP4, MOV], maxBytes: 1000 * MB, maxSec: 20 * 60},
     },
     tiktok: {
-      name: "TikTok", text: 2200, photoText: 4000, photoTitle: 90, needs: "visual",
+      name: "TikTok", text: 2200, photoText: 4000, photoTitle: 90, hashtags: 5, needs: "visual",
       image: {mimes: [JPEG, PNG, WEBP], maxBytes: 20 * MB, max: 35},
       video: {mimes: [MP4, MOV, WEBM], maxBytes: 4000 * MB, minSec: 3, maxSec: 10 * 60, vertical: true},
     },
@@ -95,7 +95,9 @@
    * Ce que reçoit chaque réseau à partir du titre, du texte et des hashtags.
    *   text  : le texte publié, hashtags à la fin
    *   title : YouTube (sans hashtags, 100 caractères), carrousel TikTok (90),
-   *           PDF LinkedIn (titre du document). Sans titre saisi : la première ligne du texte.
+   *           PDF LinkedIn (titre du document). Sans titre saisi : la première ligne du texte,
+   *           sauf pour TikTok, qui affiche le titre juste au-dessus du texte : il faut le saisir,
+   *           sinon le début du texte apparaîtrait deux fois.
    */
   function compose(post, net, hasVideo) {
     const body = String(post.text || "").trim();
@@ -106,7 +108,7 @@
       title: stripTags(rawTitle).replace(/[<>]/g, "").slice(0, 100) || "Nouvelle vidéo",
       text: text.replace(/[<>]/g, "").slice(0, 5000),
     };
-    if (net === "tiktok" && !hasVideo) return {title: stripTags(rawTitle).slice(0, 90), text};
+    if (net === "tiktok" && !hasVideo) return {title: stripTags(post.title || "").slice(0, 90), text};
     if (net === "linkedin") return {title: stripTags(rawTitle).slice(0, 100) || "Document", text};
     return {text};
   }
@@ -223,7 +225,15 @@
 
       // Titres : YouTube, carrousel TikTok, PDF LinkedIn
       const titleMax = net === "youtube" ? r.titleMax : photoPost ? r.photoTitle : (net === "linkedin" && document) ? 100 : 0;
-      if (titleMax) {
+      if (titleMax && photoPost) {
+        const title = stripTags(post.title || "");
+        const start = stripTags(firstLineOf(post.text)).toLowerCase();
+        if (!title) add(net, "error", "Ajoute un titre : TikTok l'affiche en gras, juste au-dessus du texte.");
+        else if (start.startsWith(title.toLowerCase().slice(0, 30)))
+          add(net, "warn", "Le texte commence comme le titre : TikTok l'affichera deux fois. Commence le texte par autre chose.");
+        if (title.length > titleMax) add(net, "warn", `Titre de ${title.length} caractères : il sera coupé à ${titleMax}.`);
+        if (countTags(post.title || "")) add(net, "info", "Les hashtags du titre en sont retirés : mets-les dans le champ Hashtags.");
+      } else if (titleMax) {
         const title = stripTags(rawTitle);
         if (!title) add(net, "warn", "Pas de titre : ajoute un titre, ou une première ligne au texte.");
         else if (title.length > titleMax) add(net, "warn", `Titre de ${title.length} caractères : il sera coupé à ${titleMax}.`);
@@ -243,7 +253,7 @@
     return issues;
   }
 
-  const VERSION = 5;
+  const VERSION = 6;
   const api = {VERSION, RULES, check, compose, parseTags, mimeOf, tiktokMode};
   root.CadenceRules = api;
   if (typeof module === "object" && module.exports) module.exports = api;

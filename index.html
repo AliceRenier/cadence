@@ -627,12 +627,12 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
   </form>
 </div>
 
-<script src="rules.js?v=5"></script>
+<script src="rules.js?v=6"></script>
 <script>
 "use strict";
 
 /* La page et rules.js doivent aller ensemble (voir l'en-tête de rules.js). */
-const RULES_VERSION = 5;
+const RULES_VERSION = 6;
 const rulesOk = window.CadenceRules?.VERSION === RULES_VERSION;
 
 /* ===================== modèle ===================== */
@@ -1374,10 +1374,12 @@ function titleFieldHTML(e){
                 e.platforms.includes("tiktok") && "un carrousel TikTok",
                 e.platforms.includes("linkedin") && "le PDF LinkedIn"].filter(Boolean);
   if (!uses.length) return "";
+  // TikTok affiche le titre en gras au-dessus du texte : sans titre saisi, il répéterait le début du texte.
+  const tiktokPhotos = e.platforms.includes("tiktok") && !e.visuals?.some(v => v.type === "video");
   return `<div class="field">
-      <label for="f-title">Titre <span class="opt">facultatif</span></label>
-      <input class="inp" id="f-title" maxlength="150" value="${esc(e.title)}" placeholder="Sinon, la première ligne du texte">
-      <p class="hint">Sert de titre pour ${uses.join(", ")}.</p>
+      <label for="f-title">Titre <span class="opt">${tiktokPhotos ? "obligatoire pour TikTok" : "facultatif"}</span></label>
+      <input class="inp" id="f-title" maxlength="150" value="${esc(e.title)}" placeholder="${tiktokPhotos ? "Le titre, en une ligne" : "Sinon, la première ligne du texte"}">
+      <p class="hint">Sert de titre pour ${uses.join(", ")}.${tiktokPhotos ? " Sur TikTok, il s'affiche en gras au-dessus du texte : ne le répète pas dans le texte." : ""}</p>
     </div>`;
 }
 
