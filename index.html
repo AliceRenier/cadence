@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Cadence</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23D5360C'/%3E%3Cpath d='M5 18c3.3 0 3.3-8 6.7-8s3.3 13.3 6.6 13.3 3.4-10.6 6.7-10.6h2' fill='none' stroke='%23E6D5BD' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='116' fill='%23D5360C'/%3E%3Cpath d='M357.1 340.8A132 132 0 1 1 357.1 171.2' fill='none' stroke='%23E6D5BD' stroke-width='56' stroke-linecap='round'/%3E%3Ccircle cx='388' cy='256' r='32' fill='%23101010'/%3E%3C/svg%3E">
 <style>
 /* Layout: app en un écran — barre latérale, barre d'outils, calendrier qui défile, composeur en volet à droite.
    Palette de la marque : orange brûlé (action), ivoire chaud (fond clair), noir doux (fond sombre). */
@@ -129,7 +129,7 @@ input,textarea,select{font:inherit;color:inherit}
   width:26px;height:26px;border-radius:8px;flex:none;background:var(--accent);
   display:grid;place-items:center;box-shadow:0 1px 3px rgba(0,0,0,.2)
 }
-.brand-mark svg{width:15px;height:15px;display:block}
+.brand-mark svg{width:100%;height:100%;display:block}
 .brand-name{font-family:var(--font-display);font-size:16px;font-weight:680;letter-spacing:-.02em}
 
 .side-label{
@@ -474,8 +474,8 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
   <aside class="sidebar">
     <div class="brand">
       <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#E6D5BD" stroke-width="2.6" stroke-linecap="round">
-          <path d="M3 14c2.5 0 2.5-6 5-6s2.5 10 5 10 2.5-8 5-8h3"/>
+        <svg viewBox="0 0 512 512">
+          <path d="M357.1 340.8A132 132 0 1 1 357.1 171.2" fill="none" stroke="#E6D5BD" stroke-width="56" stroke-linecap="round"/><circle cx="388" cy="256" r="32" fill="#101010"/>
         </svg>
       </span>
       <span class="brand-name">Cadence</span>
@@ -537,7 +537,7 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
   <form class="gate-card" id="gateForm" novalidate>
     <div class="brand">
       <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#E6D5BD" stroke-width="2.6" stroke-linecap="round"><path d="M3 14c2.5 0 2.5-6 5-6s2.5 10 5 10 2.5-8 5-8h3"/></svg>
+        <svg viewBox="0 0 512 512"><path d="M357.1 340.8A132 132 0 1 1 357.1 171.2" fill="none" stroke="#E6D5BD" stroke-width="56" stroke-linecap="round"/><circle cx="388" cy="256" r="32" fill="#101010"/></svg>
       </span>
       <span class="brand-name">Cadence</span>
     </div>
