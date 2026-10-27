@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cadence — Confidentialité et conditions</title>
+<style>
+:root{
+  --bg:#E6D5BD; --panel:#F5EDE1; --fg:#101010; --fg-2:#4A4038; --accent:#D5360C; --accent-ink:#A82A08;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#101010; --panel:#171615; --fg:#E6D5BD; --fg-2:#BFAF98; --accent-ink:#F0663C; color-scheme:dark; }
+}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font:15px/1.65 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Segoe UI,system-ui,sans-serif;
+  padding-block:40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+main{max-width:680px;margin:0 auto;background:var(--panel);border-radius:20px;padding:32px clamp(20px,5vw,40px)}
+h1{font-size:26px;letter-spacing:-.02em;margin:0 0 6px;text-wrap:balance}
+h2{font-size:17px;margin:28px 0 6px}
+p,li{color:var(--fg-2)}
+a{color:var(--accent-ink)}
+.mark{display:inline-block;width:12px;height:12px;border-radius:4px;background:var(--accent);margin-right:8px}
+</style>
+</head>
+<body>
+<main>
+  <h1><span class="mark"></span>Cadence</h1>
+  <p>Mis à jour le 27 octobre 2026.</p>
+
+  <h2>À quoi sert Cadence</h2>
+  <p>Cadence est un outil personnel de planification de posts. Il sert uniquement à publier, à l’heure choisie, sur les comptes de réseaux sociaux qui appartiennent à son propriétaire : Instagram, Facebook, YouTube, TikTok et LinkedIn.</p>
+
+  <h2>Données utilisées</h2>
+  <ul>
+    <li>Le texte, l’image ou la vidéo de chaque post, saisis par le propriétaire dans Cadence.</li>
+    <li>Les accès autorisés par le propriétaire auprès de chaque réseau, uniquement pour publier en son nom et vérifier que ces accès fonctionnent.</li>
+  </ul>
+  <p>Pour YouTube, Cadence utilise les services de l’API YouTube afin d’envoyer des vidéos sur la chaîne du propriétaire et de lire le nom de cette chaîne. Cadence ne lit ni ne conserve aucune autre donnée du compte Google du propriétaire.</p>
+
+  <h2>Stockage et partage</h2>
+  <p>Les posts sont rangés dans le dépôt GitHub du propriétaire. Les accès sont conservés dans les secrets chiffrés de ce dépôt et ne sont jamais affichés. Aucune donnée n’est vendue, partagée avec des tiers ou utilisée à d’autres fins que la publication.</p>
+
+  <h2>Révoquer l’accès</h2>
+  <p>L’accès peut être retiré à tout moment : pour Google, depuis <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a> ; pour les autres réseaux, depuis leurs paramètres d’applications connectées. La suppression du dépôt GitHub efface toutes les données de Cadence.</p>
+
+  <h2>Conditions d’utilisation</h2>
+  <p>Cadence est fourni tel quel, pour l’usage personnel de son propriétaire. Chaque publication reste soumise aux règles du réseau concerné, notamment aux <a href="https://www.youtube.com/t/terms">conditions d’utilisation de YouTube</a> et aux <a href="https://policies.google.com/privacy">règles de confidentialité de Google</a>.</p>
+
+  <h2>Contact</h2>
+  <p>Pour toute question : via la page GitHub <a href="https://github.com/AliceRenier">github.com/AliceRenier</a>.</p>
+</main>
+</body>
+</html>
