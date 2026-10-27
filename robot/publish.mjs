@@ -21,7 +21,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import "../rules.js";   // règles de chaque réseau, partagées avec l'interface
 
-const { check: checkRules } = globalThis.CadenceRules;
+const { check: checkRules, tiktokMode } = globalThis.CadenceRules;
 
 const env = process.env;
 const DRY_RUN = env.DRY_RUN === "1";
@@ -248,17 +248,20 @@ const NETWORKS = {
       if (!m.video && !m.images.length) throw new Error("TikTok exige une vidéo ou des images.");
       if (!m.video && m.images.length > 35) throw new Error("TikTok accepte 35 images au plus dans un carrousel.");
     },
-    publish(post, m) {
+    async publish(post, m) {
+      const mode = tiktokMode(post, Boolean(m.video));
       // TikTok exige ces confirmations sur chaque post (obligation légale de leur côté).
       const tiktokSettings = {
         privacyLevel: "PUBLIC_TO_EVERYONE",
         allowComment: true,
         contentPreviewConfirmed: true,
         expressConsentGiven: true,
-        ...(m.video ? {allowDuet: true, allowStitch: true}
-                    : {photoCoverIndex: 0, autoAddMusic: true}),
+        ...(m.video ? {allowDuet: true, allowStitch: true} : {photoCoverIndex: 0, autoAddMusic: mode === "auto"}),
+        ...(mode === "draft" ? {draft: true} : {}),
+        ...(mode === "music" ? {musicSoundInfo: {musicSoundId: post.tiktok.music.id}} : {}),
       };
-      return zernioPost("tiktok", "ZERNIO_TIKTOK_ID", post, zernioVisuals(m), {tiktokSettings});
+      const id = await zernioPost("tiktok", "ZERNIO_TIKTOK_ID", post, zernioVisuals(m), {tiktokSettings});
+      return mode === "draft" ? {id, draft: true} : id;
     },
   },
 
@@ -344,8 +347,9 @@ async function publishDue() {
         const blocking = checkRules({...post, platforms: [net]}).filter(i => i.net === net && i.level === "error");
         if (blocking.length) throw new Error(blocking.map(i => i.msg).join(" "));
         n.validate(post, media);
-        const id = DRY_RUN ? "essai" : await n.publish(post, media);
-        post.results[net] = {ok: true, id: id ?? null, at: new Date().toISOString()};
+        const out = DRY_RUN ? "essai" : await n.publish(post, media);
+        const {id, draft} = out && typeof out === "object" ? out : {id: out};
+        post.results[net] = {ok: true, id: id ?? null, ...(draft ? {draft: true} : {}), at: new Date().toISOString()};
       } catch (e) {
         const msg = String(e?.message || e).slice(0, 500);
         post.results[net] = {ok: false, error: msg, at: new Date().toISOString()};
@@ -363,7 +367,9 @@ async function publishDue() {
       post.status = "published";
       post.publishedAt = new Date().toISOString();
       delete post.error;
-      report.push(`- ✅ « ${label} » → ${auto.map(n => NAMES[n]).join(", ")}${post.manual.length ? " (X reste à poster à la main)" : ""}`);
+      const notes = [post.manual.length && "X reste à poster à la main",
+                     post.results.tiktok?.draft && "TikTok attend dans ton app, en brouillon"].filter(Boolean);
+      report.push(`- ✅ « ${label} » → ${auto.map(n => NAMES[n]).join(", ")}${notes.length ? ` (${notes.join(" ; ")})` : ""}`);
     }
     await writeFile(file, JSON.stringify(post, null, 2) + "\n");
   }
@@ -442,11 +448,44 @@ async function zernioAccounts() {
   }
 }
 
+/**
+ * Les 100 sons tendance de TikTok (bibliothèque commerciale), avec un extrait à écouter.
+ * Rangés dans music/tiktok.json, que Cadence affiche dans le composeur.
+ */
+async function tiktokMusic() {
+  need("ZERNIO_API_KEY", "ZERNIO_TIKTOK_ID");
+  const countryCode = env.MUSIC_COUNTRY || "FR";
+  let out;
+  try {
+    const {body} = await call(
+      `${ZERNIO}/accounts/${encodeURIComponent(env.ZERNIO_TIKTOK_ID)}/tiktok/commercial-music?countryCode=${countryCode}`,
+      {headers: {Authorization: `Bearer ${env.ZERNIO_API_KEY}`}});
+    const tracks = (body.tracks || []).map(t => ({
+      id: t.clip?.id || t.id,                     // l'extrait tendance publie mieux que le morceau entier
+      name: t.name || "Sans titre",
+      artist: t.artist || "",
+      durationSec: t.clip?.durationSec || t.durationSec || null,
+      previewUrl: t.clip?.previewUrl || t.previewUrl || null,
+      thumbnailUrl: t.thumbnailUrl || null,
+      rank: t.rank ?? null,
+    })).filter(t => t.id);
+    out = {updatedAt: new Date().toISOString(), countryCode, tracks};
+    console.log(`${tracks.length} sons tendance récupérés (${countryCode}).`);
+  } catch (e) {
+    // Souvent : le compte TikTok n'est pas connecté à Zernio via l'app « TikTok for Business ».
+    out = {updatedAt: new Date().toISOString(), countryCode, tracks: [], error: e.message};
+    console.log(`Liste des sons indisponible : ${e.message}`);
+  }
+  await import("node:fs/promises").then(fs => fs.mkdir("music", {recursive: true}));
+  await writeFile("music/tiktok.json", JSON.stringify(out, null, 2) + "\n");
+}
+
 /* ------------------------------------------------------------------ */
 
 const mode = process.argv[2];
 const run = mode === "--check" ? checkAccess
           : mode === "--zernio-accounts" ? zernioAccounts
+          : mode === "--tiktok-music" ? tiktokMusic
           : publishDue;
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

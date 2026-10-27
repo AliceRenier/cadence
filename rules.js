@@ -61,6 +61,20 @@
   const mo = b => `${Math.round(b / MB)} Mo`;
   const dur = s => s >= 60 ? `${Math.floor(s / 60)} min${s % 60 ? ` ${Math.round(s % 60)} s` : ""}` : `${Math.round(s)} s`;
 
+  /**
+   * Musique d'un post TikTok :
+   *   draft : arrive en brouillon dans l'app TikTok, on y choisit le son puis on publie
+   *   music : son choisi dans Cadence parmi les tendances, publication automatique
+   *   auto  : TikTok choisit le son (carrousel photo seulement)
+   *   none  : aucun son ajouté (une vidéo garde le sien)
+   * Par défaut : brouillon pour un carrousel photo, son d'origine pour une vidéo.
+   */
+  function tiktokMode(post, hasVideo) {
+    const mode = post.tiktok?.mode;
+    if (mode === "auto" && hasVideo) return "none";
+    return mode || (hasVideo ? "none" : "draft");
+  }
+
   function split(media) {
     const items = (media || []).map(m => ({...m, mime: mimeOf(m)}));
     return {
@@ -153,6 +167,15 @@
         if (!video && images.length) add(net, "info", "Publiera le PDF en carrousel, pas les images.");
       }
 
+      // TikTok : la musique choisie
+      if (net === "tiktok" && (video || images.length)) {
+        const mode = tiktokMode(post, Boolean(video));
+        if (mode === "music" && !post.tiktok?.music?.id)
+          add(net, "error", "Choisis un son dans la liste, ou une autre option de musique.");
+        if (mode === "draft")
+          add(net, "info", "Arrivera en brouillon dans ton app TikTok : tu y choisis le son, puis tu publies.");
+      }
+
       // YouTube : titre et description
       if (net === "youtube") {
         const title = (text.split("\n").find(l => l.trim()) || "").trim();
@@ -171,7 +194,7 @@
     return issues;
   }
 
-  const api = {RULES, check, mimeOf};
+  const api = {RULES, check, mimeOf, tiktokMode};
   root.CadenceRules = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

@@ -16,7 +16,7 @@ Planifie tes posts dans un calendrier. Un robot GitHub les publie à l'heure pr�
 1. Tu écris tes posts dans Cadence, ton site GitHub Pages. Chaque post devient un fichier `posts/<id>.json` dans ce dépôt, et son visuel va dans `media/<id>/`.
 2. Toutes les heures, la tâche **Publier les posts** lance `robot/publish.mjs`. Le robot publie ce qui est dû, puis note le résultat dans le fichier du post.
 3. Si une publication échoue, GitHub t'envoie un e-mail. Le post passe en « Échec » dans Cadence, avec la raison. Corrige le problème et repasse le post en « Programmé » : seuls les réseaux en échec repartent.
-4. Chaque matin, **Vérifier les accès** contrôle que tes accès Meta, YouTube et Zernio marchent encore.
+4. Chaque matin, **Vérifier les accès** contrôle que tes accès Meta, YouTube et Zernio marchent encore, et **Musique TikTok** récupère les 100 sons tendance du moment.
 
 ---
 
@@ -103,6 +103,10 @@ Programme un post de test dans Cadence pour dans quelques minutes, puis va dans 
 
 - **Tes posts programmés sont visibles dans le dépôt public** avant leur publication. C'est nécessaire : Instagram, Facebook et Zernio téléchargent tes visuels depuis un lien public.
 - **Visuels** : un post porte **une vidéo**, ou **une à plusieurs images**. Plusieurs images forment un carrousel, dans l'ordre choisi (Instagram, TikTok, Facebook). Pour LinkedIn, tu peux ajouter un **PDF** : il est publié en carrousel à faire défiler, à la place des images.
+- **Musique TikTok** : pour chaque post, tu choisis comment le son est ajouté.
+  - **Dans l'app TikTok** (par défaut pour un carrousel) : le post arrive en brouillon à l'heure prévue. Tu écoutes, tu choisis le son, y compris les sons tendance, puis tu publies.
+  - **Ici** : tu écoutes et choisis parmi les 100 sons tendance de la bibliothèque commerciale, et le robot publie tout seul. Cette liste n'est disponible que si TikTok est connecté à Zernio via l'app *TikTok for Business*.
+  - **TikTok choisit**, sans écoute préalable, ou **sans musique** (une vidéo garde alors son propre son).
 - **YouTube** : la première ligne du texte devient le titre (100 caractères au plus), et le texte entier la description. Une vidéo verticale de 3 minutes au plus devient un Short.
 - **LinkedIn** : un même texte publié deux fois est refusé par LinkedIn, même à plusieurs semaines d'écart.
 - **Taille des vidéos** : GitHub refuse les fichiers de plus de 100 Mo. Supprimer une vidéo ne libère pas de place, car Git garde l'historique. Pour des vidéos courtes et peu nombreuses, ça va.
@@ -137,7 +141,9 @@ media/<id>/…                             le visuel du post
 robot/publish.mjs                        le robot : publication, vérification, aide
 .github/workflows/publier.yml            toutes les heures
 .github/workflows/verifier-acces.yml     chaque matin
+.github/workflows/musique-tiktok.yml     chaque matin : les sons tendance TikTok
 .github/workflows/aide-identifiants.yml  à la main, pendant la mise en route
+music/tiktok.json                        les sons tendance, avec un extrait à écouter
 ```
 
 Pour tester le robot sans rien publier :

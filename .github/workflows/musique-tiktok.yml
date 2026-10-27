@@ -1,0 +1,42 @@
+# Chaque matin, récupère les 100 sons tendance de TikTok (avec un extrait à écouter)
+# et les range dans music/tiktok.json, que Cadence affiche dans le composeur.
+name: Musique TikTok
+
+on:
+  schedule:
+    - cron: "37 5 * * *"   # 6 h 37 à Paris en hiver, 7 h 37 en été
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cadence-publier
+  cancel-in-progress: false
+
+jobs:
+  musique:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Récupérer les sons tendance
+        run: node robot/publish.mjs --tiktok-music
+        env:
+          ZERNIO_API_KEY: ${{ secrets.ZERNIO_API_KEY }}
+          ZERNIO_TIKTOK_ID: ${{ secrets.ZERNIO_TIKTOK_ID }}
+      - name: Enregistrer la liste
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add music
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Robot : sons tendance TikTok"
+          for i in 1 2 3; do
+            git push && exit 0
+            git pull --rebase
+          done
+          exit 1

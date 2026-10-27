@@ -452,6 +452,22 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
 .chk-warn{color:var(--warn)}
 .chk-info{color:var(--fg-3)}
 
+/* ---------- musique TikTok ---------- */
+.tt-modes{display:flex;flex-direction:column;gap:6px}
+.tt-mode{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border:1px solid var(--hairline);border-radius:11px;background:var(--panel-2);cursor:pointer}
+.tt-mode.on{border-color:var(--accent);background:var(--accent-soft)}
+.tt-mode input{margin-top:3px;accent-color:var(--accent)}
+.tt-mode b{display:block;font-size:13px;font-weight:600;color:var(--fg)}
+.tt-mode small{display:block;font-size:12px;color:var(--fg-3)}
+.tracks{display:flex;flex-direction:column;gap:2px;max-height:300px;overflow:auto;border:1px solid var(--hairline);border-radius:11px;padding:6px;margin-top:8px}
+.track{display:flex;align-items:center;gap:9px;padding:5px;border-radius:8px}
+.track.on{background:var(--accent-soft)}
+.track img,.track-ph{width:36px;height:36px;border-radius:6px;object-fit:cover;flex:none;background:var(--hairline-2)}
+.track-txt{flex:1;min-width:0;display:flex;flex-direction:column}
+.track-txt b{font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.track-txt small{font-size:11px;color:var(--fg-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.track-play{width:34px;justify-content:center;padding:6px 0}
+
 /* ---------- échecs du robot ---------- */
 .pill-failed{background:var(--crit-soft);color:var(--crit)}
 .chip.s-failed{border-left-color:var(--crit)}
@@ -676,6 +692,10 @@ const state = {
   previewOn: null,
   confirmDel: false,
   busy: false,
+  music: null,          // sons tendance TikTok, chargés à la demande
+  musicLoading: false,
+  playing: null,
+  audio: null,
   loading: false,
 };
 
@@ -1030,6 +1050,7 @@ function itemHTML(p, now){
         ${(p.platforms||[]).map(k => tileHTML(k,"sm")).join("")}
         <span class="pill pill-${st}">${stLabel}</span>
         ${manual ? `<span class="pill pill-manual">X à la main</span>` : ""}
+        ${p.results?.tiktok?.draft ? `<span class="pill pill-manual">TikTok à finir dans l’app</span>` : ""}
         ${p.example ? `<span class="pill pill-ex">Exemple</span>` : ""}
       </span>
       <span class="q-txt">${esc(p.text || "Sans texte")}</span>
@@ -1079,7 +1100,8 @@ function openPost(id){
   state.editing = {id, isNew:false, text:p.text||"", platforms:[...(p.platforms||[])],
                    day:dayOf(p.at)||todayKey(), time:timeOf(p.at)||"09:00",
                    status:p.status||"draft", example:!!p.example,
-                   visuals:visualsFrom(p.media), pdf:pdfFrom(p.media), toDelete:[]};
+                   visuals:visualsFrom(p.media), pdf:pdfFrom(p.media), toDelete:[],
+                   tiktok:{...(p.tiktok || {})}};
   state.previewOn = state.editing.platforms[0] || "instagram";
   state.confirmDel = false;
   renderSheet();
@@ -1088,7 +1110,7 @@ function openPost(id){
 function openNew(day){
   state.editing = {id:uid(), isNew:true, text:"", platforms:["instagram"],
                    day:day||todayKey(), time:"09:00", status:"scheduled", example:false,
-                   visuals:[], pdf:null, toDelete:[]};
+                   visuals:[], pdf:null, toDelete:[], tiktok:{}};
   state.previewOn = "instagram";
   state.confirmDel = false;
   renderSheet();
@@ -1096,6 +1118,7 @@ function openNew(day){
 
 function closeSheet(){
   for (const v of state.editing?.visuals || []) if (v.file) URL.revokeObjectURL(v.url);
+  stopMusic();
   state.editing = null; state.confirmDel = false;
   document.getElementById("sheet")?.remove();
   document.getElementById("scrim")?.remove();
@@ -1167,7 +1190,7 @@ function postIssues(e){
     ...e.visuals.map(v => ({type: v.type, path: v.path || v.name, ...v.meta})),
     ...(e.pdf ? [{type: "document", path: e.pdf.path || e.pdf.name, ...e.pdf.meta}] : []),
   ];
-  const issues = CadenceRules.check({text: e.text, platforms: e.platforms, media});
+  const issues = CadenceRules.check({text: e.text, platforms: e.platforms, media, tiktok: e.tiktok});
   // Sans GitHub, on ne peut pas joindre de visuel : son absence n'est alors qu'un avertissement.
   return Store.mode === "github" ? issues
     : issues.map(i => i.code === "needs" ? {...i, level: "warn"} : i);
@@ -1243,6 +1266,67 @@ function checksHTML(e){
   return rows.join("") + github.join("");
 }
 
+/* ===================== musique TikTok ===================== */
+
+/** Le mode de musique enregistré avec le post (voir tiktokMode dans rules.js). */
+function tiktokFor(e){
+  const hasVideo = e.visuals.some(v => v.type === "video");
+  const mode = CadenceRules.tiktokMode({tiktok: e.tiktok}, hasVideo);
+  return {mode, ...(mode === "music" && e.tiktok.music ? {music: e.tiktok.music} : {})};
+}
+
+function tiktokFieldHTML(e){
+  if (!e.platforms.includes("tiktok")) return "";
+  const hasVideo = e.visuals.some(v => v.type === "video");
+  const mode = CadenceRules.tiktokMode({tiktok: e.tiktok}, hasVideo);
+  const options = [
+    ["draft", "Je choisis le son dans l’app TikTok", "Le post arrive en brouillon dans TikTok à l’heure prévue : tu écoutes, tu choisis le son, tu publies."],
+    ["music", "Je choisis le son ici", "Parmi les 100 sons tendance de TikTok, avec écoute. Publication automatique."],
+    ...(hasVideo ? [] : [["auto", "TikTok choisit pour moi", "Publication automatique, sans écoute préalable."]]),
+    ["none", hasVideo ? "Garder le son de la vidéo" : "Sans musique", hasVideo ? "Aucun son ajouté." : "Le carrousel sera muet."],
+  ];
+  return `<div class="field">
+      <span class="lbl">Musique TikTok</span>
+      <div class="tt-modes">${options.map(([value, title, detail]) => `<label class="tt-mode${mode === value ? " on" : ""}">
+          <input type="radio" name="tt-mode" value="${value}"${mode === value ? " checked" : ""}>
+          <span><b>${title}</b><small>${detail}</small></span>
+        </label>`).join("")}</div>
+      ${mode === "music" ? musicHTML(e) : ""}
+    </div>`;
+}
+
+function musicHTML(e){
+  if (Store.mode !== "github") return `<p class="hint">Connecte Cadence à GitHub pour voir les sons tendance.</p>`;
+  const m = state.music;
+  if (!m){ loadMusic(); return `<p class="hint">Chargement des sons tendance…</p>`; }
+  if (!m.tracks?.length) return `<p class="warn">La liste des sons n’est pas disponible${m.error ? ` (${esc(m.error)})` : ""}. Lance la tâche « Musique TikTok » dans Actions, ou choisis le son dans l’app TikTok.</p>`;
+  const chosen = e.tiktok.music?.id;
+  return `<div class="tracks">${m.tracks.map((t, i) => `<div class="track${t.id === chosen ? " on" : ""}">
+        ${t.thumbnailUrl ? `<img src="${esc(t.thumbnailUrl)}" alt="">` : `<span class="track-ph"></span>`}
+        <span class="track-txt"><b>${esc(t.name)}</b><small>${esc(t.artist)}${t.durationSec ? ` · ${t.durationSec} s` : ""}${t.rank ? ` · n°${t.rank}` : ""}</small></span>
+        ${t.previewUrl ? `<button type="button" class="btn btn-ghost track-play" data-play="${i}" aria-label="${state.playing === i ? "Pause" : "Écouter"} ${esc(t.name)}">${state.playing === i ? "❚❚" : "▶"}</button>` : ""}
+        <button type="button" class="btn${t.id === chosen ? " btn-primary" : ""}" data-music="${i}">${t.id === chosen ? "Choisi" : "Choisir"}</button>
+      </div>`).join("")}</div>
+    <p class="hint">Sons tendance du ${new Date(m.updatedAt).toLocaleDateString("fr-FR")}, mis à jour chaque matin.</p>`;
+}
+
+/** La liste des sons est rangée dans le dépôt par la tâche « Musique TikTok ». */
+async function loadMusic(){
+  if (state.musicLoading) return;
+  state.musicLoading = true;
+  try{ state.music = (await GH.readJson("music/tiktok.json")) || {tracks: [], error: "la liste n’a pas encore été créée"}; }
+  catch(err){ state.music = {tracks: [], error: err.message}; }
+  finally{
+    state.musicLoading = false;
+    if (state.editing) renderSheet();
+  }
+}
+
+function stopMusic(){
+  state.audio?.pause();
+  state.playing = null;
+}
+
 function renderSheet(){
   const e = state.editing;
   if (!e) return;
@@ -1261,6 +1345,8 @@ function renderSheet(){
     document.body.appendChild(sheet);
   }
   sheet.setAttribute("aria-label", e.isNew ? "Nouveau post" : "Modifier le post");
+  const keepBody = sheet.querySelector(".sheet-body")?.scrollTop || 0;
+  const keepTracks = sheet.querySelector(".tracks")?.scrollTop || 0;
 
   const manualNote = (e.platforms.includes("x")
       ? `<p class="hint"><b>X se publie à la main.</b> Le jour J, ouvre ce post et copie le texte en un clic.</p>` : "")
@@ -1301,6 +1387,8 @@ function renderSheet(){
 
         ${mediaFieldHTML(e)}
 
+        ${tiktokFieldHTML(e)}
+
         <div class="field"><span class="lbl">Longueur</span><div class="counts" id="counts">${countersHTML(e)}</div></div>
 
         <div class="field"><span class="lbl">Contrôle par réseau</span><div class="checks" id="checks">${checksHTML(e)}</div></div>
@@ -1340,6 +1428,9 @@ function renderSheet(){
       <button type="button" class="btn btn-primary" data-sheet="save">${e.isNew ? "Programmer" : "Enregistrer"}</button>
     </div>`;
 
+  const bodyEl = sheet.querySelector(".sheet-body"), tracksEl = sheet.querySelector(".tracks");
+  if (bodyEl) bodyEl.scrollTop = keepBody;
+  if (tracksEl) tracksEl.scrollTop = keepTracks;
   if (e.isNew && e.focusText !== false) sheet.querySelector("#f-text").focus();
 }
 
@@ -1410,6 +1501,7 @@ async function saveSheet(){
     }
     for (const path of e.toDelete) await GH.remove(path, "Cadence : visuel retiré").catch(() => {});
     const body = {...prev, text:e.text.trim(), platforms:e.platforms, at:joinAt(e.day, e.time),
+                  tiktok: e.platforms.includes("tiktok") ? tiktokFor(e) : prev.tiktok,
                   timezone: prev.timezone || TZ, status:e.status, media, updatedAt:new Date().toISOString()};
     if (e.status !== "failed") delete body.error;
     if (e.example) body.example = true;
@@ -1557,6 +1649,29 @@ document.addEventListener("click", ev => {
   const prev = t.closest("[data-prev]");
   if (prev && state.editing){ state.previewOn = prev.dataset.prev; state.editing.focusText = false; renderSheet(); return; }
 
+  const play = t.closest("[data-play]");
+  if (play && state.editing && state.music){
+    const i = Number(play.dataset.play), track = state.music.tracks[i];
+    if (state.playing === i){ stopMusic(); }
+    else {
+      state.audio ||= new Audio();
+      state.audio.onended = () => { state.playing = null; if (state.editing) renderSheet(); };
+      state.audio.src = track.previewUrl;
+      state.audio.play().catch(() => toast("Impossible de lire cet extrait."));
+      state.playing = i;
+    }
+    state.editing.focusText = false; renderSheet();
+    return;
+  }
+  const choose = t.closest("[data-music]");
+  if (choose && state.editing && state.music){
+    const track = state.music.tracks[Number(choose.dataset.music)];
+    state.editing.tiktok = {...state.editing.tiktok, mode: "music",
+      music: {id: track.id, name: track.name, artist: track.artist}};
+    state.editing.focusText = false; renderSheet();
+    return;
+  }
+
   const move = t.closest("[data-vmove]");
   if (move && state.editing){
     const e = state.editing, i = Number(move.dataset.vi), j = i + Number(move.dataset.vmove);
@@ -1615,6 +1730,12 @@ document.addEventListener("change", async ev => {
   if (!e) return;
   const id = ev.target.id;
   if (id === "f-status") e.status = ev.target.value;
+  if (ev.target.name === "tt-mode"){
+    e.tiktok = {...e.tiktok, mode: ev.target.value};
+    if (ev.target.value !== "music") stopMusic();
+    e.focusText = false; renderSheet();
+    return;
+  }
   if (id !== "f-images" && id !== "f-video" && id !== "f-pdf") return;
 
   const files = [...(ev.target.files || [])];
