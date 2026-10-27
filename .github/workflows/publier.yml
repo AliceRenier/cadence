@@ -1,5 +1,7 @@
 # Toutes les heures, publie les posts dont l'heure est passée,
 # puis enregistre leur nouveau statut dans le dépôt.
+# Il supprime aussi les visuels des posts publiés depuis plus de 24 h,
+# et réduit la branche des visuels à un seul commit pour que le dépôt reste léger.
 name: Publier les posts
 
 on:
@@ -39,12 +41,14 @@ jobs:
           ZERNIO_API_KEY: ${{ secrets.ZERNIO_API_KEY }}
           ZERNIO_TIKTOK_ID: ${{ secrets.ZERNIO_TIKTOK_ID }}
           ZERNIO_LINKEDIN_ID: ${{ secrets.ZERNIO_LINKEDIN_ID }}
+          GITHUB_TOKEN: ${{ github.token }}   # pour supprimer les visuels publiés
 
       - name: Enregistrer les statuts
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add posts
+          git add -A posts
+          git add -A media 2>/dev/null || true   # anciens visuels rangés avec le code
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Robot : statuts de publication"
           for i in 1 2 3; do
@@ -52,6 +56,19 @@ jobs:
             git pull --rebase
           done
           exit 1
+
+      - name: Alléger la branche des visuels
+        # Un seul commit, avec les visuels encore en attente : les fichiers supprimés ne pèsent plus.
+        # Si Cadence envoie un visuel au même moment, on ne force rien et on réessaie au prochain passage.
+        run: |
+          git fetch --quiet origin media 2>/dev/null || exit 0
+          old=$(git rev-parse FETCH_HEAD)
+          [ "$(git rev-list --count FETCH_HEAD)" -gt 1 ] || exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          new=$(git commit-tree "FETCH_HEAD^{tree}" -m "Visuels en attente de publication")
+          git push --force-with-lease=refs/heads/media:"$old" origin "$new:refs/heads/media" \
+            || echo "Un visuel vient d'arriver : la branche sera allégée au prochain passage."
 
       - name: Signaler un échec (GitHub t'envoie un e-mail)
         if: steps.robot.outcome == 'failure'

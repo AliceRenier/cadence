@@ -15,8 +15,11 @@
 //   node robot/publish.mjs --zernio-accounts  affiche tes comptes Zernio et leurs identifiants
 //
 // Variables : DRY_RUN=1 valide sans rien publier ; NOW=2026-10-28T08:20:00Z simule une heure.
+//
+// Après chaque passage, il supprime les visuels des posts publiés depuis plus de 24 h
+// (voir cleanPublished) : le dépôt ne garde que ceux qui attendent encore.
 
-import { readdir, readFile, writeFile, appendFile, stat } from "node:fs/promises";
+import { readdir, readFile, writeFile, appendFile, stat, rm } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import "../rules.js";   // règles de chaque réseau, partagées avec l'interface
@@ -27,6 +30,7 @@ const env = process.env;
 const DRY_RUN = env.DRY_RUN === "1";
 const NOW = env.NOW ? new Date(env.NOW) : new Date();
 const MAX_LATE_HOURS = Number(env.MAX_LATE_HOURS || 48);
+const KEEP_MEDIA_HOURS = Number(env.KEEP_MEDIA_HOURS || 24);   // le temps que chaque réseau ait fini de télécharger
 const POSTS_DIR = env.POSTS_DIR || "posts";
 
 const GRAPH = "https://graph.facebook.com/v26.0";
@@ -85,9 +89,12 @@ async function call(url, init = {}) {
   return {res, body};
 }
 
-/** Lien public vers un fichier du dépôt : c'est ce lien que Meta et Zernio téléchargent. */
-function rawUrl(p) {
-  const ref = env.MEDIA_REF || env.GITHUB_SHA || "main";
+/**
+ * Lien public vers un visuel : c'est ce lien que Meta et Zernio téléchargent.
+ * ref = la branche des visuels ("media") ; sans ref, un ancien visuel rangé avec le code.
+ */
+function rawUrl(p, ref) {
+  ref ||= env.MEDIA_REF || env.GITHUB_SHA || "main";
   const file = p.split("/").map(encodeURIComponent).join("/");
   return `https://raw.githubusercontent.com/${env.GITHUB_REPOSITORY}/${ref}/${file}`;
 }
@@ -100,7 +107,7 @@ function mediaOf(post) {
   const items = (post.media || []).filter(m => m?.path).map(m => ({
     path: m.path,
     type: m.type || (/\.(mp4|mov|m4v|webm)$/i.test(m.path) ? "video" : /\.pdf$/i.test(m.path) ? "document" : "image"),
-    url: rawUrl(m.path),
+    url: rawUrl(m.path, m.ref),
   }));
   return {
     video: items.find(i => i.type === "video") || null,
@@ -335,7 +342,10 @@ async function publishDue() {
     const media = mediaOf(post);
     // Le poids réel des fichiers, pour vérifier les limites même sur un ancien post.
     for (const m of post.media || []) {
-      if (m?.path && !m.size) m.size = await stat(m.path).then(s => s.size, () => undefined);
+      if (!m?.path || m.size) continue;
+      m.size = m.ref
+        ? await fetch(rawUrl(m.path, m.ref), {method: "HEAD"}).then(r => Number(r.headers.get("content-length")) || undefined, () => undefined)
+        : await stat(m.path).then(s => s.size, () => undefined);
     }
     const errors = [];
     for (const net of auto) {
@@ -480,12 +490,64 @@ async function tiktokMusic() {
 }
 
 /* ------------------------------------------------------------------ */
+/* Ménage : les visuels des posts déjà publiés                         */
+/* ------------------------------------------------------------------ */
+
+/** Supprime un fichier de la branche des visuels, par l'API GitHub (jeton du workflow). */
+async function deleteFromBranch(p, ref) {
+  const url = `https://api.github.com/repos/${env.GITHUB_REPOSITORY}/contents/${p.split("/").map(encodeURIComponent).join("/")}`;
+  const headers = {Authorization: `Bearer ${env.GITHUB_TOKEN}`, Accept: "application/vnd.github+json"};
+  const found = await fetch(`${url}?ref=${encodeURIComponent(ref)}`, {headers});
+  if (found.status === 404) return;   // déjà supprimé
+  if (!found.ok) throw new Error(`GitHub a répondu ${found.status}`);
+  const {sha} = await found.json();
+  await call(url, {method: "DELETE", headers, body: JSON.stringify({message: "Robot : visuel publié supprimé", sha, branch: ref})});
+}
+
+/**
+ * Les visuels d'un post publié depuis plus de KEEP_MEDIA_HOURS sont supprimés : chaque réseau
+ * a gardé sa copie. On attend tant que X reste à poster à la main, puisqu'il te faut le visuel.
+ * Le post garde son texte et note combien de visuels il avait.
+ */
+async function cleanPublished() {
+  const files = (await readdir(POSTS_DIR).catch(() => [])).filter(f => f.endsWith(".json")).sort();
+  let removed = 0;
+  for (const f of files) {
+    const file = path.join(POSTS_DIR, f);
+    const post = JSON.parse(await readFile(file, "utf8"));
+    if (post.status !== "published" || !post.publishedAt || !post.media?.length) continue;
+    if ((post.manual || []).length) continue;
+    if ((NOW - new Date(post.publishedAt)) / 3_600_000 < KEEP_MEDIA_HOURS) continue;
+    if (DRY_RUN) { console.log(`Essai : supprimerait ${post.media.length} visuel(s) de « ${firstLine(post.text, 50)} »`); continue; }
+    try {
+      for (const m of post.media) {
+        if (m.ref) await deleteFromBranch(m.path, m.ref);
+        else await rm(m.path, {force: true});
+      }
+    } catch (e) {
+      console.log(`Visuels de « ${firstLine(post.text, 50)} » gardés pour l'instant : ${e.message}`);
+      continue;
+    }
+    post.mediaRemoved = {at: NOW.toISOString(), count: post.media.length};
+    post.media = [];
+    await writeFile(file, JSON.stringify(post, null, 2) + "\n");
+    removed++;
+  }
+  if (removed) console.log(`Ménage : visuels supprimés pour ${removed} post(s) publié(s).`);
+}
+
+async function publishAndClean() {
+  await publishDue();
+  await cleanPublished();
+}
+
+/* ------------------------------------------------------------------ */
 
 const mode = process.argv[2];
 const run = mode === "--check" ? checkAccess
           : mode === "--zernio-accounts" ? zernioAccounts
           : mode === "--tiktok-music" ? tiktokMusic
-          : publishDue;
+          : publishAndClean;
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   run().catch(e => { console.error(`Erreur : ${e.message}`); process.exitCode = 1; });

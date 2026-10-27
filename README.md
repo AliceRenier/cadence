@@ -13,8 +13,9 @@ Planifie tes posts dans un calendrier. Un robot GitHub les publie à l'heure pr�
 
 ## Comment ça marche
 
-1. Tu écris tes posts dans Cadence, ton site GitHub Pages. Chaque post devient un fichier `posts/<id>.json` dans ce dépôt, et son visuel va dans `media/<id>/`.
+1. Tu écris tes posts dans Cadence, ton site GitHub Pages. Chaque post devient un fichier `posts/<id>.json` dans ce dépôt. Ses visuels vont sur une branche à part, `media`, hors du code.
 2. Toutes les heures, la tâche **Publier les posts** lance `robot/publish.mjs`. Le robot publie ce qui est dû, puis note le résultat dans le fichier du post.
+   24 h après la publication, il supprime les visuels du post : chaque réseau garde sa copie. Il réduit ensuite la branche `media` à un seul commit, pour que le dépôt ne s'alourdisse pas au fil des vidéos.
 3. Si une publication échoue, GitHub t'envoie un e-mail. Le post passe en « Échec » dans Cadence, avec la raison. Corrige le problème et repasse le post en « Programmé » : seuls les réseaux en échec repartent.
 4. Chaque matin, **Vérifier les accès** contrôle que tes accès Meta, YouTube et Zernio marchent encore, et **Musique TikTok** récupère les 100 sons tendance du moment.
 
@@ -101,7 +102,8 @@ Programme un post de test dans Cadence pour dans quelques minutes, puis va dans 
 
 ## À savoir
 
-- **Tes posts programmés sont visibles dans le dépôt public** avant leur publication. C'est nécessaire : Instagram, Facebook et Zernio téléchargent tes visuels depuis un lien public.
+- **Tes visuels restent accessibles par un lien public** jusqu'à leur suppression, 24 h après la publication. C'est nécessaire : Instagram, Facebook et Zernio les téléchargent depuis ce lien. Ils ne sont pas dans le code, mais sur la branche `media`, et ne s'affichent pas sur la page d'accueil du dépôt. Le texte des posts, lui, reste visible dans `posts/`.
+- **Les visuels d'un post avec X** sont gardés tant que tu n'as pas indiqué « C'est posté sur X » : il te les faut pour le poster à la main.
 - **Visuels** : un post porte **une vidéo**, ou **une à plusieurs images**. Plusieurs images forment un carrousel, dans l'ordre choisi (Instagram, TikTok, Facebook). Pour LinkedIn, tu peux ajouter un **PDF** : il est publié en carrousel à faire défiler, à la place des images.
 - **Musique TikTok** : pour chaque post, tu choisis comment le son est ajouté.
   - **Dans l'app TikTok** (par défaut pour un carrousel) : le post arrive en brouillon à l'heure prévue. Tu écoutes, tu choisis le son, y compris les sons tendance, puis tu publies.
@@ -114,7 +116,7 @@ Programme un post de test dans Cadence pour dans quelques minutes, puis va dans 
   - Les **hashtags** s'ajoutent à la fin du texte, sur une ligne à part. Ils s'écrivent sans espace ni ponctuation ; le # est ajouté s'il manque.
 - **YouTube** : une vidéo verticale de 3 minutes au plus devient un Short. Au-delà de 15 hashtags, YouTube ignore tous les hashtags de la vidéo : Cadence bloque.
 - **LinkedIn** : un même texte publié deux fois est refusé par LinkedIn, même à plusieurs semaines d'écart.
-- **Taille des vidéos** : GitHub refuse les fichiers de plus de 100 Mo. Supprimer une vidéo ne libère pas de place, car Git garde l'historique. Pour des vidéos courtes et peu nombreuses, ça va.
+- **Taille des vidéos** : GitHub refuse les fichiers de plus de 100 Mo. Les vidéos publiées sont supprimées et la branche `media` est réduite à un seul commit : GitHub efface ensuite ces fichiers de son côté, en général sous quelques jours.
 - **Ponctualité** : le robot passe chaque heure, à la 7e minute, et GitHub le lance parfois avec un peu de retard. Un post prévu à 9 h 00 part donc vers 9 h 10 ou un peu plus tard.
 - **Plus de 48 h de retard** : un post en retard de plus de 48 h n'est pas publié. Il passe en échec pour que tu décides.
 - **60 jours sans activité** : sur un dépôt public, GitHub suspend les tâches planifiées si le dépôt ne bouge pas pendant 60 jours, et prévient par e-mail. Publier régulièrement suffit à l'éviter.
@@ -143,7 +145,7 @@ confidentialite.html                     règles de confidentialité et conditio
 logo/                                    le logo, en SVG et en PNG
 profil.json, profil/                     ton nom, ton identifiant et ta photo, pour les aperçus
 posts/<id>.json                          un fichier par post
-media/<id>/…                             le visuel du post
+media/<id>/…  (branche media)            les visuels des posts en attente
 robot/publish.mjs                        le robot : publication, vérification, aide
 .github/workflows/publier.yml            toutes les heures
 .github/workflows/verifier-acces.yml     chaque matin

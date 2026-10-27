@@ -857,7 +857,10 @@ const textFromB64 = b => new TextDecoder().decode(Uint8Array.from(atob(b.replace
 
 const GH = {
   owner: "", repo: "", token: "", branch: "main",
-  shas: new Map(),   // chemin → version du fichier, que GitHub exige pour le modifier
+  // Les visuels vont sur une branche à part, hors du code : le robot les supprime après publication
+  // et réduit l'historique de cette branche à un seul commit, pour que le dépôt ne s'alourdisse pas.
+  MEDIA: "media", mediaReady: false,
+  shas: new Map(),   // « branche:chemin » → version du fichier, que GitHub exige pour le modifier
 
   get ready(){ return Boolean(this.owner && this.repo && this.token); },
 
@@ -905,7 +908,7 @@ const GH = {
   async readJson(path){
     const f = await this.api(`/contents/${path}?ref=${encodeURIComponent(this.branch)}`);
     if (!f) return null;
-    this.shas.set(path, f.sha);
+    this.shas.set(`${this.branch}:${path}`, f.sha);
     return JSON.parse(textFromB64(f.content));
   },
 
@@ -914,32 +917,48 @@ const GH = {
     return Array.isArray(items) ? items : [];
   },
 
-  async put(path, base64, message){
+  async put(path, base64, message, branch = this.branch){
+    const key = `${branch}:${path}`;
     const send = () => this.api(`/contents/${path}`, {method: "PUT", body: JSON.stringify({
-      message, content: base64, branch: this.branch,
-      ...(this.shas.has(path) ? {sha: this.shas.get(path)} : {}),
+      message, content: base64, branch,
+      ...(this.shas.has(key) ? {sha: this.shas.get(key)} : {}),
     })});
     let out;
     try{ out = await send(); }
     catch(e){
       // Le fichier a changé entre-temps (le robot, un autre appareil) : on reprend sa version actuelle.
       if (e.status !== 409 && e.status !== 422) throw e;
-      const f = await this.api(`/contents/${path}?ref=${encodeURIComponent(this.branch)}`);
-      if (f) this.shas.set(path, f.sha); else this.shas.delete(path);
+      const f = await this.api(`/contents/${path}?ref=${encodeURIComponent(branch)}`);
+      if (f) this.shas.set(key, f.sha); else this.shas.delete(key);
       out = await send();
     }
-    this.shas.set(path, out.content.sha);
+    this.shas.set(key, out.content.sha);
   },
 
-  async remove(path, message){
-    if (!this.shas.has(path)){
-      const f = await this.api(`/contents/${path}?ref=${encodeURIComponent(this.branch)}`);
+  async remove(path, message, branch = this.branch){
+    const key = `${branch}:${path}`;
+    if (!this.shas.has(key)){
+      const f = await this.api(`/contents/${path}?ref=${encodeURIComponent(branch)}`);
       if (!f) return;
-      this.shas.set(path, f.sha);
+      this.shas.set(key, f.sha);
     }
     await this.api(`/contents/${path}`, {method: "DELETE",
-      body: JSON.stringify({message, sha: this.shas.get(path), branch: this.branch})});
-    this.shas.delete(path);
+      body: JSON.stringify({message, sha: this.shas.get(key), branch})});
+    this.shas.delete(key);
+  },
+
+  /** Crée la branche des visuels si elle n'existe pas encore : sans historique commun avec le code. */
+  async ensureMediaBranch(){
+    if (this.mediaReady) return;
+    if (!await this.api(`/git/ref/heads/${this.MEDIA}`)){
+      const post = (p, body) => this.api(p, {method: "POST", body: JSON.stringify(body)});
+      const tree = await post("/git/trees", {tree: [{path: "LISEZMOI.md", mode: "100644", type: "blob",
+        content: "# Visuels de Cadence\n\nLes visuels des posts en attente. Le robot les supprime 24 h après leur publication.\n"}]});
+      const commit = await post("/git/commits", {message: "Visuels de Cadence", tree: tree.sha, parents: []});
+      try{ await post("/git/refs", {ref: `refs/heads/${this.MEDIA}`, sha: commit.sha}); }
+      catch(e){ if (e.status !== 422) throw e; }   // créée entre-temps, par un autre appareil
+    }
+    this.mediaReady = true;
   },
 
   /** Lance une tâche GitHub (publier, sons TikTok) : le jeton doit avoir la permission Actions. */
@@ -953,9 +972,9 @@ const GH = {
     }
   },
 
-  rawUrl(path){
+  rawUrl(path, ref = this.branch){
     const file = path.split("/").map(encodeURIComponent).join("/");
-    return `https://raw.githubusercontent.com/${this.owner}/${this.repo}/${this.branch}/${file}`;
+    return `https://raw.githubusercontent.com/${this.owner}/${this.repo}/${ref}/${file}`;
   },
 };
 
@@ -1000,7 +1019,7 @@ const Store = {
   async drop(id){
     const p = state.posts.get(id);
     if (this.mode === "github"){
-      for (const m of p?.media || []) await GH.remove(m.path, "Cadence : visuel supprimé").catch(() => {});
+      for (const m of p?.media || []) await GH.remove(m.path, "Cadence : visuel supprimé", m.ref).catch(() => {});
       await GH.remove(`posts/${id}.json`, `Cadence : post supprimé`);
     }
     state.posts.delete(id);
@@ -1011,8 +1030,9 @@ const Store = {
     const safe = file.name.normalize("NFD").replace(/[̀-ͯ]/g, "")
       .replace(/[^\w.-]+/g, "-").slice(-80) || "visuel";
     const path = `media/${id}/${Date.now().toString(36)}-${safe}`;
-    await GH.put(path, b64FromBytes(new Uint8Array(await file.arrayBuffer())), `Cadence : visuel ${safe}`);
-    return {path, type: file.type === "application/pdf" ? "document" : file.type.startsWith("video/") ? "video" : "image"};
+    await GH.ensureMediaBranch();
+    await GH.put(path, b64FromBytes(new Uint8Array(await file.arrayBuffer())), `Cadence : visuel ${safe}`, GH.MEDIA);
+    return {path, ref: GH.MEDIA, type: file.type === "application/pdf" ? "document" : file.type.startsWith("video/") ? "video" : "image"};
   },
 };
 
@@ -1383,19 +1403,19 @@ const shortName = path => String(path).split("/").pop().replace(/^[a-z0-9]+-/, "
 
 function visualsFrom(media){
   return (media || []).filter(m => m.type !== "document")
-    .map(m => ({path: m.path, type: m.type, url: GH.rawUrl(m.path), name: shortName(m.path), meta: metaFields(m)}));
+    .map(m => ({path: m.path, ref: m.ref, type: m.type, url: GH.rawUrl(m.path, m.ref), name: shortName(m.path), meta: metaFields(m)}));
 }
 
 function pdfFrom(media){
   const d = (media || []).find(m => m.type === "document");
-  return d ? {path: d.path, name: shortName(d.path), meta: metaFields(d)} : null;
+  return d ? {path: d.path, ref: d.ref, name: shortName(d.path), meta: metaFields(d)} : null;
 }
 
 /** Retire des visuels : ceux déjà dans le dépôt seront supprimés à l'enregistrement. */
 function dropVisuals(e, keepOut){
   e.visuals = e.visuals.filter((v, idx) => {
     if (!keepOut(v, idx)) return true;
-    if (v.file) URL.revokeObjectURL(v.url); else e.toDelete.push(v.path);
+    if (v.file) URL.revokeObjectURL(v.url); else e.toDelete.push({path: v.path, ref: v.ref});
     return false;
   });
 }
@@ -1461,8 +1481,13 @@ function mediaFieldHTML(e){
       <input type="file" id="f-pdf" class="sr-only" accept="application/pdf">
       <p class="hint">Facultatif. Avec un PDF, LinkedIn publie ton carrousel ; sans PDF, il reprend les visuels ci-dessus.</p>
     </div>`;
+  const removed = state.posts.get(e.id)?.mediaRemoved;
+  const removedNote = removed && !e.visuals.length
+    ? `<p class="hint">${removed.count > 1 ? `Ses ${removed.count} visuels ont été supprimés` : "Son visuel a été supprimé"} du dépôt le ${
+        new Date(removed.at).toLocaleDateString("fr-FR", {day: "numeric", month: "long"})}, 24 h après la publication : chaque réseau garde sa copie.</p>` : "";
   return `<div class="field">
       <span class="lbl">Visuels</span>
+      ${removedNote}
       ${thumbs ? `<div class="thumbs">${thumbs}</div>` : ""}
       <div class="media-actions">
         ${hasVideo ? "" : `<label class="btn media-pick" for="f-images">${e.visuals.length ? "Ajouter des images" : "Images"}</label>`}
@@ -1944,13 +1969,13 @@ async function saveSheet(){
     const media = [];
     for (const v of e.visuals){
       media.push(v.file ? {...await Store.upload(e.id, v.file), ...metaFields(v.meta)}
-                        : {path: v.path, type: v.type, ...metaFields(v.meta)});
+                        : {path: v.path, ...(v.ref ? {ref: v.ref} : {}), type: v.type, ...metaFields(v.meta)});
     }
     if (e.pdf){
       media.push(e.pdf.file ? {...await Store.upload(e.id, e.pdf.file), ...metaFields(e.pdf.meta)}
-                            : {path: e.pdf.path, type: "document", ...metaFields(e.pdf.meta)});
+                            : {path: e.pdf.path, ...(e.pdf.ref ? {ref: e.pdf.ref} : {}), type: "document", ...metaFields(e.pdf.meta)});
     }
-    for (const path of e.toDelete) await GH.remove(path, "Cadence : visuel retiré").catch(() => {});
+    for (const m of e.toDelete) await GH.remove(m.path, "Cadence : visuel retiré", m.ref).catch(() => {});
     const body = {...prev, title:e.title.trim(), text:e.text.trim(),
                   hashtags:CadenceRules.parseTags(e.hashtags).join(" "), platforms:e.platforms, at:joinAt(e.day, e.time),
                   tiktok: e.platforms.includes("tiktok") ? tiktokFor(e) : prev.tiktok,
@@ -1989,7 +2014,8 @@ async function markXDone(){
   try{
     const onlyManual = (p.platforms||[]).every(k => PLATFORMS[k]?.manual);
     await Store.put(id, {...p, manual: (p.manual||[]).filter(n => n !== "x"),
-                         status: onlyManual ? "published" : p.status, updatedAt: new Date().toISOString()});
+                         status: onlyManual ? "published" : p.status, updatedAt: new Date().toISOString(),
+                         ...(onlyManual ? {publishedAt: new Date().toISOString()} : {})});
     closeSheet();
     toast("Noté : posté sur X.");
     render();
@@ -2158,7 +2184,7 @@ document.addEventListener("click", ev => {
     if (a === "xdone") markXDone();
     if (a === "unpdf" && state.editing){
       const e = state.editing;
-      if (e.pdf?.path) e.toDelete.push(e.pdf.path);
+      if (e.pdf?.path) e.toDelete.push({path: e.pdf.path, ref: e.pdf.ref});
       e.pdf = null; e.focusText = false; renderSheet();
     }
     if (a === "copy"){
@@ -2217,7 +2243,7 @@ document.addEventListener("change", async ev => {
     e.visuals = [{file: files[0], type: "video", url, name: files[0].name, meta}];
   }
   if (id === "f-pdf"){
-    if (e.pdf?.path) e.toDelete.push(e.pdf.path);
+    if (e.pdf?.path) e.toDelete.push({path: e.pdf.path, ref: e.pdf.ref});
     e.pdf = {file: files[0], name: files[0].name, meta: {mime: files[0].type || "application/pdf", size: files[0].size}};
   }
   if (state.editing === e){ e.focusText = false; renderSheet(); }
