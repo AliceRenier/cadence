@@ -1365,7 +1365,7 @@ function renderSheet(){
   try{ renderSheetUnsafe(); }
   catch(err){
     console.error(err);
-    toast("Le composeur a rencontré un problème : recharge la page avec ⌘ + Maj + R.");
+    toast("Le composeur a rencontré un problème : recharge la page en ignorant le cache (⌥ + ⌘ + R sur Safari, ⌘ + Maj + R sur Chrome).");
   }
 }
 
@@ -1966,7 +1966,7 @@ document.getElementById("btnAccount").addEventListener("click", async () => {
 });
 
 async function boot(){
-  if (!rulesOk) toast("Cadence vient d’être mis à jour : recharge la page avec ⌘ + Maj + R.");
+  if (!rulesOk) toast("Cadence vient d’être mis à jour : recharge la page en ignorant le cache (⌥ + ⌘ + R sur Safari, ⌘ + Maj + R sur Chrome).");
   GH.restore();
   let localChoice = false;
   try{ localChoice = localStorage.getItem("cadence.local") === "1"; }catch(_){}
