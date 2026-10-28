@@ -102,8 +102,10 @@
   const LINKEDIN_URL = /^https?:\/\/([a-z]{2,3}\.)?linkedin\.com\/(in|company|school|showcase)\/[^/?#\s]+\/?$/i;
   const MENTIONS_MAX = 10;
   const cleanLinkedin = url => {
-    const u = String(url || "").trim().split(/[?#]/)[0];
-    return /^https?:\/\//i.test(u) ? u : "https://" + u.replace(/^\/+/, "");
+    let u = String(url || "").trim().split(/[?#]/)[0];
+    u = /^https?:\/\//i.test(u) ? u : "https://" + u.replace(/^\/+/, "");
+    // Un lien copié depuis Safari peut garder ses accents (« moullé ») : on l'écrit comme LinkedIn (moull%C3%A9).
+    try { return encodeURI(decodeURI(u)); } catch (_) { return u; }
   };
   const mentionsOf = post => (post.mentions || [])
     .map(m => ({name: String(m.name || "").trim(), url: cleanLinkedin(m.url)}))
@@ -312,7 +314,7 @@
     return issues;
   }
 
-  const VERSION = 8;
+  const VERSION = 9;
   const api = {VERSION, RULES, check, compose, parseTags, mimeOf, tiktokMode};
   root.CadenceRules = api;
   if (typeof module === "object" && module.exports) module.exports = api;
