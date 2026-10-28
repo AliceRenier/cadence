@@ -20,6 +20,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
+        with:
+          # L'état du dépôt au démarrage, pas au déclenchement : un passage qui attendait la fin du précédent
+          # doit voir ce que ce dernier vient de publier, sinon il republierait.
+          ref: main
       - uses: actions/setup-node@v5
         with:
           node-version: 22

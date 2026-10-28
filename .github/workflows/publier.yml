@@ -24,6 +24,10 @@ jobs:
     timeout-minutes: 50   # une vidéo 4K à recoller, ou à copier en 1080p pour Instagram
     steps:
       - uses: actions/checkout@v5
+        with:
+          # L'état du dépôt au démarrage, pas au déclenchement : un passage qui attendait la fin du précédent
+          # doit voir ce que ce dernier vient de publier, sinon il republierait.
+          ref: main
 
       - uses: actions/setup-node@v5
         with:

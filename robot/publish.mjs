@@ -534,6 +534,21 @@ async function zernioPost(platform, accountVar, content, mediaItems, extra = {},
 /* Publication des posts dus                                           */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Le post tel qu'il est sur GitHub à cet instant. Un autre passage l'a peut-être publié entre-temps, ou
+ * tu l'as modifié ou supprimé dans Cadence : c'est cette version qui fait foi avant de publier.
+ * null si GitHub ne répond pas (on garde alors la version du passage), {missing: true} s'il a été supprimé.
+ */
+async function remotePost(f) {
+  if (!env.GITHUB_TOKEN || !env.GITHUB_REPOSITORY) return null;
+  try {
+    const res = await fetch(`${GH_API()}/contents/${POSTS_DIR}/${encodeURIComponent(f)}?ref=main`,
+      {headers: {...ghHeaders(), Accept: "application/vnd.github.raw"}, cache: "no-store"});
+    if (res.status === 404) return {missing: true};
+    return res.ok ? JSON.parse(await res.text()) : null;
+  } catch { return null; }
+}
+
 async function publishDue() {
   const files = (await readdir(POSTS_DIR).catch(() => [])).filter(f => f.endsWith(".json")).sort();
   const report = [];
@@ -552,6 +567,14 @@ async function publishDue() {
 
     const label = firstLine(post.text, 50);
     post.results ||= {};
+
+    // Dernière vérification sur GitHub : jamais deux fois le même post sur un réseau.
+    const remote = await remotePost(f);
+    if (remote?.missing || (remote && remote.status !== "scheduled")) {
+      report.push(`- ⏭️ « ${label} » : déjà traité, modifié ou supprimé entre-temps`);
+      continue;
+    }
+    for (const [n, r] of Object.entries(remote?.results || {})) if (r?.ok) post.results[n] = r;
 
     if ((post.media || []).some(m => m.parts?.length && !m.asset)) {
       report.push(`- ⏳ « ${label} » : la vidéo n'est pas encore recollée, il partira au prochain passage`);
