@@ -217,8 +217,11 @@ async function prepareMedia() {
 const exec = promisify(execFile);
 const IG_VIDEO = globalThis.CadenceRules.RULES.instagram.video;
 const IG_MAX = IG_VIDEO.maxBytes;
-/** Instagram refuse une vidéo de plus de 300 Mo ou de plus de 1920 px de large (4K) : il lui faut une copie. */
-const needsInstagramCopy = v => v.size > IG_MAX || (v.source?.width || 0) > IG_VIDEO.maxWidth;
+/**
+ * Instagram refuse une vidéo de plus de 300 Mo ou de plus de 1920 px de large (4K), et Facebook rend mal
+ * une vidéo 4K (HDR d'iPhone surtout) reçue par ce moyen : tous deux reçoivent alors la même copie 1080p.
+ */
+const needsCopy1080 = v => v.size > IG_MAX || (v.source?.width || 0) > IG_VIDEO.maxWidth;
 
 async function ensureFfmpeg() {
   try { await exec("ffmpeg", ["-version"]); }
@@ -240,9 +243,11 @@ async function isHdr(file) {
  * (H.264, CRF 18 au départ ; HDR converti en couleurs standard), faite une seule fois et rangée à côté de
  * l'originale. Les autres réseaux reçoivent l'originale.
  */
-async function instagramCopy(video) {
+async function copy1080(video) {
   const m = video.source;
-  if (m.igAsset) return m.igAsset.url;
+  m.copy1080 ||= m.igAsset;   // nom d'avant, quand seul Instagram la recevait
+  delete m.igAsset;
+  if (m.copy1080) return m.copy1080.url;
   await ensureFfmpeg();
   const dir = await mkdtemp(path.join(os.tmpdir(), "cadence-"));
   const src = path.join(dir, "source"), out = path.join(dir, "instagram.mp4");
@@ -264,11 +269,11 @@ async function instagramCopy(video) {
       }
       const size = (await stat(out)).size;
       if (size <= IG_MAX) {
-        m.igAsset = await uploadAsset(assetName(m.path, "-instagram.mp4"), await readFile(out), "video/mp4");
-        return m.igAsset.url;
+        m.copy1080 = await uploadAsset(assetName(m.path, "-1080p.mp4"), await readFile(out), "video/mp4");
+        return m.copy1080.url;
       }
     }
-    throw new Error("même en 1080p, la vidéo dépasse 300 Mo : raccourcis-la pour Instagram.");
+    throw new Error("même en 1080p, la vidéo dépasse 300 Mo : raccourcis-la pour Instagram et Facebook.");
   } finally {
     await rm(dir, {recursive: true, force: true});
   }
@@ -318,7 +323,7 @@ const NETWORKS = {
       const {text} = compose(post, "facebook", Boolean(m.video));
       if (m.video) {
         const {body} = await call(`${GRAPH_VIDEO}/${page}/videos`,
-          {method: "POST", body: form({file_url: m.video.url, description: text, access_token})});
+          {method: "POST", body: form({file_url: needsCopy1080(m.video) ? await copy1080(m.video) : m.video.url, description: text, access_token})});
         return body.id;
       }
       if (m.images.length === 1) {
@@ -350,7 +355,7 @@ const NETWORKS = {
       const caption = compose(post, "instagram", Boolean(m.video)).text;
       let params;
       if (m.video) params = {media_type: "REELS", caption,
-        video_url: needsInstagramCopy(m.video) ? await instagramCopy(m.video) : m.video.url};
+        video_url: needsCopy1080(m.video) ? await copy1080(m.video) : m.video.url};
       else if (m.images.length === 1) params = {image_url: m.images[0].url, caption};
       else {
         // Carrousel : un conteneur par image, puis un conteneur qui les regroupe.
@@ -847,7 +852,7 @@ async function cleanPublished() {
     try {
       for (const m of post.media) {
         if (m.asset) await deleteAsset(m.asset.id);
-        if (m.igAsset) await deleteAsset(m.igAsset.id);
+        if (m.copy1080 || m.igAsset) await deleteAsset((m.copy1080 || m.igAsset).id);
         for (const p of m.parts || []) await deleteFromBranch(p, m.ref);
         if (m.poster) await deleteFromBranch(m.poster, m.ref);
         if (m.asset || m.parts) continue;

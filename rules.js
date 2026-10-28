@@ -262,6 +262,8 @@
             : `Vidéo de ${mo(video.size)} : le maximum est ${mo(v.maxBytes)}.`);
         if (v.copyAbove && v.maxWidth && video.width > v.maxWidth && !(v.maxBytes && video.size > v.maxBytes))
           add(net, "info", `Vidéo de ${video.width} px de large : ${r.name} n'en accepte que ${v.maxWidth}. Le robot lui enverra une copie 1080p de haute qualité ; ${r.name} réduit de toute façon chaque vidéo en 1080p. Les autres réseaux reçoivent l'originale.`);
+        if (net === "facebook" && video.width > 1920)
+          add(net, "info", "Vidéo 4K : Facebook la rend floue ou délavée par ce moyen. Le robot lui enverra la même copie 1080p de haute qualité qu'à Instagram.");
         if (v.minSec && video.duration && video.duration < v.minSec)
           add(net, "error", `Vidéo de ${dur(video.duration)} : il faut au moins ${dur(v.minSec)}.`);
         if (v.maxSec && video.duration > v.maxSec)
@@ -365,7 +367,7 @@
     return issues;
   }
 
-  const VERSION = 14;
+  const VERSION = 15;
   const api = {VERSION, RULES, check, compose, parseTags, mimeOf, tiktokMode, inlineMentions, linkLooksWrong,
                linkedinUrl: cleanLinkedin};
   root.CadenceRules = api;
