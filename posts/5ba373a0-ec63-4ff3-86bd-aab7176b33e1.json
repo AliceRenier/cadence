@@ -34,7 +34,7 @@
     }
   ],
   "timezone": "Europe/Paris",
-  "status": "scheduled",
+  "status": "published",
   "media": [
     {
       "path": "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov",
@@ -93,5 +93,14 @@
         "shown": "Bpifrance"
       }
     ]
-  }
+  },
+  "results": {
+    "linkedin": {
+      "ok": true,
+      "id": "6ae1f2167e5a0235ca052aa3",
+      "at": "2026-10-28T13:04:43.279Z"
+    }
+  },
+  "manual": [],
+  "publishedAt": "2026-10-28T13:04:43.279Z"
 }

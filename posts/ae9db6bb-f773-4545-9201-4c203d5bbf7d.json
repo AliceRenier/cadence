@@ -14,7 +14,7 @@
     "mode": "none"
   },
   "timezone": "Europe/Paris",
-  "status": "scheduled",
+  "status": "published",
   "media": [
     {
       "path": "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov",
@@ -28,8 +28,31 @@
       "size": 293207793,
       "width": 2160,
       "height": 3840,
-      "duration": 61.8
+      "duration": 61.8,
+      "igAsset": {
+        "id": 685029269,
+        "url": "https://github.com/AliceRenier/cadence/releases/download/visuels/ae9db6bb-f773-4545-9201-4c203d5bbf7d-mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov-instagram.mp4"
+      }
     }
   ],
-  "updatedAt": "2026-10-28T11:48:08.309Z"
+  "updatedAt": "2026-10-28T11:48:08.309Z",
+  "results": {
+    "instagram": {
+      "ok": true,
+      "id": "18169002415484646",
+      "at": "2026-10-28T13:07:13.781Z"
+    },
+    "tiktok": {
+      "ok": true,
+      "id": "6ae1f382c3a22ddd4bea3e74",
+      "at": "2026-10-28T13:07:57.814Z"
+    },
+    "facebook": {
+      "ok": true,
+      "id": "1320502136819092",
+      "at": "2026-10-28T13:08:10.139Z"
+    }
+  },
+  "manual": [],
+  "publishedAt": "2026-10-28T13:08:10.139Z"
 }
