@@ -481,6 +481,7 @@ video.pv-over{position:absolute;inset:0;width:100%;height:100%}
 
 /* ---------- toast ---------- */
 .toast{
+  cursor:pointer;
   position:fixed;z-index:80;left:50%;transform:translateX(-50%);
   bottom:calc(22px + env(safe-area-inset-bottom,0px));
   background:var(--ink);color:var(--panel);padding:9px 16px;border-radius:999px;
@@ -1071,7 +1072,11 @@ const Store = {
    * au-delà de PART_SIZE, le fichier part en morceaux, que le robot recolle ensuite
    * dans la release « visuels » (2 Go par fichier).
    */
-  PART_SIZE: 30 * 1e6,
+  // 10 Mo : chaque morceau part en quelques secondes. GitHub coupe toute demande de plus de 10 s environ.
+  PART_SIZE: 10 * 1e6,
+
+  // Envoi interrompu puis relancé (nouveau clic sur Enregistrer) : il reprend au morceau suivant.
+  resume: new Map(),
 
   /** Une image de la vidéo (à 1 s), pour l'aperçu une fois le post enregistré. Rien de grave si elle échoue. */
   async uploadPoster(path, file){
@@ -1095,16 +1100,23 @@ const Store = {
       const poster = type === "video" ? await this.uploadPoster(path, file) : null;
       return {path, ref: GH.MEDIA, type, ...(poster ? {poster} : {})};
     }
-    const parts = [], count = Math.ceil(file.size / this.PART_SIZE);
-    const poster = type === "video" ? await this.uploadPoster(path, file) : null;
-    for (let i = 0; i < count; i++){
+    const key = [id, file.name, file.size, file.lastModified].join("|");
+    const done = this.resume.get(key) || {path, parts: [], poster: undefined};
+    const count = Math.ceil(file.size / this.PART_SIZE);
+    if (done.poster === undefined) done.poster = type === "video" ? await this.uploadPoster(done.path, file) : null;
+    this.resume.set(key, done);
+    for (let i = done.parts.length; i < count; i++){
       progress(i + 1, count);
-      const part = `${path}.part${String(i + 1).padStart(3, "0")}`;
+      const part = `${done.path}.part${String(i + 1).padStart(3, "0")}`;
       const bytes = new Uint8Array(await file.slice(i * this.PART_SIZE, (i + 1) * this.PART_SIZE).arrayBuffer());
-      await GH.put(part, b64FromBytes(bytes), `Cadence : ${safe}, morceau ${i + 1}/${count}`, GH.MEDIA);
-      parts.push(part);
+      try{ await GH.put(part, b64FromBytes(bytes), `Cadence : ${safe}, morceau ${i + 1}/${count}`, GH.MEDIA); }
+      catch(e){
+        throw new Error(`l'envoi s'est arrêté au morceau ${i + 1} sur ${count} (${e.message}). Clique à nouveau sur le bouton d'enregistrement : il reprendra là, sans renvoyer ce qui est déjà parti`);
+      }
+      done.parts.push(part);
     }
-    return {path, ref: GH.MEDIA, type, parts, ...(poster ? {poster} : {})};
+    this.resume.delete(key);
+    return {path: done.path, ref: GH.MEDIA, type, parts: done.parts, ...(done.poster ? {poster: done.poster} : {})};
   },
 };
 
@@ -2276,14 +2288,18 @@ function exportIcs(){
 }
 
 let toastT = null;
+/** Un message en bas de l'écran. Il reste le temps de le lire (bien plus pour une erreur) ; un clic le ferme. */
 function toast(msg){
   document.getElementById("toast")?.remove();
   const el = document.createElement("div");
   el.className = "toast"; el.id = "toast"; el.setAttribute("role","status");
   el.textContent = msg;
+  el.title = "Cliquer pour fermer";
+  el.addEventListener("click", () => el.remove());
   document.body.appendChild(el);
   clearTimeout(toastT);
-  toastT = setTimeout(() => el.remove(), 2600);
+  const error = /refusé|impossible|erreur|problème|échec|arrêté/i.test(msg);
+  toastT = setTimeout(() => el.remove(), error ? 30000 : Math.min(12000, Math.max(2600, msg.length * 70)));
 }
 
 /* ===================== évènements ===================== */
