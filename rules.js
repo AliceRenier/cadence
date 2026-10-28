@@ -27,8 +27,9 @@
     instagram: {
       name: "Instagram", text: 2200, hashtags: 30, mentions: 20, needs: "visual",
       image: {mimes: [JPEG], maxBytes: 8 * MB, ratio: [0.8, 1.91], ratioLabel: "4:5 et 1,91:1", max: 10},
-      // Au-delà de 300 Mo, le robot envoie à Instagram une copie 1080p (copyAbove) : il la réduit de toute façon en 1080p.
-      video: {mimes: [MP4, MOV], maxBytes: 300 * MB, copyAbove: true, minSec: 3, maxSec: 15 * 60},
+      // Au-delà de 300 Mo ou de 1920 px de large (4K), le robot envoie à Instagram une copie 1080p (copyAbove) :
+      // Instagram refuse plus large, et réduit de toute façon chaque vidéo en 1080p.
+      video: {mimes: [MP4, MOV], maxBytes: 300 * MB, maxWidth: 1920, copyAbove: true, minSec: 3, maxSec: 15 * 60},
     },
     facebook: {
       name: "Facebook", text: 63206,
@@ -259,6 +260,8 @@
           add(net, v.copyAbove ? "info" : "error", v.copyAbove
             ? `Vidéo de ${mo(video.size)} : ${r.name} n'en accepte que ${mo(v.maxBytes)} par ce moyen. Le robot lui enverra une copie 1080p de haute qualité ; ${r.name} réduit de toute façon chaque vidéo en 1080p. Les autres réseaux reçoivent l'originale.`
             : `Vidéo de ${mo(video.size)} : le maximum est ${mo(v.maxBytes)}.`);
+        if (v.copyAbove && v.maxWidth && video.width > v.maxWidth && !(v.maxBytes && video.size > v.maxBytes))
+          add(net, "info", `Vidéo de ${video.width} px de large : ${r.name} n'en accepte que ${v.maxWidth}. Le robot lui enverra une copie 1080p de haute qualité ; ${r.name} réduit de toute façon chaque vidéo en 1080p. Les autres réseaux reçoivent l'originale.`);
         if (v.minSec && video.duration && video.duration < v.minSec)
           add(net, "error", `Vidéo de ${dur(video.duration)} : il faut au moins ${dur(v.minSec)}.`);
         if (v.maxSec && video.duration > v.maxSec)
@@ -362,7 +365,7 @@
     return issues;
   }
 
-  const VERSION = 13;
+  const VERSION = 14;
   const api = {VERSION, RULES, check, compose, parseTags, mimeOf, tiktokMode, inlineMentions, linkLooksWrong,
                linkedinUrl: cleanLinkedin};
   root.CadenceRules = api;

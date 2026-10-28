@@ -215,17 +215,30 @@ async function prepareMedia() {
 /* ------------------------------------------------------------------ */
 
 const exec = promisify(execFile);
-const IG_MAX = globalThis.CadenceRules.RULES.instagram.video.maxBytes;
+const IG_VIDEO = globalThis.CadenceRules.RULES.instagram.video;
+const IG_MAX = IG_VIDEO.maxBytes;
+/** Instagram refuse une vidéo de plus de 300 Mo ou de plus de 1920 px de large (4K) : il lui faut une copie. */
+const needsInstagramCopy = v => v.size > IG_MAX || (v.source?.width || 0) > IG_VIDEO.maxWidth;
 
 async function ensureFfmpeg() {
   try { await exec("ffmpeg", ["-version"]); }
   catch { await exec("sudo", ["apt-get", "update", "-qq"]); await exec("sudo", ["apt-get", "install", "-y", "-qq", "ffmpeg"]); }
 }
 
+/** Une vidéo HDR (iPhone : HLG ou Dolby Vision) ? Sans conversion, ses couleurs paraîtraient délavées en SDR. */
+async function isHdr(file) {
+  try {
+    const {stdout} = await exec("ffprobe", ["-v", "error", "-select_streams", "v:0",
+      "-show_entries", "stream=color_transfer", "-of", "default=nw=1:nk=1", file]);
+    return /arib-std-b67|smpte2084/.test(stdout);
+  } catch { return false; }
+}
+
 /**
- * Instagram n'accepte pas plus de 300 Mo par ce moyen, et réduit de toute façon chaque vidéo en 1080p.
- * Pour une vidéo plus lourde (4K), on lui envoie une copie 1080p de haute qualité (H.264, CRF 18 au départ),
- * faite une seule fois et rangée à côté de l'originale. Les autres réseaux reçoivent l'originale.
+ * Instagram n'accepte pas plus de 300 Mo ni plus de 1920 px de large par ce moyen, et réduit de toute façon
+ * chaque vidéo en 1080p. Pour une vidéo 4K ou trop lourde, on lui envoie une copie 1080p de haute qualité
+ * (H.264, CRF 18 au départ ; HDR converti en couleurs standard), faite une seule fois et rangée à côté de
+ * l'originale. Les autres réseaux reçoivent l'originale.
  */
 async function instagramCopy(video) {
   const m = video.source;
@@ -235,12 +248,20 @@ async function instagramCopy(video) {
   const src = path.join(dir, "source"), out = path.join(dir, "instagram.mp4");
   try {
     await writeFile(src, await download(video.url));
+    const scale = "scale=w='if(lt(iw,ih),min(1080,iw),-2)':h='if(lt(iw,ih),-2,min(1080,ih))'";
+    const tonemap = "zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,zscale=t=bt709:m=bt709:r=tv,format=yuv420p";
+    const filters = (await isHdr(src)) ? [`${scale},${tonemap}`, scale] : [scale];
+    const encode = (vf, crf) => exec("ffmpeg", ["-y", "-loglevel", "error", "-i", src, "-vf", vf,
+      "-c:v", "libx264", "-preset", "medium", "-crf", String(crf), "-profile:v", "high", "-pix_fmt", "yuv420p",
+      "-color_primaries", "bt709", "-color_trc", "bt709", "-colorspace", "bt709",
+      "-fpsmax", "60", "-c:a", "aac", "-b:a", "256k", "-ar", "48000", "-movflags", "+faststart", out],
+      {maxBuffer: 1e7, timeout: 30 * 60_000});
     for (const crf of [18, 21, 24]) {
-      await exec("ffmpeg", ["-y", "-loglevel", "error", "-i", src,
-        "-vf", "scale=w='if(lt(iw,ih),min(1080,iw),-2)':h='if(lt(iw,ih),-2,min(1080,ih))'",
-        "-c:v", "libx264", "-preset", "medium", "-crf", String(crf), "-profile:v", "high", "-pix_fmt", "yuv420p",
-        "-fpsmax", "60", "-c:a", "aac", "-b:a", "256k", "-ar", "48000", "-movflags", "+faststart", out],
-        {maxBuffer: 1e7, timeout: 30 * 60_000});
+      // Conversion HDR d'abord ; si ce ffmpeg ne sait pas la faire, la copie simple.
+      for (const [i, vf] of filters.entries()) {
+        try { await encode(vf, crf); break; }
+        catch (e) { if (i === filters.length - 1) throw e; console.log(`Conversion HDR impossible ici, copie simple : ${e.message.split("\n")[0]}`); }
+      }
       const size = (await stat(out)).size;
       if (size <= IG_MAX) {
         m.igAsset = await uploadAsset(assetName(m.path, "-instagram.mp4"), await readFile(out), "video/mp4");
@@ -329,7 +350,7 @@ const NETWORKS = {
       const caption = compose(post, "instagram", Boolean(m.video)).text;
       let params;
       if (m.video) params = {media_type: "REELS", caption,
-        video_url: m.video.size > IG_MAX ? await instagramCopy(m.video) : m.video.url};
+        video_url: needsInstagramCopy(m.video) ? await instagramCopy(m.video) : m.video.url};
       else if (m.images.length === 1) params = {image_url: m.images[0].url, caption};
       else {
         // Carrousel : un conteneur par image, puis un conteneur qui les regroupe.
