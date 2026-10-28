@@ -104,6 +104,9 @@
   const cleanLinkedin = url => {
     let u = String(url || "").trim().split(/[?#]/)[0];
     u = /^https?:\/\//i.test(u) ? u : "https://" + u.replace(/^\/+/, "");
+    // Lien copié depuis un onglet de la page (…/company/le-crayon/home/) : on garde l'adresse de la page.
+    const page = /^(https?:\/\/[^/]+\/(?:in|company|school|showcase)\/[^/]+)/i.exec(u);
+    if (page) u = page[1] + "/";
     // Un lien copié depuis Safari peut garder ses accents (« moullé ») : on l'écrit comme LinkedIn (moull%C3%A9).
     try { return encodeURI(decodeURI(u)); } catch (_) { return u; }
   };
@@ -314,7 +317,7 @@
     return issues;
   }
 
-  const VERSION = 9;
+  const VERSION = 10;
   const api = {VERSION, RULES, check, compose, parseTags, mimeOf, tiktokMode};
   root.CadenceRules = api;
   if (typeof module === "object" && module.exports) module.exports = api;
