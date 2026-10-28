@@ -66,6 +66,8 @@ jobs:
           git fetch --quiet origin media 2>/dev/null || exit 0
           old=$(git rev-parse FETCH_HEAD)
           [ "$(git rev-list --count FETCH_HEAD)" -gt 1 ] || exit 0
+          # Un envoi depuis Cadence il y a moins de 15 minutes : il est peut-être en cours, on n'y touche pas.
+          [ $(( $(date +%s) - $(git log -1 --format=%ct FETCH_HEAD) )) -gt 900 ] || exit 0
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           new=$(git commit-tree "FETCH_HEAD^{tree}" -m "Visuels en attente de publication")

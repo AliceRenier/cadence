@@ -826,6 +826,7 @@ async function cleanPublished() {
         if (m.asset) await deleteAsset(m.asset.id);
         if (m.igAsset) await deleteAsset(m.igAsset.id);
         for (const p of m.parts || []) await deleteFromBranch(p, m.ref);
+        if (m.poster) await deleteFromBranch(m.poster, m.ref);
         if (m.asset || m.parts) continue;
         if (m.ref) await deleteFromBranch(m.path, m.ref);
         else await rm(m.path, {force: true});
@@ -842,11 +843,36 @@ async function cleanPublished() {
   if (removed) console.log(`Ménage : visuels supprimés pour ${removed} post(s) publié(s).`);
 }
 
+/**
+ * Morceaux laissés par un envoi interrompu (page fermée, réseau coupé) : aucun post ne les cite.
+ * Ils sont supprimés de la branche des visuels au bout de 6 h, le temps qu'un envoi en cours se termine.
+ */
+async function cleanOrphans() {
+  if (!env.GITHUB_TOKEN || DRY_RUN) return;
+  const res = await fetch(`${GH_API()}/git/trees/media?recursive=1`, {headers: ghHeaders()});
+  if (!res.ok) return;   // pas encore de branche des visuels
+  const used = new Set();
+  for (const f of (await readdir(POSTS_DIR).catch(() => [])).filter(f => f.endsWith(".json"))) {
+    const post = JSON.parse(await readFile(path.join(POSTS_DIR, f), "utf8"));
+    for (const m of post.media || []) { used.add(m.path); if (m.poster) used.add(m.poster); for (const p of m.parts || []) used.add(p); }
+  }
+  let removed = 0;
+  for (const t of (await res.json()).tree || []) {
+    if (t.type !== "blob" || !t.path.startsWith("media/") || used.has(t.path)) continue;
+    const stamp = parseInt(t.path.split("/").pop().split("-")[0], 36);   // Cadence nomme chaque fichier d'après l'heure d'envoi
+    if (!(stamp > Date.UTC(2024, 0, 1)) || NOW - stamp < 6 * 3_600_000) continue;
+    try { await deleteFromBranch(t.path, "media"); removed++; }
+    catch (e) { console.log(`Morceau orphelin ${t.path} gardé : ${e.message}`); }
+  }
+  if (removed) console.log(`Ménage : ${removed} morceau(x) d'envois interrompus supprimé(s).`);
+}
+
 async function publishAndClean() {
   await prepareMedia();
   await checkMentions().catch(e => console.log(`Vérification des identifications reportée : ${e.message}`));
   await publishDue();
   await cleanPublished();
+  await cleanOrphans().catch(e => console.log(`Ménage des envois interrompus reporté : ${e.message}`));
 }
 
 /* ------------------------------------------------------------------ */

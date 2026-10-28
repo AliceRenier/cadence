@@ -395,6 +395,8 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
 .pv-media.dark{background:#000}
 .pv-media img,.pv-media video{width:100%;height:100%;object-fit:cover;display:block}
 .pv-media.dark video{object-fit:contain}
+.pv-play{position:absolute;inset:0;display:grid;place-items:center;font-size:30px;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6);pointer-events:none;z-index:1}
+video.pv-over{position:absolute;inset:0;width:100%;height:100%}
 .pv-actions{display:flex;align-items:center;gap:14px;padding:9px 11px 4px;position:relative}
 .pv-txt{padding:4px 11px 2px}
 .pv-head + .pv-txt{padding-top:0;padding-bottom:10px}
@@ -935,13 +937,21 @@ const GH = {
       ...(this.shas.has(key) ? {sha: this.shas.get(key)} : {}),
     })});
     let out;
-    try{ out = await send(); }
-    catch(e){
-      // Le fichier a changé entre-temps (le robot, un autre appareil) : on reprend sa version actuelle.
-      if (e.status !== 409 && e.status !== 422) throw e;
-      const f = await this.api(`/contents/${path}?ref=${encodeURIComponent(branch)}`);
-      if (f) this.shas.set(key, f.sha); else this.shas.delete(key);
-      out = await send();
+    // Un gros envoi peut échouer en passant (réseau, GitHub surchargé) : on le relance, avec une pause
+    // qui s'allonge. Un fichier modifié entre-temps (le robot, un autre appareil) : on reprend sa version.
+    for (let attempt = 1; ; attempt++){
+      try{ out = await send(); break; }
+      catch(e){
+        if (e.status === 409 || e.status === 422){
+          if (attempt > 3) throw e;
+          const f = await this.api(`/contents/${path}?ref=${encodeURIComponent(branch)}`);
+          if (f) this.shas.set(key, f.sha); else this.shas.delete(key);
+          continue;
+        }
+        const passing = !e.status || e.status >= 500 || e.status === 429 || (e.status === 403 && /rate limit|abuse/i.test(e.message));
+        if (!passing || attempt >= 5) throw e;
+        await new Promise(r => setTimeout(r, [2, 5, 15, 30][attempt - 1] * 1000));
+      }
     }
     this.shas.set(key, out.content.sha);
   },
@@ -991,6 +1001,7 @@ const GH = {
     if (m.asset?.id) await this.api(`/releases/assets/${m.asset.id}`, {method: "DELETE"}).catch(e => { if (e.status !== 404) throw e; });
     for (const part of m.parts || []) await this.remove(part, message, m.ref);
     if (!m.parts && !m.asset) await this.remove(m.path, message, m.ref);
+    if (m.poster) await this.remove(m.poster, message, m.ref);
   },
 
   rawUrl(path, ref = this.branch){
@@ -1062,6 +1073,17 @@ const Store = {
    */
   PART_SIZE: 30 * 1e6,
 
+  /** Une image de la vidéo (à 1 s), pour l'aperçu une fois le post enregistré. Rien de grave si elle échoue. */
+  async uploadPoster(path, file){
+    try{
+      const blob = await videoPoster(file);
+      if (!blob) return null;
+      const poster = `${path}-apercu.jpg`;
+      await GH.put(poster, b64FromBytes(new Uint8Array(await blob.arrayBuffer())), "Cadence : image de la vidéo", GH.MEDIA);
+      return poster;
+    }catch(_){ return null; }
+  },
+
   async upload(id, file, progress = () => {}){
     const safe = file.name.normalize("NFD").replace(/[̀-ͯ]/g, "")
       .replace(/[^\w.-]+/g, "-").slice(-80) || "visuel";
@@ -1070,9 +1092,11 @@ const Store = {
     await GH.ensureMediaBranch();
     if (file.size <= this.PART_SIZE * 1.5){
       await GH.put(path, b64FromBytes(new Uint8Array(await file.arrayBuffer())), `Cadence : visuel ${safe}`, GH.MEDIA);
-      return {path, ref: GH.MEDIA, type};
+      const poster = type === "video" ? await this.uploadPoster(path, file) : null;
+      return {path, ref: GH.MEDIA, type, ...(poster ? {poster} : {})};
     }
     const parts = [], count = Math.ceil(file.size / this.PART_SIZE);
+    const poster = type === "video" ? await this.uploadPoster(path, file) : null;
     for (let i = 0; i < count; i++){
       progress(i + 1, count);
       const part = `${path}.part${String(i + 1).padStart(3, "0")}`;
@@ -1080,7 +1104,7 @@ const Store = {
       await GH.put(part, b64FromBytes(bytes), `Cadence : ${safe}, morceau ${i + 1}/${count}`, GH.MEDIA);
       parts.push(part);
     }
-    return {path, ref: GH.MEDIA, type, parts};
+    return {path, ref: GH.MEDIA, type, parts, ...(poster ? {poster} : {})};
   },
 };
 
@@ -1121,6 +1145,26 @@ const Profile = {
     this.data = next;
   },
 };
+
+/** La vidéo à 1 s (ou à mi-durée si elle est plus courte), en JPEG de 720 px de large. */
+function videoPoster(file){
+  return new Promise(resolve => {
+    const url = URL.createObjectURL(file), v = document.createElement("video");
+    let settled = false;
+    const done = blob => { if (settled) return; settled = true; URL.revokeObjectURL(url); resolve(blob); };
+    v.muted = true; v.playsInline = true; v.preload = "auto";
+    v.onloadeddata = () => { v.currentTime = Math.min(1, (v.duration || 2) / 2); };
+    v.onseeked = () => {
+      const w = 720, h = Math.round(w * v.videoHeight / v.videoWidth) || 1280;
+      const c = document.createElement("canvas"); c.width = w; c.height = h;
+      c.getContext("2d").drawImage(v, 0, 0, w, h);
+      c.toBlob(done, "image/jpeg", 0.85);
+    };
+    v.onerror = () => done(null);
+    setTimeout(() => done(null), 20000);
+    v.src = url;
+  });
+}
 
 /** Recadre une image au carré, au centre, en JPEG de size × size. */
 function squareJpeg(file, size){
@@ -1452,7 +1496,8 @@ const shortName = path => String(path).split("/").pop().replace(/^[a-z0-9]+-/, "
 function visualsFrom(media){
   return (media || []).filter(m => m.type !== "document")
     .map(m => ({path: m.path, ref: m.ref, parts: m.parts, asset: m.asset, type: m.type, name: shortName(m.path), meta: metaFields(m),
-                url: m.asset?.url || (m.parts ? "" : GH.rawUrl(m.path, m.ref))}));
+                url: m.asset?.url || (m.parts ? "" : GH.rawUrl(m.path, m.ref)),
+                poster: m.poster, posterUrl: m.poster ? GH.rawUrl(m.poster, m.ref) : ""}));
 }
 
 function pdfFrom(media){
@@ -1464,7 +1509,7 @@ function pdfFrom(media){
 function dropVisuals(e, keepOut){
   e.visuals = e.visuals.filter((v, idx) => {
     if (!keepOut(v, idx)) return true;
-    if (v.file) URL.revokeObjectURL(v.url); else e.toDelete.push({path: v.path, ref: v.ref, parts: v.parts, asset: v.asset});
+    if (v.file) URL.revokeObjectURL(v.url); else e.toDelete.push({path: v.path, ref: v.ref, parts: v.parts, asset: v.asset, poster: v.poster});
     return false;
   });
 }
@@ -1509,7 +1554,8 @@ function mediaFieldHTML(e){
     </div>`;
   const hasVideo = e.visuals.some(v => v.type === "video");
   const thumbs = e.visuals.map((v, i) => `<div class="thumb">
-        ${!v.url ? `<span class="pv-ph">en préparation</span>`
+        ${v.type === "video" && !v.file && v.posterUrl ? `<img src="${esc(v.posterUrl)}" alt="">`
+          : !v.url ? `<span class="pv-ph">en préparation</span>`
           : v.type === "video"
           ? `<video src="${esc(v.url)}" muted playsinline preload="metadata"></video>`
           : `<img src="${esc(v.url)}" alt="">`}
@@ -1918,10 +1964,15 @@ function refreshLive(c){
 
 const ratioOf = v => v?.meta?.width && v?.meta?.height ? v.meta.width / v.meta.height : null;
 const within = (r, lo, hi) => Math.min(hi, Math.max(lo, r));
-const mediaEl = v => !v.url ? placeholder("Vidéo en préparation : le robot la recolle d'ici 15 minutes")
-  : v.type === "video"
-  ? `<video src="${esc(v.url)}" muted playsinline loop autoplay></video>`
-  : `<img src="${esc(v.url)}" alt="">`;
+/**
+ * Une vidéo choisie sur cet appareil est lue telle quelle. Une vidéo déjà enregistrée est montrée par son
+ * image (posterUrl) : GitHub la sert sans dire que c'est une vidéo, et Safari refuse alors de la lire.
+ */
+const mediaEl = v => v.type !== "video" ? (v.url ? `<img src="${esc(v.url)}" alt="">` : placeholder("Image en préparation"))
+  : v.file ? `<video src="${esc(v.url)}" muted playsinline loop autoplay></video>`
+  : v.posterUrl ? `<img src="${esc(v.posterUrl)}" alt=""><span class="pv-play" aria-hidden="true">▶</span>`
+  : !v.url ? placeholder("Vidéo en préparation : le robot la recolle d'ici 15 minutes")
+  : `${placeholder("Vidéo enregistrée : son aperçu n'est pas disponible ici")}<video class="pv-over" src="${esc(v.url)}" muted playsinline preload="metadata"></video>`;
 const barHTML = (items, cls = "") => `<div class="pv-bar ${cls}">${items.map(([n, label]) => `<span>${ico(n)}${label}</span>`).join("")}</div>`;
 const placeholder = what => `<span class="pv-ph">${what}</span>`;
 const isShort = v => Boolean(v) && (v.meta?.duration ?? 0) <= 180 && (v.meta?.height ?? 0) >= (v.meta?.width ?? 1);
@@ -2109,6 +2160,7 @@ async function saveSheet(){
     const media = [];
     const progress = (i, n) => toast(`Envoi de la vidéo, sans compression : morceau ${i} sur ${n}… Garde cette page ouverte.`);
     const kept = (m, type) => ({path: m.path, ...(m.ref ? {ref: m.ref} : {}), ...(m.parts ? {parts: m.parts} : {}),
+                                ...(m.poster ? {poster: m.poster} : {}),
                                 ...(m.asset ? {asset: m.asset} : {}), type, ...metaFields(m.meta)});
     for (const v of e.visuals){
       media.push(v.file ? {...await Store.upload(e.id, v.file, progress), ...metaFields(v.meta)} : kept(v, v.type));
