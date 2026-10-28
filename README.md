@@ -48,7 +48,7 @@ Planifie tes posts dans un calendrier. Un robot GitHub les publie à l'heure pr�
 Il te faut un compte Instagram **professionnel** (Business ou Créateur), relié à ta **Page Facebook**.
 
 1. Sur [developers.facebook.com](https://developers.facebook.com/apps), crée une app. Ajoute les cas d'usage **Tout gérer sur votre Page** et **Gérer les messages et les contenus sur Instagram**, ce dernier avec la *connexion Facebook*.
-   Laisse l'app en mode développement : tant que tu n'y relies que tes propres comptes, Meta n'a rien à valider.
+   **Passe l'app en mode Live** une fois les accès en place (étape 6 ci-dessous) : en mode développement, Facebook ne montre ce que publie Cadence qu'aux personnes qui ont un rôle sur l'app, et à personne d'autre.
 2. Dans chaque cas d'usage, ouvre **Personnaliser** et ajoute `pages_manage_posts` et `instagram_content_publish`.
 3. Dans l'[explorateur de l'API Graph](https://developers.facebook.com/tools/explorer), choisis ton app, puis **Obtenir un token d'accès utilisateur**, avec ces permissions :
    `pages_show_list`, `pages_read_engagement`, `pages_manage_posts`, `publish_video`, `instagram_basic`, `instagram_content_publish`, `business_management`.
@@ -57,6 +57,11 @@ Il te faut un compte Instagram **professionnel** (Business ou Créateur), relié
    - `access_token` → secret **`META_PAGE_TOKEN`**. Ce jeton de Page n'expire pas.
    - `id` → secret **`META_PAGE_ID`**
    - `instagram_business_account.id` → secret **`META_IG_USER_ID`**
+
+6. **Passe l'app en mode Live** :
+   - **Paramètres de l'app → Général** : *URL des règles de confidentialité* et *URL des instructions de suppression des données* = `https://<ton-compte>.github.io/cadence/confidentialite.html` ; une *Catégorie* ; l'*Icône* (`logo/cadence.png`). Enregistre.
+   - En haut de la page de l'app, bascule **Mode de l'app : Développement → Live**.
+   - Ton jeton reste valable : lance **Vérifier les accès** pour t'en assurer. Ce que l'app a publié pendant le mode développement reste invisible au public : supprime-le et republie-le.
 
 ### 4. Google : YouTube
 
