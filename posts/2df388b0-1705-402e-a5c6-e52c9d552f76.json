@@ -10,72 +10,7 @@
   },
   "timezone": "Europe/Paris",
   "status": "published",
-  "media": [
-    {
-      "path": "media/2df388b0-1705-402e-a5c6-e52c9d552f76/mvr72k7q-37.png",
-      "type": "image",
-      "mime": "image/png",
-      "size": 1285000,
-      "width": 1080,
-      "height": 1350
-    },
-    {
-      "path": "media/2df388b0-1705-402e-a5c6-e52c9d552f76/mvr72mi5-38.png",
-      "type": "image",
-      "mime": "image/png",
-      "size": 2205997,
-      "width": 1080,
-      "height": 1350
-    },
-    {
-      "path": "media/2df388b0-1705-402e-a5c6-e52c9d552f76/mvr72op2-39.png",
-      "type": "image",
-      "mime": "image/png",
-      "size": 2193262,
-      "width": 1080,
-      "height": 1350
-    },
-    {
-      "path": "media/2df388b0-1705-402e-a5c6-e52c9d552f76/mvr72r11-40.png",
-      "type": "image",
-      "mime": "image/png",
-      "size": 1243590,
-      "width": 1080,
-      "height": 1350
-    },
-    {
-      "path": "media/2df388b0-1705-402e-a5c6-e52c9d552f76/mvr72t07-41.png",
-      "type": "image",
-      "mime": "image/png",
-      "size": 1459332,
-      "width": 1080,
-      "height": 1350
-    },
-    {
-      "path": "media/2df388b0-1705-402e-a5c6-e52c9d552f76/mvr72v47-42.png",
-      "type": "image",
-      "mime": "image/png",
-      "size": 1687890,
-      "width": 1080,
-      "height": 1350
-    },
-    {
-      "path": "media/2df388b0-1705-402e-a5c6-e52c9d552f76/mvr72xde-43.png",
-      "type": "image",
-      "mime": "image/png",
-      "size": 1704015,
-      "width": 1080,
-      "height": 1350
-    },
-    {
-      "path": "media/2df388b0-1705-402e-a5c6-e52c9d552f76/mvr72ze8-44.png",
-      "type": "image",
-      "mime": "image/png",
-      "size": 543354,
-      "width": 1080,
-      "height": 1350
-    }
-  ],
+  "media": [],
   "updatedAt": "2026-10-27T21:39:30.747Z",
   "results": {
     "tiktok": {
@@ -85,5 +20,9 @@
     }
   },
   "manual": [],
-  "publishedAt": "2026-10-27T21:41:26.984Z"
+  "publishedAt": "2026-10-27T21:41:26.984Z",
+  "mediaRemoved": {
+    "at": "2026-10-28T21:45:33.126Z",
+    "count": 8
+  }
 }
