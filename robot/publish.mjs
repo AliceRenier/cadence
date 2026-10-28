@@ -27,7 +27,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import "../rules.js";   // règles de chaque réseau, partagées avec l'interface
 
-const { check: checkRules, compose, tiktokMode } = globalThis.CadenceRules;
+const { check: checkRules, compose, tiktokMode, linkedinUrl } = globalThis.CadenceRules;
 
 const env = process.env;
 const DRY_RUN = env.DRY_RUN === "1";
@@ -411,8 +411,10 @@ const NETWORKS = {
 
   linkedin: {
     validate() {},
-    publish(post, m) {
-      const {title, text} = compose(post, "linkedin", Boolean(m.video));
+    async publish(post, m) {
+      const {title, text: marked} = compose(post, "linkedin", Boolean(m.video));
+      const {text, untagged} = await resolveMentions(marked);
+      if (untagged.length) post.untagged = untagged;
       // Le PDF fourni pour LinkedIn passe avant les autres visuels : c'est le format carrousel de LinkedIn.
       if (m.document) {
         return zernioPost("linkedin", "ZERNIO_LINKEDIN_ID", text,
@@ -422,6 +424,69 @@ const NETWORKS = {
     },
   },
 };
+
+/* ------------------------------------------------------------------ */
+/* Identifications LinkedIn                                            */
+/* ------------------------------------------------------------------ */
+//
+// Cadence écrit chaque identification @[Nom](lien du profil ou de la page). Avant de publier, le robot
+// demande à LinkedIn, via Zernio, à qui correspond chaque lien, et envoie @[Nom officiel](urn:li:…),
+// que Zernio publie tel quel. Un lien introuvable devient le nom en texte simple : le post part
+// quand même, et jamais avec du code visible.
+
+const MENTION_MARK = /@\[([^\]]+)\]\((https?:[^)\s]+)\)/g;
+
+/** {ok, urn, type, name, guessed} ou {ok: false, error}. */
+async function resolveMention(url) {
+  need("ZERNIO_API_KEY", "ZERNIO_LINKEDIN_ID");
+  const res = await fetch(`${ZERNIO}/accounts/${encodeURIComponent(env.ZERNIO_LINKEDIN_ID)}/linkedin-mentions?url=${encodeURIComponent(url)}`,
+    {headers: {Authorization: `Bearer ${env.ZERNIO_API_KEY}`}});
+  const body = await res.json().catch(() => ({}));
+  if (res.status === 401) return {ok: false, error: "Zernio doit être reconnecté à LinkedIn"};
+  if (!res.ok || !body.urn) return {ok: false, error: `LinkedIn ne trouve pas ce profil ou cette page (${res.status})`};
+  // Pour une personne, un « warning » signifie que LinkedIn n'a pas donné son vrai nom : on garde celui que tu as écrit.
+  return {ok: true, urn: body.urn, type: body.type, name: String(body.displayName || "").replace(/[[\]]/g, ""), guessed: Boolean(body.warning)};
+}
+
+/** Le nom que LinkedIn affichera : le nom officiel, sauf pour une personne dont LinkedIn n'a pas donné le nom. */
+const shownName = (typed, r) => (r.ok && r.name && !(r.type === "person" && r.guessed)) ? r.name : typed;
+
+async function resolveMentions(text) {
+  const untagged = [];
+  let out = text;
+  for (const [mark, typed, url] of [...text.matchAll(MENTION_MARK)]) {
+    const r = await resolveMention(url).catch(e => ({ok: false, error: e.message}));
+    if (!r.ok) untagged.push(typed);
+    out = out.replace(mark, r.ok ? `@[${shownName(typed, r)}](${r.urn})` : typed);
+  }
+  return {text: out, untagged};
+}
+
+/**
+ * Vérifie à l'avance les identifications des posts à venir : Cadence affiche, pour chaque lien,
+ * le nom que LinkedIn montrera, ou le problème. Refait seulement quand les identifications changent.
+ */
+async function checkMentions() {
+  if (!env.ZERNIO_API_KEY || !env.ZERNIO_LINKEDIN_ID) return;
+  const files = (await readdir(POSTS_DIR).catch(() => [])).filter(f => f.endsWith(".json")).sort();
+  for (const f of files) {
+    const file = path.join(POSTS_DIR, f);
+    const post = JSON.parse(await readFile(file, "utf8"));
+    const list = (post.mentions || []).filter(m => m.name && m.url);
+    if (post.status === "published" || !(post.platforms || []).includes("linkedin") || !list.length) continue;
+    const key = JSON.stringify(list.map(m => [m.name, linkedinUrl(m.url)]));
+    if (post.mentionCheck?.key === key) continue;
+    const items = [];
+    for (const m of list) {
+      const url = linkedinUrl(m.url);
+      const r = await resolveMention(url).catch(e => ({ok: false, error: e.message}));
+      items.push(r.ok ? {url, ok: true, type: r.type, shown: shownName(m.name, r)} : {url, ok: false, error: r.error});
+    }
+    post.mentionCheck = {key, at: NOW.toISOString(), items};
+    if (!DRY_RUN) await writeFile(file, JSON.stringify(post, null, 2) + "\n");
+    console.log(`Identifications de « ${firstLine(post.text, 50)} » : ${items.map(i => i.ok ? `✓ ${i.shown}` : `✗ ${i.url}`).join(", ")}`);
+  }
+}
 
 /**
  * Publication via Zernio. Un appel par réseau : si l'un échoue, l'autre n'est pas
@@ -520,6 +585,7 @@ async function publishDue() {
       post.publishedAt = new Date().toISOString();
       delete post.error;
       const notes = [post.manual.length && "X reste à poster à la main",
+                     post.untagged?.length && `LinkedIn : ${post.untagged.join(", ")} écrit${post.untagged.length > 1 ? "s" : ""} sans identification (lien introuvable)`,
                      post.results.tiktok?.draft && "TikTok attend dans ton app, en brouillon"].filter(Boolean);
       report.push(`- ✅ « ${label} » → ${auto.map(n => NAMES[n]).join(", ")}${notes.length ? ` (${notes.join(" ; ")})` : ""}`);
     }
@@ -757,6 +823,7 @@ async function cleanPublished() {
 
 async function publishAndClean() {
   await prepareMedia();
+  await checkMentions().catch(e => console.log(`Vérification des identifications reportée : ${e.message}`));
   await publishDue();
   await cleanPublished();
 }

@@ -564,8 +564,12 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
 .opt{font-weight:400;text-transform:none;letter-spacing:0;color:var(--fg-3)}
 
 /* ---------- identifications LinkedIn ---------- */
+.inline-links{display:flex;flex-direction:column;gap:8px;align-items:flex-start;padding:10px 12px;border-radius:11px;background:var(--accent-soft);color:var(--accent-ink);font-size:12.5px}
+.inline-links p{margin:0}
 .mention-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) auto;gap:6px;align-items:center}
 .pv .mention{font-weight:640}
+.mention-row p{grid-column:1/-1;margin:-2px 0 4px;font-size:11.5px}
+.mention-ok{color:var(--ok)} .mention-bad{color:var(--crit)} .mention-wait{color:var(--fg-3)}
 @media (max-width:520px){ .mention-row{grid-template-columns:minmax(0,1fr) auto} .mention-row [data-mf="url"]{grid-column:1} }
 
 /* ---------- ton profil ---------- */
@@ -751,12 +755,12 @@ img.av{object-fit:cover;padding:0}
   </form>
 </div>
 
-<script src="rules.js?v=10"></script>
+<script src="rules.js?v=13"></script>
 <script>
 "use strict";
 
 /* La page et rules.js doivent aller ensemble (voir l'en-tête de rules.js). */
-const RULES_VERSION = 10;
+const RULES_VERSION = 13;
 const rulesOk = window.CadenceRules?.VERSION === RULES_VERSION;
 
 /* ===================== modèle ===================== */
@@ -1642,13 +1646,65 @@ function titleFieldHTML(e){
     </div>`;
 }
 
+/** « Nom + lien LinkedIn » écrit dans le texte : Cadence propose d'en faire des identifications. */
+function inlineLinksHTML(e){
+  const {found} = CadenceRules.inlineMentions(e.text);
+  if (!found.length) return "";
+  const names = found.map(f => f.name ? `« ${esc(f.name)} »` : "un nom à préciser").join(", ");
+  return `<div class="inline-links">
+      <p>Ton texte contient ${found.length} lien${found.length > 1 ? "s" : ""} LinkedIn : ${names}. Sur LinkedIn, ces noms peuvent devenir des identifications, et les liens disparaîtront du texte.</p>
+      <button type="button" class="btn btn-primary" data-inline>Transformer en identifications</button>
+    </div>`;
+}
+
+/** Retire les « + lien » du texte et range chaque nom avec son lien dans « Identifier sur LinkedIn ». */
+function convertInlineLinks(e){
+  const {found, text} = CadenceRules.inlineMentions(e.text);
+  if (!found.length) return;
+  // Deux liens visiblement inversés (« Le Crayon » ↔ …/le-surligneur) : on les remet en face du bon nom.
+  const wrong = CadenceRules.linkLooksWrong;
+  let swapped = [];
+  for (const a of found) for (const b of found){
+    if (a !== b && wrong(a.name, a.url) && wrong(b.name, b.url) && !wrong(a.name, b.url) && !wrong(b.name, a.url)){
+      [a.url, b.url] = [b.url, a.url];
+      swapped.push(a.name, b.name);
+    }
+  }
+  e.text = text;
+  for (const f of found){
+    const same = f.name && e.mentions.find(m => m.name === f.name);
+    if (same) same.url = f.url; else e.mentions.push({name: f.name, url: f.url});
+  }
+  if (!e.platforms.includes("linkedin")) e.platforms.push("linkedin");
+  e.focusText = false;
+  renderSheet();
+  toast(`${found.length} identification${found.length > 1 ? "s" : ""} ajoutée${found.length > 1 ? "s" : ""} sous les hashtags.`
+    + (swapped.length ? ` Les liens de « ${swapped[0]} » et « ${swapped[1]} » étaient inversés : je les ai remis dans l'ordre.` : ""));
+}
+
 /** Personnes et pages à identifier sur LinkedIn : le nom tel qu'il est écrit dans le texte, et son lien. */
+/** Ce que LinkedIn a répondu pour ce lien, lors de la vérification faite par le robot. */
+function mentionCheckOf(e, m){
+  const url = CadenceRules.linkedinUrl(m.url);
+  return (state.posts.get(e.id)?.mentionCheck?.items || []).find(i => i.url === url);
+}
+
+function mentionStatusHTML(e, m){
+  if (!m.name || !m.url) return "";
+  const c = mentionCheckOf(e, m);
+  if (c?.ok) return `<p class="mention-ok">✓ LinkedIn affichera « ${esc(c.shown)} »${c.shown !== m.name.trim()
+    ? ` : écris-le exactement comme ça dans ton texte` : ""}.</p>`;
+  if (c) return `<p class="mention-bad">✗ ${esc(c.error)}. Ce nom sera écrit sans identification : vérifie le lien.</p>`;
+  return Store.mode === "github" ? `<p class="mention-wait">Vérifié par LinkedIn au prochain passage du robot, dans les 15 minutes après l'enregistrement.</p>` : "";
+}
+
 function mentionsFieldHTML(e){
   if (!e.platforms.includes("linkedin")) return "";
   const rows = e.mentions.map((m, i) => `<div class="mention-row">
       <input class="inp" data-mf="name" data-mi="${i}" value="${esc(m.name || "")}" placeholder="Nom, comme dans le texte" aria-label="Nom à identifier n° ${i + 1}" autocomplete="off">
       <input class="inp" data-mf="url" data-mi="${i}" value="${esc(m.url || "")}" placeholder="Lien du profil ou de la page" aria-label="Lien LinkedIn n° ${i + 1}" spellcheck="false" autocapitalize="off" autocomplete="off">
       <button type="button" class="btn btn-ghost" data-mdel="${i}" aria-label="Retirer l'identification n° ${i + 1}">✕</button>
+      ${mentionStatusHTML(e, m)}
     </div>`).join("");
   return `<div class="field">
       <span class="lbl">Identifier sur LinkedIn</span>
@@ -1724,13 +1780,14 @@ function renderSheetUnsafe(){
         ${titleFieldHTML(e)}
         <div class="field">
           <label for="f-text">Texte du post</label>
-          <textarea id="f-text" placeholder="Écris ton post. Les hashtags vont dans leur champ, juste en dessous.">${esc(e.text)}</textarea>
+          <textarea id="f-text" placeholder="Écris ton post, hashtags compris si tu veux.">${esc(e.text)}</textarea>
+          <div id="inlineLinks">${inlineLinksHTML(e)}</div>
         </div>
 
         <div class="field">
-          <label for="f-tags">Hashtags</label>
+          <label for="f-tags">Hashtags <span class="opt">facultatif</span></label>
           <input class="inp" id="f-tags" value="${esc(e.hashtags)}" placeholder="#atelier #conseils" spellcheck="false" autocapitalize="off" autocomplete="off">
-          <p class="hint">Ajoutés à la fin du texte sur chaque réseau. Sépare-les par des espaces ; le # est facultatif.</p>
+          <p class="hint">Tu peux aussi les écrire directement dans le texte. Ceux d'ici s'ajoutent à la fin, sur chaque réseau, sans doublon.</p>
         </div>
 
         ${mentionsFieldHTML(e)}
@@ -1801,7 +1858,14 @@ const cardTextHTML = text => esc(text || "Ton texte apparaîtra ici.")
 /** Le titre et le texte exactement tels que le réseau k les recevra (voir compose dans rules.js). */
 function composedFor(e, k){
   const hasVideo = e.visuals?.some(v => v.type === "video");
-  return CadenceRules.compose({title: e.title, text: e.text, hashtags: e.hashtags, mentions: e.mentions}, k, hasVideo);
+  const c = CadenceRules.compose({title: e.title, text: e.text, hashtags: e.hashtags, mentions: e.mentions}, k, hasVideo);
+  if (k !== "linkedin") return c;
+  // Une fois vérifiées par LinkedIn : le nom officiel, ou le nom en texte simple si le lien est introuvable.
+  const text = c.text.replace(/@\[([^\]]+)\]\(([^)]+)\)/g, (all, name, url) => {
+    const check = mentionCheckOf(e, {url});
+    return !check ? all : check.ok ? `@[${check.shown}](${url})` : name;
+  });
+  return {...c, text};
 }
 
 /* ---------- aperçus : un rendu par réseau et par format ---------- */
@@ -1826,12 +1890,17 @@ const avatar = (k, sq) => Profile.photo
 
 /** Le texte tel que le fil l'affiche avant « plus » : clip = "caractères,lignes". */
 function clipHTML(text, clip, more){
-  if (!text || !clip) return cardTextHTML(text);
+  if (!text) return cardTextHTML(text);
+  // Une identification LinkedIn s'affiche par son seul nom : on coupe le texte tel que LinkedIn l'affiche.
+  text = text.replace(/@\[([^\]]+)\]\([^)]+\)/g, "\uE000$1\uE001");
+  const html = t => cardTextHTML(t).replace(/\uE000([^\uE001]*)\uE001/g, '<span class="tag mention">$1</span>');
+  if (!clip) return html(text);
   const [chars, lines] = clip.split(",").map(Number);
   let cut = text.split("\n").slice(0, lines).join("\n");
   if (cut.length > chars) cut = cut.slice(0, chars).replace(/\s+\S*$/, "");
+  if ((cut.match(/\uE000/g) || []).length > (cut.match(/\uE001/g) || []).length) cut += "\uE001";
   return cut.trimEnd().length < text.trimEnd().length
-    ? `${cardTextHTML(cut.trimEnd())}<span class="more"> … ${esc(more)}</span>` : cardTextHTML(text);
+    ? `${html(cut.trimEnd())}<span class="more"> … ${esc(more)}</span>` : html(text);
 }
 /** Un texte de l'aperçu que la saisie met à jour en direct (voir refreshLive). */
 const liveHTML = (c, kind, clip = "", more = "plus") => kind === "title"
@@ -2237,6 +2306,7 @@ document.addEventListener("click", ev => {
     }
     return;
   }
+  if (t.closest("[data-inline]") && state.editing){ convertInlineLinks(state.editing); return; }
   if (t.closest("[data-madd]") && state.editing){
     const e = state.editing;
     e.mentions.push({name: "", url: ""});
@@ -2288,7 +2358,7 @@ document.addEventListener("input", ev => {
     return;
   }
   if (id === "f-text" || id === "f-title" || id === "f-tags"){
-    if (id === "f-text") e.text = ev.target.value;
+    if (id === "f-text"){ e.text = ev.target.value; document.getElementById("inlineLinks").innerHTML = inlineLinksHTML(e); }
     if (id === "f-title") e.title = ev.target.value;
     if (id === "f-tags") e.hashtags = ev.target.value;
     // Compteurs, contrôles et aperçu mis à jour sans reconstruire les champs de saisie.

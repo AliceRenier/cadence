@@ -114,14 +114,51 @@
     .map(m => ({name: String(m.name || "").trim(), url: cleanLinkedin(m.url)}))
     .filter(m => m.name && m.url !== "https://");
 
+  /**
+   * « Le Crayon + https://www.linkedin.com/company/… » écrit directement dans le texte.
+   * Le nom est la suite de mots en majuscule juste avant le + (« de », « la »… acceptés au milieu).
+   * Renvoie les identifications trouvées et le texte sans les « + lien ».
+   */
+  const INLINE_LINK = /[ \t]*\+[ \t]*(https?:\/\/(?:[a-z]{2,3}\.)?linkedin\.com\/(?:in|company|school|showcase)\/[^\s,;)»]+)[ \t]*/gi;
+  const PARTICLES = new Set(["de", "du", "des", "d'", "d’", "la", "le", "les", "l'", "l’"]);
+  function inlineMentions(text) {
+    text = String(text || "");
+    const found = [];
+    for (const m of text.matchAll(INLINE_LINK)) {
+      const words = text.slice(0, m.index).split(/[\n:;,.!?«»()]/).pop().trim().split(/\s+/).filter(Boolean);
+      const name = [];
+      for (let i = words.length - 1; i >= 0; i--) {
+        if (/^\p{Lu}/u.test(words[i]) || (name.length && PARTICLES.has(words[i].toLowerCase()))) name.unshift(words[i]);
+        else break;
+      }
+      while (name.length && !/^\p{Lu}/u.test(name[0])) name.shift();
+      found.push({name: name.join(" "), url: m[1]});
+    }
+    // Le « + lien » disparaît ; un espace est gardé s'il était entre deux mots.
+    const cleaned = text.replace(INLINE_LINK, (all, url, at, str) => /[\p{L}\p{N}]/u.test(str[at + all.length] || "") ? " " : "");
+    return {found, text: cleaned};
+  }
+
+  /** Le lien semble-t-il être celui d'une autre page ? (« Le Crayon » avec …/company/le-surligneur) */
+  const plain = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const STOP = new Set(["les", "des", "the", "and", "media", "medias"]);
+  function linkLooksWrong(name, url) {
+    let slug = "";
+    try { slug = plain(decodeURI(url).split("/")[4] || "").replace(/[^a-z0-9]/g, ""); } catch (_) { return false; }
+    const words = plain(name).split(/[^a-z0-9]+/).filter(w => w.length > 2 && !STOP.has(w));
+    return Boolean(slug && words.length && !words.some(w => slug.includes(w)));
+  }
+
   /** La première fois que chaque nom apparaît, il devient une identification ; un @ tapé devant est repris. */
   function withMentions(body, mentions) {
     const done = [];
     for (const m of [...mentions].sort((a, b) => b.name.length - a.name.length)) {
       if (!LINKEDIN_URL.test(m.url) || /[[\]()]/.test(m.name)) continue;
+      // Le nom entier, hors hashtag (#Bpifrance reste un hashtag) et hors identification déjà posée.
+      const free = i => !done.some(([a, b]) => i >= a && i < b)
+        && !/[\p{L}\p{N}#_]/u.test(body[i - 1] || "") && !/[\p{L}\p{N}_]/u.test(body[i + m.name.length] || "");
       let i = body.indexOf(m.name);
-      // Pas à l'intérieur d'une identification déjà posée (« Crayon » dans « Le Crayon »).
-      while (i >= 0 && done.some(([a, b]) => i >= a && i < b)) i = body.indexOf(m.name, i + 1);
+      while (i >= 0 && !free(i)) i = body.indexOf(m.name, i + 1);
       if (i < 0) continue;
       const start = body[i - 1] === "@" ? i - 1 : i;
       const mark = `@[${m.name}](${m.url})`;
@@ -143,7 +180,9 @@
    */
   function compose(post, net, hasVideo) {
     const body = String(post.text || "").trim();
-    const tagLine = parseTags(post.hashtags).join(" ");
+    // Hashtags écrits dans le texte : gardés à leur place ; ceux du champ Hashtags s'ajoutent à la fin, sans doublon.
+    const inText = new Set((body.match(TAG) || []).map(t => t.trim().toLowerCase()));
+    const tagLine = parseTags(post.hashtags).filter(t => !inText.has(t.toLowerCase())).join(" ");
     // Ailleurs, le nom reste en texte simple, sans le @ : sur Instagram ou X, il viserait un autre compte.
     const shown = net === "linkedin" ? withMentions(body, mentionsOf(post))
       : mentionsOf(post).reduce((t, m) => t.split("@" + m.name).join(m.name), body);
@@ -173,6 +212,10 @@
     const add = (net, level, msg, code) => issues.push({net, level, msg, code});
     const {video, images, document, all} = split(post.media);
     const rawTitle = String(post.title || "").trim() || firstLineOf(post.text);
+
+    // « Nom + lien LinkedIn » laissé dans le texte : il apparaîtrait tel quel sur chaque réseau.
+    const inline = inlineMentions(post.text).found.length;
+    if (inline) add("texte", "error", `Ton texte contient ${inline} lien${inline > 1 ? "s" : ""} LinkedIn après un « + » : ils apparaîtraient tels quels. Clique sur « Transformer en identifications », sous le texte.`);
 
     // Hashtags saisis à part : un caractère interdit couperait le hashtag sur tous les réseaux
     for (const tag of parseTags(post.hashtags)) {
@@ -275,6 +318,8 @@
           if (!String(m.url || "").trim()) add(net, "error", `${who} n'a pas de lien : colle le lien de son profil ou de sa page LinkedIn.`);
           else if (!LINKEDIN_URL.test(url))
             add(net, "error", `${who} : le lien doit être celui d'un profil (linkedin.com/in/…) ou d'une page (linkedin.com/company/…).`);
+          else if (name && linkLooksWrong(name, url))
+            add(net, "warn", `${who} : le lien (${decodeURI(url).split("/")[4]}) semble être celui d'une autre page. Vérifie qu'il n'est pas inversé avec un autre.`);
         }
       }
 
@@ -317,8 +362,9 @@
     return issues;
   }
 
-  const VERSION = 10;
-  const api = {VERSION, RULES, check, compose, parseTags, mimeOf, tiktokMode};
+  const VERSION = 13;
+  const api = {VERSION, RULES, check, compose, parseTags, mimeOf, tiktokMode, inlineMentions, linkLooksWrong,
+               linkedinUrl: cleanLinkedin};
   root.CadenceRules = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);
