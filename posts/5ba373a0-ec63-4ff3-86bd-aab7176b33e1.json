@@ -39,25 +39,59 @@
     {
       "path": "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov",
       "ref": "media",
-      "parts": [
-        "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part001",
-        "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part002",
-        "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part003",
-        "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part004",
-        "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part005",
-        "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part006",
-        "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part007",
-        "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part008",
-        "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part009",
-        "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part010"
-      ],
       "type": "video",
       "mime": "video/quicktime",
       "size": 293207793,
       "width": 2160,
       "height": 3840,
-      "duration": 61.8
+      "duration": 61.8,
+      "asset": {
+        "id": 684773709,
+        "url": "https://github.com/AliceRenier/cadence/releases/download/visuels/5ba373a0-ec63-4ff3-86bd-aab7176b33e1-mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov"
+      }
     }
   ],
-  "updatedAt": "2026-10-28T11:08:45.382Z"
+  "updatedAt": "2026-10-28T11:08:45.382Z",
+  "mentionCheck": {
+    "key": "[[\"Le Crayon\",\"https://www.linkedin.com/company/le-crayon-media/\"],[\"Le Surligneur\",\"https://www.linkedin.com/company/le-surligneur/\"],[\"Les Pépites de France\",\"https://www.linkedin.com/company/lespepitesdefrance/\"],[\"Les Financiers\",\"https://www.linkedin.com/company/les-financiers-media/\"],[\"Sixtine Moullé-Berteaux\",\"https://www.linkedin.com/in/sixtine-moull%C3%A9-berteaux/\"],[\"Bpifrance\",\"https://www.linkedin.com/company/bpifrance/\"]]",
+    "at": "2026-10-28T11:28:15.178Z",
+    "items": [
+      {
+        "url": "https://www.linkedin.com/company/le-crayon-media/",
+        "ok": true,
+        "type": "organization",
+        "shown": "Le Crayon"
+      },
+      {
+        "url": "https://www.linkedin.com/company/le-surligneur/",
+        "ok": true,
+        "type": "organization",
+        "shown": "Le Surligneur"
+      },
+      {
+        "url": "https://www.linkedin.com/company/lespepitesdefrance/",
+        "ok": true,
+        "type": "organization",
+        "shown": "Les Pépites de France"
+      },
+      {
+        "url": "https://www.linkedin.com/company/les-financiers-media/",
+        "ok": true,
+        "type": "organization",
+        "shown": "Les Financiers"
+      },
+      {
+        "url": "https://www.linkedin.com/in/sixtine-moull%C3%A9-berteaux/",
+        "ok": true,
+        "type": "person",
+        "shown": "Sixtine Moullé-Berteaux"
+      },
+      {
+        "url": "https://www.linkedin.com/company/bpifrance/",
+        "ok": true,
+        "type": "organization",
+        "shown": "Bpifrance"
+      }
+    ]
+  }
 }
