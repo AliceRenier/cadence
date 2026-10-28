@@ -19,24 +19,16 @@
     {
       "path": "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov",
       "ref": "media",
-      "parts": [
-        "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part001",
-        "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part002",
-        "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part003",
-        "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part004",
-        "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part005",
-        "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part006",
-        "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part007",
-        "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part008",
-        "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part009",
-        "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part010"
-      ],
       "type": "video",
       "mime": "video/quicktime",
       "size": 293207793,
       "width": 2160,
       "height": 3840,
-      "duration": 61.8
+      "duration": 61.8,
+      "asset": {
+        "id": 684774817,
+        "url": "https://github.com/AliceRenier/cadence/releases/download/visuels/ae9db6bb-f773-4545-9201-4c203d5bbf7d-mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov"
+      }
     }
   ],
   "updatedAt": "2026-10-28T11:08:31.028Z"
