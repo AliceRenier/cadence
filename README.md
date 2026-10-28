@@ -94,7 +94,28 @@ Ils se rangent dans **Settings → Secrets and variables → Actions → New rep
 
 Les secrets ne s'affichent jamais, même dans un dépôt public. Lance ensuite **Vérifier les accès** : chaque réseau doit afficher ✅.
 
-### 6. Premier essai
+### 6. Un réveil fiable pour le robot (cron-job.org)
+
+GitHub lance les tâches planifiées quand il a de la place : parfois toutes les 15 minutes, parfois pas pendant plusieurs heures. Pour que tes posts partent à l'heure sans rien faire, un service gratuit réveille le robot toutes les 5 minutes.
+
+1. **Un jeton qui sert seulement à réveiller le robot** : [Jetons à grain fin](https://github.com/settings/personal-access-tokens/new)
+   - *Token name* : `Cadence réveil` ; *Expiration* : le plus long proposé, et note la date dans ton agenda.
+   - *Repository access* : **Only select repositories** → `cadence`
+   - *Permissions* : **Actions → Read and write**, et rien d'autre.
+   - **Generate token**, puis copie-le. Ne le colle nulle part ailleurs qu'à l'étape suivante.
+2. Sur [cron-job.org](https://cron-job.org), crée un compte gratuit, puis **Create cronjob** :
+   - *Title* : `Cadence`
+   - *URL* : `https://api.github.com/repos/AliceRenier/cadence/actions/workflows/publier.yml/dispatches`
+   - *Execution schedule* : **Every 5 minutes**
+   - Onglet **Advanced** :
+     - *Request method* : **POST**
+     - *Headers* : `Accept` = `application/vnd.github+json`, `Authorization` = `Bearer ` suivi du jeton, `X-GitHub-Api-Version` = `2022-11-28`
+     - *Request body* : `{"ref":"main"}`
+   - **Test run** : la réponse doit être **204**. Puis **Create**.
+
+Le robot passe alors toutes les 5 minutes : un post prévu à 14 h 00 part avant 14 h 06. La tâche planifiée de GitHub reste en place, en secours. Le jeton ne peut que lancer les tâches du dépôt : il ne lit ni ne modifie tes posts.
+
+### 7. Premier essai
 
 Programme un post de test dans Cadence pour dans quelques minutes, puis va dans **Actions → Publier les posts → Run workflow**. Le résumé de l'exécution liste ce qui est parti.
 
@@ -121,7 +142,7 @@ Programme un post de test dans Cadence pour dans quelques minutes, puis va dans 
 - **Grosses vidéos (4K)** : jusqu'à 2 Go par fichier. Au-delà de 45 Mo, Cadence envoie la vidéo en morceaux de 30 Mo, sans la compresser. Garde la page ouverte pendant l'envoi. Au passage suivant, le robot recolle les morceaux, tels quels, dans la release GitHub « visuels ». Le post part dès que sa vidéo est recollée.
 - **Instagram et les vidéos 4K ou de plus de 300 Mo** : Instagram n'accepte ni plus de 300 Mo ni plus de 1920 px de large par ce moyen, et réduit de toute façon chaque vidéo en 1080p. Le robot lui envoie donc une copie 1080p de haute qualité, avec les couleurs d'une vidéo HDR d'iPhone converties pour ne pas paraître délavées. YouTube, TikTok, Facebook (1 Go au plus) et LinkedIn reçoivent l'originale.
 - **Place prise** : les vidéos publiées sont supprimées, de la release comme de la branche `media`, et cette branche est réduite à un seul commit. GitHub efface ensuite ces fichiers de son côté, en général sous quelques jours.
-- **Ponctualité** : le robot passe toutes les 15 minutes (à 7, 22, 37 et 52), et GitHub le lance parfois avec un peu de retard, ou saute un passage quand il est chargé. Un post prévu à 9 h 00 part donc vers 9 h 10, parfois un peu plus tard. Pour qu'il parte tout de suite, utilise « Publier maintenant ».
+- **Ponctualité** : avec le réveil de cron-job.org (étape 6), le robot passe toutes les 5 minutes : un post prévu à 9 h 00 part avant 9 h 06. Sans lui, GitHub lance le robot quand il a de la place, parfois avec des heures de retard. Enregistrer un post programmé réveille aussi le robot : il prépare la vidéo et vérifie les identifications tout de suite, sans rien publier avant l'heure.
 - **Plus de 48 h de retard** : un post en retard de plus de 48 h n'est pas publié. Il passe en échec pour que tu décides.
 - **60 jours sans activité** : sur un dépôt public, GitHub suspend les tâches planifiées si le dépôt ne bouge pas pendant 60 jours, et prévient par e-mail. Publier régulièrement suffit à l'éviter.
 

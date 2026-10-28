@@ -2127,8 +2127,13 @@ async function saveSheet(){
     await Store.put(e.id, body);
     const isNew = e.isNew;
     closeSheet();
+    // Un post programmé réveille le robot tout de suite : il recolle les grosses vidéos et fait vérifier
+    // les identifications LinkedIn bien avant l'heure. Il ne publie rien avant l'heure prévue.
+    const wake = Store.mode === "github" && body.status === "scheduled";
+    if (wake) GH.dispatch("publier.yml").catch(() => {});
     toast(Store.mode !== "github" ? "Enregistré dans l’aperçu seulement : connecte Cadence à GitHub pour qu’il soit publié."
-      : isNew ? (body.status === "scheduled" ? "Post programmé." : "Post enregistré.") : "Modifications enregistrées.");
+      : (isNew ? (body.status === "scheduled" ? "Post programmé." : "Post enregistré.") : "Modifications enregistrées.")
+        + (wake && (media.some(m => m.parts) || body.mentions.length) ? " Le robot prépare la vidéo et vérifie les identifications : rouvre le post dans 10 minutes." : ""));
     render();
   }catch(err){
     toast(`GitHub a refusé l’enregistrement : ${err.message}`);
