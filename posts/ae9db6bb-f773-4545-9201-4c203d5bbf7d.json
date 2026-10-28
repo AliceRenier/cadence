@@ -1,0 +1,43 @@
+{
+  "id": "ae9db6bb-f773-4545-9201-4c203d5bbf7d",
+  "title": "",
+  "text": "Entrepreneuse depuis ses 17 ans, elle a confondé 4 médias : Le Crayon, Le Surligneur, Les Pépites de France et plus récemment Les Financiers. \n\nSixtine Moullé-Berteaux a bâti un empire média avant ses 25 ans. On l’a croisée à BIG by Bpifrance pour un vrai-faux sur l’entrepreneuriat. Elle a tranché.",
+  "hashtags": "#RISKTAKEUR #entrepreneuriat #Bpifrance #interview #entrepreneuse",
+  "platforms": [
+    "instagram",
+    "tiktok",
+    "facebook"
+  ],
+  "at": "2026-10-28T14:00",
+  "mentions": [],
+  "tiktok": {
+    "mode": "none"
+  },
+  "timezone": "Europe/Paris",
+  "status": "scheduled",
+  "media": [
+    {
+      "path": "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov",
+      "ref": "media",
+      "type": "video",
+      "parts": [
+        "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part001",
+        "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part002",
+        "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part003",
+        "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part004",
+        "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part005",
+        "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part006",
+        "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part007",
+        "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part008",
+        "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part009",
+        "media/ae9db6bb-f773-4545-9201-4c203d5bbf7d/mvrzxzxy-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part010"
+      ],
+      "mime": "video/quicktime",
+      "size": 293207793,
+      "width": 2160,
+      "height": 3840,
+      "duration": 61.8
+    }
+  ],
+  "updatedAt": "2026-10-28T10:55:17.809Z"
+}
