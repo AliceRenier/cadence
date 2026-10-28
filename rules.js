@@ -94,6 +94,41 @@
   }
 
   /**
+   * Identifications LinkedIn : [{name, url}], le nom tel qu'il est écrit dans le texte et le lien
+   * du profil ou de la page. Zernio transforme @[Nom](lien) en vraie identification LinkedIn ;
+   * 10 au plus par post. Le nom doit être celui de LinkedIn (prénom, nom, nom complet, ou nom exact
+   * de la page, majuscules comprises), sinon LinkedIn affiche son nom officiel.
+   */
+  const LINKEDIN_URL = /^https?:\/\/([a-z]{2,3}\.)?linkedin\.com\/(in|company|school|showcase)\/[^/?#\s]+\/?$/i;
+  const MENTIONS_MAX = 10;
+  const cleanLinkedin = url => {
+    const u = String(url || "").trim().split(/[?#]/)[0];
+    return /^https?:\/\//i.test(u) ? u : "https://" + u.replace(/^\/+/, "");
+  };
+  const mentionsOf = post => (post.mentions || [])
+    .map(m => ({name: String(m.name || "").trim(), url: cleanLinkedin(m.url)}))
+    .filter(m => m.name && m.url !== "https://");
+
+  /** La première fois que chaque nom apparaît, il devient une identification ; un @ tapé devant est repris. */
+  function withMentions(body, mentions) {
+    const done = [];
+    for (const m of [...mentions].sort((a, b) => b.name.length - a.name.length)) {
+      if (!LINKEDIN_URL.test(m.url) || /[[\]()]/.test(m.name)) continue;
+      let i = body.indexOf(m.name);
+      // Pas à l'intérieur d'une identification déjà posée (« Crayon » dans « Le Crayon »).
+      while (i >= 0 && done.some(([a, b]) => i >= a && i < b)) i = body.indexOf(m.name, i + 1);
+      if (i < 0) continue;
+      const start = body[i - 1] === "@" ? i - 1 : i;
+      const mark = `@[${m.name}](${m.url})`;
+      body = body.slice(0, start) + mark + body.slice(i + m.name.length);
+      const shift = mark.length - (i + m.name.length - start);
+      for (const d of done) if (d[0] > start) { d[0] += shift; d[1] += shift; }
+      done.push([start, start + mark.length]);
+    }
+    return body;
+  }
+
+  /**
    * Ce que reçoit chaque réseau à partir du titre, du texte et des hashtags.
    *   text  : le texte publié, hashtags à la fin
    *   title : YouTube (sans hashtags, 100 caractères), carrousel TikTok (90),
@@ -104,7 +139,10 @@
   function compose(post, net, hasVideo) {
     const body = String(post.text || "").trim();
     const tagLine = parseTags(post.hashtags).join(" ");
-    const text = [body, tagLine].filter(Boolean).join("\n\n");
+    // Ailleurs, le nom reste en texte simple, sans le @ : sur Instagram ou X, il viserait un autre compte.
+    const shown = net === "linkedin" ? withMentions(body, mentionsOf(post))
+      : mentionsOf(post).reduce((t, m) => t.split("@" + m.name).join(m.name), body);
+    const text = [shown, tagLine].filter(Boolean).join("\n\n");
     const rawTitle = String(post.title || "").trim() || firstLineOf(body);
     if (net === "youtube") return {
       title: stripTags(rawTitle).replace(/[<>]/g, "").slice(0, 100) || "Nouvelle vidéo",
@@ -218,6 +256,23 @@
         if (!video && images.length) add(net, "info", "Publiera le PDF en carrousel, pas les images.");
       }
 
+      // LinkedIn : les identifications
+      if (net === "linkedin") {
+        const list = (post.mentions || []).filter(m => String(m.name || "").trim() || String(m.url || "").trim());
+        if (list.length > MENTIONS_MAX) add(net, "error", `${list.length} identifications : LinkedIn en accepte ${MENTIONS_MAX} au plus par post.`);
+        for (const m of list) {
+          const name = String(m.name || "").trim(), url = cleanLinkedin(m.url);
+          const who = name ? `« ${name} »` : "Une identification";
+          if (!name) add(net, "error", `${who} n'a pas de nom : écris le nom tel qu'il apparaît dans le texte.`);
+          else if (/[[\]()]/.test(name)) add(net, "error", `${who} : le nom ne doit contenir ni crochets ni parenthèses.`);
+          else if (!String(post.text || "").includes(name))
+            add(net, "warn", `${who} n'apparaît pas dans le texte, majuscules comprises : écris-le tel quel pour qu'il soit identifié.`);
+          if (!String(m.url || "").trim()) add(net, "error", `${who} n'a pas de lien : colle le lien de son profil ou de sa page LinkedIn.`);
+          else if (!LINKEDIN_URL.test(url))
+            add(net, "error", `${who} : le lien doit être celui d'un profil (linkedin.com/in/…) ou d'une page (linkedin.com/company/…).`);
+        }
+      }
+
       // TikTok : la musique choisie
       if (net === "tiktok" && (video || images.length)) {
         const mode = tiktokMode(post, Boolean(video));
@@ -257,7 +312,7 @@
     return issues;
   }
 
-  const VERSION = 7;
+  const VERSION = 8;
   const api = {VERSION, RULES, check, compose, parseTags, mimeOf, tiktokMode};
   root.CadenceRules = api;
   if (typeof module === "object" && module.exports) module.exports = api;

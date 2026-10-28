@@ -563,6 +563,11 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
 /* ---------- titre et hashtags ---------- */
 .opt{font-weight:400;text-transform:none;letter-spacing:0;color:var(--fg-3)}
 
+/* ---------- identifications LinkedIn ---------- */
+.mention-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) auto;gap:6px;align-items:center}
+.pv .mention{font-weight:640}
+@media (max-width:520px){ .mention-row{grid-template-columns:minmax(0,1fr) auto} .mention-row [data-mf="url"]{grid-column:1} }
+
 /* ---------- ton profil ---------- */
 .profile{border:0;padding:0;background:none;max-width:calc(100% - 32px)}
 .profile::backdrop{background:rgba(16,16,16,.38);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
@@ -746,12 +751,12 @@ img.av{object-fit:cover;padding:0}
   </form>
 </div>
 
-<script src="rules.js?v=7"></script>
+<script src="rules.js?v=8"></script>
 <script>
 "use strict";
 
 /* La page et rules.js doivent aller ensemble (voir l'en-tête de rules.js). */
-const RULES_VERSION = 7;
+const RULES_VERSION = 8;
 const rulesOk = window.CadenceRules?.VERSION === RULES_VERSION;
 
 /* ===================== modèle ===================== */
@@ -1390,7 +1395,7 @@ function openPost(id){
                    day:dayOf(p.at)||todayKey(), time:timeOf(p.at)||"09:00",
                    status:p.status||"draft", example:!!p.example, title:p.title||"", hashtags:p.hashtags||"",
                    visuals:visualsFrom(p.media), pdf:pdfFrom(p.media), toDelete:[],
-                   tiktok:{...(p.tiktok || {})}};
+                   tiktok:{...(p.tiktok || {})}, mentions:(p.mentions || []).map(m => ({...m}))};
   state.previewOn = state.editing.platforms[0] || "instagram";
   state.slide = 0;
   state.confirmDel = false;
@@ -1400,7 +1405,7 @@ function openPost(id){
 function openNew(day){
   state.editing = {id:uid(), isNew:true, text:"", platforms:["instagram"],
                    day:day||todayKey(), time:"09:00", status:"scheduled", example:false, title:"", hashtags:"",
-                   visuals:[], pdf:null, toDelete:[], tiktok:{}};
+                   visuals:[], pdf:null, toDelete:[], tiktok:{}, mentions:[]};
   state.previewOn = "instagram";
   state.slide = 0;
   state.confirmDel = false;
@@ -1485,7 +1490,7 @@ function postIssues(e){
     ...(e.pdf ? [{type: "document", path: e.pdf.path || e.pdf.name, ...e.pdf.meta}] : []),
   ];
   const issues = CadenceRules.check({title: e.title, text: e.text, hashtags: e.hashtags,
-    platforms: e.platforms, media, tiktok: e.tiktok});
+    platforms: e.platforms, media, tiktok: e.tiktok, mentions: e.mentions});
   // Sans GitHub, on ne peut pas joindre de visuel : son absence n'est alors qu'un avertissement.
   return Store.mode === "github" ? issues
     : issues.map(i => i.code === "needs" ? {...i, level: "warn"} : i);
@@ -1637,6 +1642,22 @@ function titleFieldHTML(e){
     </div>`;
 }
 
+/** Personnes et pages à identifier sur LinkedIn : le nom tel qu'il est écrit dans le texte, et son lien. */
+function mentionsFieldHTML(e){
+  if (!e.platforms.includes("linkedin")) return "";
+  const rows = e.mentions.map((m, i) => `<div class="mention-row">
+      <input class="inp" data-mf="name" data-mi="${i}" value="${esc(m.name || "")}" placeholder="Nom, comme dans le texte" aria-label="Nom à identifier n° ${i + 1}" autocomplete="off">
+      <input class="inp" data-mf="url" data-mi="${i}" value="${esc(m.url || "")}" placeholder="Lien du profil ou de la page" aria-label="Lien LinkedIn n° ${i + 1}" spellcheck="false" autocapitalize="off" autocomplete="off">
+      <button type="button" class="btn btn-ghost" data-mdel="${i}" aria-label="Retirer l'identification n° ${i + 1}">✕</button>
+    </div>`).join("");
+  return `<div class="field">
+      <span class="lbl">Identifier sur LinkedIn</span>
+      ${rows}
+      ${e.mentions.length < 10 ? `<button type="button" class="btn media-pick" data-madd>Ajouter une personne ou une page</button>` : ""}
+      <p class="hint">Écris le nom dans ton texte exactement comme sur LinkedIn, majuscules comprises, puis colle ici le lien de son profil (linkedin.com/in/…) ou de sa page (linkedin.com/company/…). Sur LinkedIn, ce nom devient une identification et la personne est prévenue ; ailleurs, il reste en texte simple. 10 au plus.</p>
+    </div>`;
+}
+
 /** Rappelle ce que fait l'état choisi, pour qu'un post ne reste jamais bloqué par erreur. */
 function statusHint(e, saved){
   if (e.status === "draft") return `<p class="hint">Un brouillon ne part pas : choisis « Programmé » quand il est prêt.</p>`;
@@ -1712,6 +1733,8 @@ function renderSheetUnsafe(){
           <p class="hint">Ajoutés à la fin du texte sur chaque réseau. Sépare-les par des espaces ; le # est facultatif.</p>
         </div>
 
+        ${mentionsFieldHTML(e)}
+
         <div class="field">
           <span class="lbl">Réseaux</span>
           <div class="plats">${PKEYS.map(k =>
@@ -1772,12 +1795,13 @@ function renderSheetUnsafe(){
 }
 
 const cardTextHTML = text => esc(text || "Ton texte apparaîtra ici.")
-  .replace(/(^|\s)(#[\p{L}\p{N}_]+)/gu, "$1<span class=\"tag\">$2</span>");
+  .replace(/(^|\s)(#[\p{L}\p{N}_]+)/gu, "$1<span class=\"tag\">$2</span>")
+  .replace(/@\[([^\]]+)\]\([^)]+\)/g, "<span class=\"tag mention\">$1</span>");
 
 /** Le titre et le texte exactement tels que le réseau k les recevra (voir compose dans rules.js). */
 function composedFor(e, k){
   const hasVideo = e.visuals?.some(v => v.type === "video");
-  return CadenceRules.compose({title: e.title, text: e.text, hashtags: e.hashtags}, k, hasVideo);
+  return CadenceRules.compose({title: e.title, text: e.text, hashtags: e.hashtags, mentions: e.mentions}, k, hasVideo);
 }
 
 /* ---------- aperçus : un rendu par réseau et par format ---------- */
@@ -2022,6 +2046,7 @@ async function saveSheet(){
     for (const m of e.toDelete) await GH.removeMedia(m, "Cadence : visuel retiré").catch(() => {});
     const body = {...prev, title:e.title.trim(), text:e.text.trim(),
                   hashtags:CadenceRules.parseTags(e.hashtags).join(" "), platforms:e.platforms, at:joinAt(e.day, e.time),
+                  mentions: e.mentions.map(m => ({name: (m.name || "").trim(), url: (m.url || "").trim()})).filter(m => m.name || m.url),
                   tiktok: e.platforms.includes("tiktok") ? tiktokFor(e) : prev.tiktok,
                   timezone: prev.timezone || TZ, status:e.status, media, updatedAt:new Date().toISOString()};
     if (e.status !== "failed") delete body.error;
@@ -2212,6 +2237,19 @@ document.addEventListener("click", ev => {
     }
     return;
   }
+  if (t.closest("[data-madd]") && state.editing){
+    const e = state.editing;
+    e.mentions.push({name: "", url: ""});
+    e.focusText = false; renderSheet();
+    document.querySelector(`[data-mf="name"][data-mi="${e.mentions.length - 1}"]`)?.focus();
+    return;
+  }
+  const mdel = t.closest("[data-mdel]");
+  if (mdel && state.editing){
+    state.editing.mentions.splice(Number(mdel.dataset.mdel), 1);
+    state.editing.focusText = false; renderSheet();
+    return;
+  }
   const del = t.closest("[data-vdel]");
   if (del && state.editing){
     dropVisuals(state.editing, (v, idx) => idx === Number(del.dataset.vdel));
@@ -2243,6 +2281,12 @@ document.addEventListener("input", ev => {
   const e = state.editing;
   if (!e) return;
   const id = ev.target.id;
+  if (ev.target.dataset.mf){
+    e.mentions[Number(ev.target.dataset.mi)][ev.target.dataset.mf] = ev.target.value;
+    document.getElementById("checks").innerHTML = checksHTML(e);
+    refreshLive(composedFor(e, state.previewOn));
+    return;
+  }
   if (id === "f-text" || id === "f-title" || id === "f-tags"){
     if (id === "f-text") e.text = ev.target.value;
     if (id === "f-title") e.title = ev.target.value;
