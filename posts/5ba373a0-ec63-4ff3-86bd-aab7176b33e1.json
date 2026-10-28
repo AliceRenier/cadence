@@ -1,0 +1,63 @@
+{
+  "id": "5ba373a0-ec63-4ff3-86bd-aab7176b33e1",
+  "title": "",
+  "text": "Entrepreneuse depuis ses 17 ans, elle a confondé 4 médias : Le Crayon, Le Surligneur, Les Pépites de France et plus récemment Les Financiers\n\nSixtine Moullé-Berteaux a bâti un empire média avant ses 25 ans. On l’a croisée à BIG by Bpifrance pour un vrai-faux sur l’entrepreneuriat. Elle a tranché.",
+  "hashtags": "#RISKTAKEUR #entrepreneuriat #Bpifrance #interview #entrepreneuse",
+  "platforms": [
+    "linkedin"
+  ],
+  "at": "2026-10-28T14:00",
+  "mentions": [
+    {
+      "name": "Le Crayon",
+      "url": "https://www.linkedin.com/company/le-crayon-media/home/"
+    },
+    {
+      "name": "Le Surligneur",
+      "url": "https://www.linkedin.com/company/le-surligneur/home/"
+    },
+    {
+      "name": "Les Pépites de France",
+      "url": "https://www.linkedin.com/company/lespepitesdefrance/home/"
+    },
+    {
+      "name": "Les Financiers",
+      "url": "https://www.linkedin.com/company/les-financiers-media/home/"
+    },
+    {
+      "name": "Sixtine Moullé-Berteaux",
+      "url": "https://www.linkedin.com/in/sixtine-moullé-berteaux/"
+    },
+    {
+      "name": "Bpifrance",
+      "url": "https://www.linkedin.com/company/bpifrance/home/"
+    }
+  ],
+  "timezone": "Europe/Paris",
+  "status": "scheduled",
+  "media": [
+    {
+      "path": "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov",
+      "ref": "media",
+      "type": "video",
+      "parts": [
+        "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part001",
+        "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part002",
+        "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part003",
+        "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part004",
+        "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part005",
+        "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part006",
+        "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part007",
+        "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part008",
+        "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part009",
+        "media/5ba373a0-ec63-4ff3-86bd-aab7176b33e1/mvrzqckv-Itw-Sixtine-Le-Crayon-x-RISKTAKEUR.mov.part010"
+      ],
+      "mime": "video/quicktime",
+      "size": 293207793,
+      "width": 2160,
+      "height": 3840,
+      "duration": 61.8
+    }
+  ],
+  "updatedAt": "2026-10-28T10:50:04.819Z"
+}
