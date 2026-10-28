@@ -374,7 +374,8 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
 :root[data-theme="dark"] .pv{--tag:#86ACE6}
 @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .pv{--tag:#86ACE6} }
 .pv .tag{color:var(--tag)}
-.pv .more{color:var(--fg-3)}
+.pv .more{color:var(--fg-3);font:inherit;padding:0;background:none;border:0;cursor:pointer}
+.pv .more:hover{color:var(--fg-2);text-decoration:underline}
 .pv p{margin:0}
 .pv [data-live]{white-space:pre-wrap;word-break:break-word}
 .ico{width:20px;height:20px;flex:none}
@@ -422,6 +423,7 @@ textarea:focus,.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0
   box-shadow:var(--shadow-card);--tag:#fff;font-size:12.5px}
 .pv-phone .tag{font-weight:650}
 .pv-phone .more{color:rgba(255,255,255,.75);font-weight:600}
+.pv-bottom{max-height:72%;overflow-y:auto;scrollbar-width:none}
 .pv-screen{position:absolute;inset:0;display:grid;place-items:center}
 .pv-screen img,.pv-screen video{width:100%;height:100%;object-fit:contain;display:block}
 .pv-screen .pv-ph{background:#161616;color:rgba(255,255,255,.55)}
@@ -1895,12 +1897,14 @@ function clipHTML(text, clip, more){
   text = text.replace(/@\[([^\]]+)\]\([^)]+\)/g, "\uE000$1\uE001");
   const html = t => cardTextHTML(t).replace(/\uE000([^\uE001]*)\uE001/g, '<span class="tag mention">$1</span>');
   if (!clip) return html(text);
+  // « … plus » déplie le texte entier, comme sur le réseau, pour tout relire avant de publier.
+  if (state.previewFull) return `${html(text)}<button type="button" class="more" data-more> moins</button>`;
   const [chars, lines] = clip.split(",").map(Number);
   let cut = text.split("\n").slice(0, lines).join("\n");
   if (cut.length > chars) cut = cut.slice(0, chars).replace(/\s+\S*$/, "");
   if ((cut.match(/\uE000/g) || []).length > (cut.match(/\uE001/g) || []).length) cut += "\uE001";
   return cut.trimEnd().length < text.trimEnd().length
-    ? `${html(cut.trimEnd())}<span class="more"> … ${esc(more)}</span>` : html(text);
+    ? `${html(cut.trimEnd())}<button type="button" class="more" data-more> … ${esc(more)}</button>` : html(text);
 }
 /** Un texte de l'aperçu que la saisie met à jour en direct (voir refreshLive). */
 const liveHTML = (c, kind, clip = "", more = "plus") => kind === "title"
@@ -2307,6 +2311,11 @@ document.addEventListener("click", ev => {
     return;
   }
   if (t.closest("[data-inline]") && state.editing){ convertInlineLinks(state.editing); return; }
+  if (t.closest("[data-more]") && state.editing){
+    state.previewFull = !state.previewFull;
+    document.getElementById("prevCard").innerHTML = previewHTML(state.previewOn, state.editing);
+    return;
+  }
   if (t.closest("[data-madd]") && state.editing){
     const e = state.editing;
     e.mentions.push({name: "", url: ""});
