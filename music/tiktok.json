@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-20T14:18:17.193Z",
+  "updatedAt": "2026-11-21T13:40:45.239Z",
   "countryCode": "FR",
   "tracks": [
     {
@@ -39,40 +39,22 @@
       "rank": 4
     },
     {
-      "id": "6742509535417600001",
-      "name": "Tid Lee Red",
-      "artist": "The Baker's Basement",
-      "durationSec": 60,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/c4aaddf78cb2e4907e97a224adc88318.mp4",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ocZzGtAOEIefltADb2QaQGNCoE0ZgAAeAFOLBz.jpeg",
-      "rank": 5
-    },
-    {
       "id": "7433410378229336081",
       "name": "Towards the Unknown",
       "artist": "Mirellavieira",
       "durationSec": 55,
       "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/okxe6FnDEMIIgSKjMofcPBoCZsrynDQrBQ9yB4",
       "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/o0iAEQ2fM96EPatZszznNAif5AWBYDgBCU3lMB.jpeg",
+      "rank": 5
+    },
+    {
+      "id": "6742509535417600001",
+      "name": "Tid Lee Red",
+      "artist": "The Baker's Basement",
+      "durationSec": 60,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/c4aaddf78cb2e4907e97a224adc88318.mp4",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ocZzGtAOEIefltADb2QaQGNCoE0ZgAAeAFOLBz.jpeg",
       "rank": 6
-    },
-    {
-      "id": "7428725356389713921",
-      "name": "This is Monday",
-      "artist": "G@fanhoto",
-      "durationSec": 58,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/ocgGeBozIM0QMiLAONAEsIEeCRczCBGMYIDVuf",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/okSAqEx5vAZAAAiIi8DEvYxgYWrZBUiymobvA.jpeg",
-      "rank": 7
-    },
-    {
-      "id": "7376340295489325073",
-      "name": "Drive",
-      "artist": "The Epic Motivation",
-      "durationSec": 115,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oweieEfFAggGSQYMyvX8DCAgvBZFwAQjzHMwG7",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/o48z3vQCZAy6negoa30TBGAIM8FrWDAeeCAMAI.jpeg",
-      "rank": 8
     },
     {
       "id": "6817563038267213825",
@@ -81,7 +63,7 @@
       "durationSec": 104,
       "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2774/d81c2f5ea5cb4b8f993ae46a5f5873e7",
       "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/43faa110cb7545508bcb8448e005da2d.jpeg",
-      "rank": 9
+      "rank": 7
     },
     {
       "id": "7699313447381354548",
@@ -90,43 +72,25 @@
       "durationSec": 112,
       "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/8841c28e176b044e1ab2c7c73eef0f5e.wav",
       "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/f66164c9ba674f49b6a324a9f8808e94.jpeg",
+      "rank": 8
+    },
+    {
+      "id": "7376340295489325073",
+      "name": "Drive",
+      "artist": "The Epic Motivation",
+      "durationSec": 115,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oweieEfFAggGSQYMyvX8DCAgvBZFwAQjzHMwG7",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/o48z3vQCZAy6negoa30TBGAIM8FrWDAeeCAMAI.jpeg",
+      "rank": 9
+    },
+    {
+      "id": "6975160296247658498",
+      "name": "174. Vem atender ao Seu chamado",
+      "artist": "Orquestra Sacra",
+      "durationSec": 212,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/okB8CfaQhFaNRDngQqEDvEfCYDSQgwcMBQE9HZ",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ok8zIauH8Gv5CAlSIOCfIJe6AAW6DUFukeMgAQ.jpeg",
       "rank": 10
-    },
-    {
-      "id": "7627059009263192065",
-      "name": "Badlands",
-      "artist": "Toonorth",
-      "durationSec": 91,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/ocCqEiWuIL9LYGcAgTIGMtegxRfeAVtQDgzn2z",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/o8fAIDFLfEA0DzAAs2aujbEcyr4bGeUCg20Tsc.jpeg",
-      "rank": 11
-    },
-    {
-      "id": "7489131565101844481",
-      "name": "Cut Hack",
-      "artist": "Bruno Boe",
-      "durationSec": 59,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oon8YEeFg3MQ6vzDGFAfIELIiVBe0PuOG2DXCj",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/o06WceADSi72BAoAPz1rsJwA9iEYvAJBEuva4Z.jpeg",
-      "rank": 12
-    },
-    {
-      "id": "6849969177868896257",
-      "name": "Relax and feel at ease ...(12050)",
-      "artist": "鳴海陽香(直江美香)",
-      "durationSec": 88,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/fe03309c042285a30af899db4213c035.mp3",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/43faa110cb7545508bcb8448e005da2d.jpeg",
-      "rank": 13
-    },
-    {
-      "id": "6944851865888638977",
-      "name": "Dancing Shadows",
-      "artist": "Purrple Cat",
-      "durationSec": 60,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/635c8a62b289eee47cfa90ebf9f9fa05.mp4",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ooEnkzAKxtNstBWNV2xBTJACDDQEOeAE2gbeZz.jpeg",
-      "rank": 14
     },
     {
       "id": "7591536296716552193",
@@ -135,7 +99,52 @@
       "durationSec": 26,
       "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oYIaMNAUsj2rBXB0XiN4fPEJlczBZiDwo2UjA2",
       "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oArBYAiUpqBAsIw9dQAyimaAf8oAB0EWjQEMA0.jpeg",
+      "rank": 11
+    },
+    {
+      "id": "7428725356389713921",
+      "name": "This is Monday",
+      "artist": "G@fanhoto",
+      "durationSec": 58,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/ocgGeBozIM0QMiLAONAEsIEeCRczCBGMYIDVuf",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/okSAqEx5vAZAAAiIi8DEvYxgYWrZBUiymobvA.jpeg",
+      "rank": 12
+    },
+    {
+      "id": "6909711627545741314",
+      "name": "忘不了的情意",
+      "artist": "黄凤凤",
+      "durationSec": 183,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/45d544cac9414f749eb2907431fe5a51",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/7cab3404f19e43fb9da8b6b38231216f.jpeg",
+      "rank": 13
+    },
+    {
+      "id": "7489131565101844481",
+      "name": "Cut Hack",
+      "artist": "Bruno Boe",
+      "durationSec": 59,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oon8YEeFg3MQ6vzDGFAfIELIiVBe0PuOG2DXCj",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/o06WceADSi72BAoAPz1rsJwA9iEYvAJBEuva4Z.jpeg",
+      "rank": 14
+    },
+    {
+      "id": "7483709902389790737",
+      "name": "Cheerful happy ragtime-style piano solo(1623343)",
+      "artist": "Noru",
+      "durationSec": 101,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2774/oEgCthAFWv2GOoa3gDJzpZeUaeDL2eIPAQUYcH",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/21ebc5fa64514d34b1af12efb1dcd385.jpeg",
       "rank": 15
+    },
+    {
+      "id": "6974562940284307457",
+      "name": "Energetic EDM with pop melody(1031666)",
+      "artist": "NakaPanda",
+      "durationSec": 113,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2774/oAqwhwP7By5WJPoxsmFAAwZ4PhU2IQf5wRBvtz",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/43faa110cb7545508bcb8448e005da2d.jpeg",
+      "rank": 16
     },
     {
       "id": "7400443583161010177",
@@ -144,15 +153,6 @@
       "durationSec": 31,
       "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/ossMwixPsQlIzBqfzkuWSdAS9AhBBAiCoNjA2Y",
       "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/o4AA0iAsoBzD4VWEgwA7Blh4EfwOc1AiKVEAEA.jpeg",
-      "rank": 16
-    },
-    {
-      "id": "7436195905059391489",
-      "name": "Over & Over",
-      "artist": "The Broken Orchestra",
-      "durationSec": 282,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oofMqaBMqnFrIgEbr8fFhDyDBoIsMMZywzQCQB",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ogyAQAA9iAtAKa5zBYK7ZbriEAArQLoWvUEAW.jpeg",
       "rank": 17
     },
     {
@@ -165,12 +165,12 @@
       "rank": 18
     },
     {
-      "id": "6909711627545741314",
-      "name": "忘不了的情意",
-      "artist": "黄凤凤",
-      "durationSec": 183,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/45d544cac9414f749eb2907431fe5a51",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/7cab3404f19e43fb9da8b6b38231216f.jpeg",
+      "id": "7436195905059391489",
+      "name": "Over & Over",
+      "artist": "The Broken Orchestra",
+      "durationSec": 282,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oofMqaBMqnFrIgEbr8fFhDyDBoIsMMZywzQCQB",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ogyAQAA9iAtAKa5zBYK7ZbriEAArQLoWvUEAW.jpeg",
       "rank": 19
     },
     {
@@ -183,22 +183,31 @@
       "rank": 20
     },
     {
+      "id": "6849969177868896257",
+      "name": "Relax and feel at ease ...(12050)",
+      "artist": "鳴海陽香(直江美香)",
+      "durationSec": 88,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/fe03309c042285a30af899db4213c035.mp3",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/43faa110cb7545508bcb8448e005da2d.jpeg",
+      "rank": 21
+    },
+    {
+      "id": "7216784929278052353",
+      "name": "Happy Upbeat Dance Summer",
+      "artist": "Kornev Music",
+      "durationSec": 143,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/owCgOealWJaenSdIZbsByJDKgQDhBpzo6k1EQC",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/owuAEBCFEEAuCZAgbBttqEEZgfkQDfGBQR4qm1.jpeg",
+      "rank": 22
+    },
+    {
       "id": "7395017880255989776",
       "name": "Golden Days",
       "artist": "Amber Sonus",
       "durationSec": 206,
       "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oQMixBAZI6somEGUEf2FgMDUzjWYMBHtUQiwBA",
       "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oYAji0qggPAABESTnKvrZYAbWiYCziAEgUBc2.jpeg",
-      "rank": 21
-    },
-    {
-      "id": "7598595387776305169",
-      "name": "Sidewalk Symphony",
-      "artist": "DJ Reverb & Ads",
-      "durationSec": 29,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/o8ohs42siYDXg1tCPYRhiO7wUzdOAM2IAaBw3",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/osEzEABAZohcCLDp2FBXff1kGJutyEAgQW6nBs.jpeg",
-      "rank": 22
+      "rank": 23
     },
     {
       "id": "6925827115989125122",
@@ -207,7 +216,7 @@
       "durationSec": 102,
       "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/28920cebaaab3363bdb0c8c868d58d1d.wav",
       "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/43faa110cb7545508bcb8448e005da2d.jpeg",
-      "rank": 23
+      "rank": 24
     },
     {
       "id": "7055324508386756610",
@@ -216,15 +225,6 @@
       "durationSec": 128,
       "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2774/o4amGDoQlgnTAGFeQfTaCR2yQgeaz8EDYDnLb9",
       "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/165a617065fa41a49674c90693a6442c.jpeg",
-      "rank": 24
-    },
-    {
-      "id": "6975160296247658498",
-      "name": "174. Vem atender ao Seu chamado",
-      "artist": "Orquestra Sacra",
-      "durationSec": 212,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/okB8CfaQhFaNRDngQqEDvEfCYDSQgwcMBQE9HZ",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ok8zIauH8Gv5CAlSIOCfIJe6AAW6DUFukeMgAQ.jpeg",
       "rank": 25
     },
     {
@@ -237,616 +237,13 @@
       "rank": 26
     },
     {
-      "id": "6867622442538371073",
-      "name": "Be Courageous",
-      "artist": "Atomica Music",
-      "durationSec": 125,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oMYUP2HMAE3iIIs32CBPg3ZiiDaPLQAIBIzQg",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ogA9NxO4BECzYm5uBMiAoSsZQAfWzAAEiawCWU.jpeg",
-      "rank": 27
-    },
-    {
-      "id": "7369290985144256529",
-      "name": "Refreshing progressive house(1549738)",
-      "artist": "S_R",
-      "durationSec": 110,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2774/okzP4DRXYCQvlLgtxBeEVIsDPQKZgaFFmJBHEf",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/21ebc5fa64514d34b1af12efb1dcd385.jpeg",
-      "rank": 28
-    },
-    {
-      "id": "7658496660813350929",
-      "name": "All Day, All Week (Extended Mix)",
-      "artist": "Soul Heads",
-      "durationSec": 302,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oUPnbIgAdxQJSxhBNYAMciUL7sIv8aZ2cykAi",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/o4hArUc6EiAIVBwELCyitA0EWAacYALBP87k4.jpeg",
-      "rank": 29
-    },
-    {
-      "id": "7347750177925072898",
-      "name": "Electric Echoes (Remix)",
-      "artist": "VerSiX",
-      "durationSec": 153,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oIJyzzQlIiDADOEAhcyB4B9AfMIWoTuvwB0iDs",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/okNAgkaEZC6QXFLzWDJQq9kAALabAweJfveGIc.jpeg",
-      "rank": 30
-    },
-    {
-      "id": "7483709902389790737",
-      "name": "Cheerful happy ragtime-style piano solo(1623343)",
-      "artist": "Noru",
-      "durationSec": 101,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2774/oEgCthAFWv2GOoa3gDJzpZeUaeDL2eIPAQUYcH",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/21ebc5fa64514d34b1af12efb1dcd385.jpeg",
-      "rank": 31
-    },
-    {
-      "id": "7540730590665197585",
-      "name": "Zamba Tuya",
-      "artist": "Daniel Frascoli",
-      "durationSec": 161,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/owBRCM8JIR9LDlGEPAfQTqh8zv5rGDgeGexYdg",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/o4CDe7DSFAe0TDm4AzUCFCBavqREEgAfARBnbE.jpeg",
-      "rank": 32
-    },
-    {
-      "id": "6716010812382644226",
-      "name": "Arc de Triomphe",
-      "artist": "Paris Cafe Society",
-      "durationSec": 60,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/9c76f0454d64c6471c364e7c00334578.mp4",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oMviZAAYBEiAr0C9APWEEuygANqiBAFLQ7rUj.jpeg",
-      "rank": 33
-    },
-    {
-      "id": "7244681450854975489",
-      "name": "New Bossa Vibe, Pt. 5",
-      "artist": "Marcio Nigro",
-      "durationSec": 37,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oYCBgfiUQMkYbBoCQ8nkXQyiQigZDH8gRQND4f",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ogHsZnaCmIQAtABkfBlFHE8EI6DAIHCDRgfhxP.jpeg",
-      "rank": 34
-    },
-    {
-      "id": "6974562940284307457",
-      "name": "Energetic EDM with pop melody(1031666)",
-      "artist": "NakaPanda",
-      "durationSec": 113,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2774/oAqwhwP7By5WJPoxsmFAAwZ4PhU2IQf5wRBvtz",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/43faa110cb7545508bcb8448e005da2d.jpeg",
-      "rank": 35
-    },
-    {
-      "id": "7247323524120709121",
-      "name": "Gator Tears",
-      "artist": "Atomica Music",
-      "durationSec": 158,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/o0vcQQqLKnCiTaJrs6eBBZkg0D7gABfkYYbxnD",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/okmytAVEZQKf5sBAygActEAVECzmgfDNnLwBFB.jpeg",
-      "rank": 36
-    },
-    {
-      "id": "7437145033642395665",
-      "name": "Nosso Destino",
-      "artist": "Batista Herrman",
-      "durationSec": 177,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oQefxYgzvGtBKDG6DVALobrRgeL5ORICtAdHYE",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oEtaeDL67EGl7iAFdfAAeoI6P0E1zCPDgA7BCC.jpeg",
-      "rank": 37
-    },
-    {
-      "id": "7400482214175737857",
-      "name": "Summon Love",
-      "artist": "DJ JoyZ",
-      "durationSec": 30,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/o08ZzsiWcwgK6zQyDDWVyVgIBfC4iBOBLBzmeM",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oYEZg2If3GdvA7DuBgf2FiCQAFIwVAMTBy3mIt.jpeg",
-      "rank": 38
-    },
-    {
-      "id": "7125577980989933569",
-      "name": "相思種籽",
-      "artist": "田希仁",
-      "durationSec": 60,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/063b2128898e61f9c0c4621049d18f42.mp4",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/osI8mCUrhEAA1AGrFFeFzBeEEnDA22KfNAf64C.jpeg",
-      "rank": 39
-    },
-    {
-      "id": "7023375770634422273",
-      "name": "Presentation",
-      "artist": "FlyFlyMusic",
-      "durationSec": 156,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oYftAPGgkYMJL4U0MgeCzrVLpHFGnzGeEIDEAQ",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oMAmGIA6IpgA1s18IFWA1ALAeLae1GeaNcKPfD.jpeg",
-      "rank": 40
-    },
-    {
-      "id": "7653283395984869393",
-      "name": "Back To You (Instrumental Mix)",
-      "artist": "Tjalling Reitsma",
-      "durationSec": 265,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oE51cCwGfBICOZg4QBs1EMAY7iAoiBJ8ZvIMK9",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ocBqzT8yrjAiv44AhWAPj8A1BaElEYYAQAYiU.jpeg",
-      "rank": 41
-    },
-    {
-      "id": "7599895233452099601",
-      "name": "Oz Pearlman",
-      "artist": "Freccero",
-      "durationSec": 60,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/7177a8d9ab1cbeea83b5575dbb8f7968.mp4",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ooT4zSAMeBwEaRpaDFEAYoUf8JwALFEDAegCWE.jpeg",
-      "rank": 42
-    },
-    {
-      "id": "6886904305429792770",
-      "name": "Plenty of Time",
-      "artist": "The Albatross",
-      "durationSec": 60,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/11573e050cd5f3edfd4dd478abd25ae6.mp4",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oEwhYZiWMxS7EAA1jAiYrwUAAAgxEs4TiBb2P.jpeg",
-      "rank": 43
-    },
-    {
-      "id": "7405070490777159697",
-      "name": "In the Urban Shadows",
-      "artist": "Shiba Beats",
-      "durationSec": 204,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oQBEQovpMAjYgIio9fsFBuxAvvmCgw8yQaBGiz",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oI7m3ADFIBBEAG41ftCgIaAFRyfGKi0jMVpZQK.jpeg",
-      "rank": 44
-    },
-    {
-      "id": "7686893507734489089",
-      "name": "One More Time",
-      "artist": "Jamie Mercer",
-      "durationSec": 59,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oI0qSgDuqVBeqQraB6FEgSDNDrCZZBqYQVfpQV",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/o8EtEADAzVeWFAGVqLCkeeImhoGahIAAg8qRCi.jpeg",
-      "rank": 45
-    },
-    {
-      "id": "7646775660023974664",
-      "name": "FREAKED OUT",
-      "artist": "Fat Papi & prodshushy",
-      "durationSec": 14,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/music/f392189df1fb408528f665350aaf91e2.mp3",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ocjfALGEm1GnREATU7IEkeFKjAPA8fAS7oesKA.jpeg",
-      "rank": 46
-    },
-    {
       "id": "7456672776276084752",
       "name": "Fall to the Clouds - 2025 Remaster",
       "artist": "Vylet Pony",
       "durationSec": 60,
       "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/35b3ec6930a941e1ab390cf0b6cc0a59.mp4",
       "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oIUOTTiuAFAyAzZ9AIFKeegDUfG16J3EDaCD2I.jpeg",
-      "rank": 47
-    },
-    {
-      "id": "7247803271426803714",
-      "name": "In My Own Mind",
-      "artist": "Atomica Music",
-      "durationSec": 60,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/3e4c31d379382372a93945d36cd86c4d.mp4",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ocXJKgWbiYclrtNAvEBciAsbUVMVAExEAZBA8.jpeg",
-      "rank": 48
-    },
-    {
-      "id": "7413011603664259088",
-      "name": "Double Apple",
-      "artist": "David Cutter Music",
-      "durationSec": 104,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oApKAV1MvnUgvI0iDrhhwYgJA2iBObQ6SaXs0",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oov3ABShEBo5GuAW7A7iLNdAMECswAix1WARwf.jpeg",
-      "rank": 49
-    },
-    {
-      "id": "7609016454654708502",
-      "name": "LET ME BE",
-      "artist": "The Second Voice",
-      "durationSec": 60,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/music/daa0a72003cd234cdd8a096dcdf7219a.mp3",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/o4fJo12CBABEA6g5z1DrQpIutIAFEAZeAFItF3.jpeg",
-      "rank": 50
-    },
-    {
-      "id": "6877432066993031169",
-      "name": "Crystal Music Box",
-      "artist": "瓜瓜龙儿歌",
-      "durationSec": 21,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/ies-music/5a3f6c264b04c4f3cbc8f4897ecb73cc.mp3",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/fa901f85d15c4599a06e28ce9c19c52c.jpeg",
-      "rank": 51
-    },
-    {
-      "id": "7686151089847502865",
-      "name": "Spectacular Moment",
-      "artist": "life motivation",
-      "durationSec": 59,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oMBq1oKfMAEVCIiIYvssBI9AUiRFVwD7QSBBi1",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/owjVBfysWiRoEdsRRA1wiAsqEEsVBAOjCAnAkI.jpeg",
-      "rank": 52
-    },
-    {
-      "id": "7161816007613368321",
-      "name": "Free Falling",
-      "artist": "Muspace",
-      "durationSec": 102,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/ogs9fnYmoCQgKkgDFBuDtD1GwQLZgReMjHB2yb",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/4ad4470d38a341aab3fa9772d44108cf.jpeg",
-      "rank": 53
-    },
-    {
-      "id": "6817422635597563905",
-      "name": "Rock and Roll Session",
-      "artist": "Canal Records JP",
-      "durationSec": 140,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2774/5d96763f4c6e4b90a4a3b8f2491b8ce5",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/97d6cd6abafb471a978a2c551cf8a9bf.jpeg",
-      "rank": 54
-    },
-    {
-      "id": "7169995999530731522",
-      "name": "Stay with Me",
-      "artist": "Muspace Lofi",
-      "durationSec": 127,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/okRMQUnNIeEfUsCAfQDg57GDDZdQbzoAH092Ab",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/a3f3826b171545e49445abdfb65144ef.jpeg",
-      "rank": 55
-    },
-    {
-      "id": "7173742929473718274",
-      "name": "Something to Forget (Lofi)",
-      "artist": "Muspace Lofi",
-      "durationSec": 101,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/osYCI2AxAwIUhKs1DhE9NQUBOpIzxfL3xotOvB",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/17a263a86ac7417aa9cdbce986afa398.jpeg",
-      "rank": 56
-    },
-    {
-      "id": "7181527947700865026",
-      "name": "Restart (Lofi)",
-      "artist": "Muspace Lofi",
-      "durationSec": 122,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oUneTTbag3XeH8HGv47CEYgEDUoDzQkAzP9i2f",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/fe2a015b0e984eff9042702b858c8511.jpeg",
-      "rank": 57
-    },
-    {
-      "id": "7159253981607233537",
-      "name": "Final Minutes",
-      "artist": "Muspace Lofi",
-      "durationSec": 59,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/okj0QxaQbBfIsCeZHBIUsh4QBWDCgJbBbIwnDV",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/02a88827e8034f6c840fdf8e40fba8fc.jpeg",
-      "rank": 58
-    },
-    {
-      "id": "7194130826051880961",
-      "name": "Tell Me Where to Go (Lofi)",
-      "artist": "Muspace Lofi",
-      "durationSec": 59,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/owPx6QzqIAAhBDIZtBBwUk0fB1WjyDkQUGvsoq",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/e8767a6607cb416c96b692fec23e5abb.jpeg",
-      "rank": 59
-    },
-    {
-      "id": "7169996006484871170",
-      "name": "Show Me Now",
-      "artist": "Muspace Lofi",
-      "durationSec": 59,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/387a421064744dce8f85e85ff8230352",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/a3f3826b171545e49445abdfb65144ef.jpeg",
-      "rank": 60
-    },
-    {
-      "id": "6895833728690423809",
-      "name": "Rust, comical / karaoke in 7 seconds(889139)",
-      "artist": "JunPayer",
-      "durationSec": 77,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2774/oE2vdYA7bFQCburUgnzGS6COeDDgeaYcnfCoHJ",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/43faa110cb7545508bcb8448e005da2d.jpeg",
-      "rank": 61
-    },
-    {
-      "id": "7142916558816282626",
-      "name": "Floating",
-      "artist": "Muspace Lofi",
-      "durationSec": 97,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oMrQgY2tAEFhDGf7zW8BbTMCgFqFUQGfKexHgU",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oE2reF1tEEDEgk1wNUfkaAUCZAoSpDQABAgRBY.jpeg",
-      "rank": 62
-    },
-    {
-      "id": "7144133684730284034",
-      "name": "Dinner Table",
-      "artist": "Muspace Lofi",
-      "durationSec": 97,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/4d6175aa0c36455da222b19ba7700f2f",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/3355ce6e966c437fb0bb5268405fea04.jpeg",
-      "rank": 63
-    },
-    {
-      "id": "7699262708878560033",
-      "name": "Always You",
-      "artist": "Dane Butler",
-      "durationSec": 32,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/music/a4cb57f6750b2849a79fd421fbc233a2.mp3",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oEY7SaiEvNgviArihrB6CAYJWAUAzDQUWzAGE.jpeg",
-      "rank": 64
-    },
-    {
-      "id": "7220826747104004097",
-      "name": "Drunk in Your Arms (Lofi)",
-      "artist": "Muspace Lofi",
-      "durationSec": 101,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oQmrTIWDMeZRgYFQfB8kCC5ngCQPGBjzbYND0G",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/2581cfd9647a4488b645209ecd398850.jpeg",
-      "rank": 65
-    },
-    {
-      "id": "7197097967755462658",
-      "name": "Don't Wait for It Now (Lofi)",
-      "artist": "Muspace Lofi",
-      "durationSec": 88,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/a6129646ccbe49ccbeccd32d986156bf",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/cbb51896a9a9498ca47f2843b1bdc51c.jpeg",
-      "rank": 66
-    },
-    {
-      "id": "7177809413976918017",
-      "name": "Lucky Thing (Lofi)",
-      "artist": "Muspace Lofi",
-      "durationSec": 59,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oAQcogBnZr5nCinjf8eKbzKH24kD1DDgQMKjBb",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/a6841da9536c464ba7dcba4c4fe35a54.jpeg",
-      "rank": 67
-    },
-    {
-      "id": "7221171716369631233",
-      "name": "Polar Winds (Lofi)",
-      "artist": "Muspace Lofi",
-      "durationSec": 99,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oAGsECg64DDz9DekCZQxMwI2bBD0EBBQGnRZNe",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/877c05fcd5644642b2ccf5334a7f8bd2.jpeg",
-      "rank": 68
-    },
-    {
-      "id": "7086562622027384834",
-      "name": "Finally You Are Here",
-      "artist": "BCD Studio",
-      "durationSec": 59,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/3e7d776bf8a94d2e838173c13a56712c",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/677c43e1741841baa7b4acd85931bac7.jpeg",
-      "rank": 69
-    },
-    {
-      "id": "7165947202102118401",
-      "name": "Almond Pudding",
-      "artist": "Muspace",
-      "durationSec": 109,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/ogdyQgahWZs7QUcIPAfxBjZzwAoJDAUStUuBzJ",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/1fc71270552d462aa03545732550e24d.jpeg",
-      "rank": 70
-    },
-    {
-      "id": "7463252720251078657",
-      "name": "Poolside Gossip",
-      "artist": "Cosmo Kuma",
-      "durationSec": 60,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/3cd2627576c742acdc49119317e7caa7.mp4",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ok7aoYl9BpMUAOALiizPWEEg1ST3AhrBXAWYA.jpeg",
-      "rank": 71
-    },
-    {
-      "id": "7706854464279906310",
-      "name": "Memory Signal",
-      "artist": "Bonobo",
-      "durationSec": 60,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/9d228d29183f164c2888fed596722767.mp4",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/osFsIRWAYXWrTBA8DAo8yEi8UaiF1BvAE6qAv.jpeg",
-      "rank": 72
-    },
-    {
-      "id": "7179308685070616577",
-      "name": "Need You Whole (Lofi)",
-      "artist": "Muspace Lofi",
-      "durationSec": 59,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/ooNxnbsCBXz0diqhiAfE6I0nAJBtUwAHQsQoBB",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/2902acb8da2349eda86fa959e7ddb345.jpeg",
-      "rank": 73
-    },
-    {
-      "id": "7165947200919472130",
-      "name": "Holiday Gift",
-      "artist": "Muspace",
-      "durationSec": 59,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oEzyzo9OUAzu7IhuRNsjB8JAKaD2UwaZQgBBfx",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/1fc71270552d462aa03545732550e24d.jpeg",
-      "rank": 74
-    },
-    {
-      "id": "7148169447050594306",
-      "name": "The Movement of Flowers in the Wind",
-      "artist": "Amanda Rosa",
-      "durationSec": 59,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/ocTv0D7IXBFkBV5fDgtiZQmvTNZ2YCKQEMfBQz",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/o8AiAUEw9ArEPTYAAEmYSwB0PZjdJdDBsiZWi.jpeg",
-      "rank": 75
-    },
-    {
-      "id": "7653283194855065617",
-      "name": "Back To You (Extended Mix)",
-      "artist": "Tjalling Reitsma",
-      "durationSec": 265,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oMCQE7fawFgIyGeQIUED6Lf9MJyiAyzJDg123z",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ocBqzT8yrjAiv44AhWAPj8A1BaElEYYAQAYiU.jpeg",
-      "rank": 76
-    },
-    {
-      "id": "7221171486114514945",
-      "name": "Missing My Home (Lofi)",
-      "artist": "Muspace Lofi",
-      "durationSec": 106,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oAXVIlBkBgQMGUZ4DDFCbQ4C2aKnNeUAsQ7weD",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ee93f79b76734105a0d14e7a5162844b.jpeg",
-      "rank": 77
-    },
-    {
-      "id": "7220440373749876737",
-      "name": "Empty Arms Mot (Lofi)",
-      "artist": "Muspace Lofi",
-      "durationSec": 59,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/ocAPYHbQHDlAxf4AQfKI3jI2yfemF2N0QgGSac",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/bfc773aee8f14c7d99673ccc2cd42bcb.jpeg",
-      "rank": 78
-    },
-    {
-      "id": "7552183815725877265",
-      "name": "Christmas",
-      "artist": "Axby",
-      "durationSec": 59,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oU4OIyiG07QeXGgOBQBCM9z3ZpogvB3DBriwfG",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oEAAZOQQQGAjHDO8yfWA6CM9Ief6p1KfMFvmAS.jpeg",
-      "rank": 79
-    },
-    {
-      "id": "7317216126823680001",
-      "name": "天気の良い日は街へ",
-      "artist": "田中芳典",
-      "durationSec": 60,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/8daf9e92fd4b4d849e044738fdc3099d.mp4",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ogAAAIAPcNQFARfBhHItCL3azDwGOAcglIeDif.jpeg",
-      "rank": 80
-    },
-    {
-      "id": "7140545234240276481",
-      "name": "Smoke Bomb",
-      "artist": "Muspace Lofi",
-      "durationSec": 114,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/06ee730c5caf48b2bbd8f43190cca081",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/7974e67170ef4079b80fc64597ad5e35.jpeg",
-      "rank": 81
-    },
-    {
-      "id": "7168570549785626626",
-      "name": "Shake the Bell",
-      "artist": "Muspace Lofi",
-      "durationSec": 111,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/o4GeJDc2Ub9DChTGIeD7WDEMQzfwFgNL0AUzrh",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/e8700eb05a3d4150a6d03b11c1611b8d.jpeg",
-      "rank": 82
-    },
-    {
-      "id": "6904652377408669697",
-      "name": "\"Walkure's Jogging\" Weakness Arrange",
-      "artist": "yo suzuki(akisai)",
-      "durationSec": 30,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/744cb83196c082147aa8c7dc50b8f27e.mp3",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/43faa110cb7545508bcb8448e005da2d.jpeg",
-      "rank": 83
-    },
-    {
-      "id": "6872206814973265922",
-      "name": "Dame Tu Querer",
-      "artist": "Ramon Chicharron",
-      "durationSec": 60,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/256422c6c6eecd349f99540e01d549ad.mp4",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oEtcexIgQsCFMEyRAPZ0mBfdAODBBBAITA2mRO.jpeg",
-      "rank": 84
-    },
-    {
-      "id": "7168570536225441794",
-      "name": "Blessing Card",
-      "artist": "Muspace Lofi",
-      "durationSec": 59,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/o42DjfTGhUBIAPehe7N2dBOEz0L6GzgUDQrxC0",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/e8700eb05a3d4150a6d03b11c1611b8d.jpeg",
-      "rank": 85
-    },
-    {
-      "id": "7143277065788196866",
-      "name": "Maybe You",
-      "artist": "Muspace Lofi",
-      "durationSec": 21,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/ocZD2bEskgFZn7fYUvSDCPBQQBbeQx5JkIG25p",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/44b812c33bef46c0a63fa540b9e930d6.jpeg",
-      "rank": 86
-    },
-    {
-      "id": "7033745785624496129",
-      "name": "Mari-Mari",
-      "artist": "Benyamin S",
-      "durationSec": 60,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/ef0f52a9ac6489607bf219b8248419c2.mp4",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/o44MdnLVMAKgAiAJueYQAfAo7BAqDeMfvtxrfV.jpeg",
-      "rank": 87
-    },
-    {
-      "id": "6817472741495539713",
-      "name": "Refreshing and transparent acoustic music",
-      "artist": "Yusuke Shimizu",
-      "durationSec": 139,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2774/7d366a5e6e1b44c2bd0386cdbae1bf01",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/43faa110cb7545508bcb8448e005da2d.jpeg",
-      "rank": 88
-    },
-    {
-      "id": "7603351654578210832",
-      "name": "Venus and Flower",
-      "artist": "Austin Farwell",
-      "durationSec": 60,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/eaa73b2c1e414b8131427ec41b449a2f.mp4",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oExOANUABjiiaiEWSkYADGEpEECrCxNAYRApP.jpeg",
-      "rank": 89
-    },
-    {
-      "id": "7165947207881852930",
-      "name": "Dreams of Children",
-      "artist": "Muspace",
-      "durationSec": 97,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/o4BTjjepbCBqgznqDS0y0Aog3eZ9ociFnQDQBI",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/1fc71270552d462aa03545732550e24d.jpeg",
-      "rank": 90
-    },
-    {
-      "id": "7168570548426016770",
-      "name": "Presents from Santa Claus",
-      "artist": "Muspace Lofi",
-      "durationSec": 114,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/owa9GDRNrAnFASE5h1nGCutv4g8fzesD5OeMbD",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/e8700eb05a3d4150a6d03b11c1611b8d.jpeg",
-      "rank": 91
-    },
-    {
-      "id": "7181527948632164354",
-      "name": "Cotton Candy (Lofi)",
-      "artist": "Muspace Lofi",
-      "durationSec": 59,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/bb8ad31687f74e6a981ed42d2c6fafd8",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/fe2a015b0e984eff9042702b858c8511.jpeg",
-      "rank": 92
-    },
-    {
-      "id": "6839742677185988610",
-      "name": "Jazz with a warm atmosphere(262843)",
-      "artist": "And More Music",
-      "durationSec": 201,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2774/2d71c656bb6c4f978c52613d0374638b",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/43faa110cb7545508bcb8448e005da2d.jpeg",
-      "rank": 93
-    },
-    {
-      "id": "6979160217825052673",
-      "name": "Mine (Extended Mix)",
-      "artist": "AAO & Maittel Vilou & Marows",
-      "durationSec": 260,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/3cdf38225cd347a7b2489abaad56f665",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/okXW0irvisoY9CaE7AAldUOArpaBArxFoEF2A.jpeg",
-      "rank": 94
+      "rank": 27
     },
     {
       "id": "7410157700154492945",
@@ -855,16 +252,97 @@
       "durationSec": 60,
       "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/8f39c07e65d870273d200cc64d81fbc7.mp4",
       "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oA2HAGAIeALhDfZeaADmmgSBECz9pFgjIIACAg.jpeg",
-      "rank": 95
+      "rank": 28
     },
     {
-      "id": "7194130825158330370",
-      "name": "Please Holding Me (Lofi)",
-      "artist": "Muspace Lofi",
-      "durationSec": 59,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/eeac9d4441fe40418ecbb5e2880d91b6",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/e8767a6607cb416c96b692fec23e5abb.jpeg",
-      "rank": 96
+      "id": "7542359038496868368",
+      "name": "Listen To Wise Counsel",
+      "artist": "Cali SG",
+      "durationSec": 60,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/9b8c9142ee1121d3b3c95844930d36e9.mp4",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oU5iETQZAts9vCDgBAgF5qOtEf2eorEBnAjqrC.jpeg",
+      "rank": 29
+    },
+    {
+      "id": "7599895233452099601",
+      "name": "Oz Pearlman",
+      "artist": "Freccero",
+      "durationSec": 60,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/7177a8d9ab1cbeea83b5575dbb8f7968.mp4",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ooT4zSAMeBwEaRpaDFEAYoUf8JwALFEDAegCWE.jpeg",
+      "rank": 30
+    },
+    {
+      "id": "6867622442538371073",
+      "name": "Be Courageous",
+      "artist": "Atomica Music",
+      "durationSec": 125,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oMYUP2HMAE3iIIs32CBPg3ZiiDaPLQAIBIzQg",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ogA9NxO4BECzYm5uBMiAoSsZQAfWzAAEiawCWU.jpeg",
+      "rank": 31
+    },
+    {
+      "id": "6817156805655791618",
+      "name": "Chillin, the sound of chillin summer",
+      "artist": "Icy Light",
+      "durationSec": 129,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2774/08163b401b8f4ac39f3c9fda414e28f8",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/43faa110cb7545508bcb8448e005da2d.jpeg",
+      "rank": 32
+    },
+    {
+      "id": "7152590961321707521",
+      "name": "We Adore the Snooze",
+      "artist": "Smells Like Time For Dreamland",
+      "durationSec": 60,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/c4710187362a5db5d8968446cebc2f40.m4a",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/0b02ea588fa743a9b22238c335d4ffbf.jpeg",
+      "rank": 33
+    },
+    {
+      "id": "7369290985144256529",
+      "name": "Refreshing progressive house(1549738)",
+      "artist": "S_R",
+      "durationSec": 110,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2774/okzP4DRXYCQvlLgtxBeEVIsDPQKZgaFFmJBHEf",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/21ebc5fa64514d34b1af12efb1dcd385.jpeg",
+      "rank": 34
+    },
+    {
+      "id": "7658496660813350929",
+      "name": "All Day, All Week (Extended Mix)",
+      "artist": "Soul Heads",
+      "durationSec": 302,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oUPnbIgAdxQJSxhBNYAMciUL7sIv8aZ2cykAi",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/o4hArUc6EiAIVBwELCyitA0EWAacYALBP87k4.jpeg",
+      "rank": 35
+    },
+    {
+      "id": "6946344721539155969",
+      "name": "I Hate Portals",
+      "artist": "Morgin Madison",
+      "durationSec": 285,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/o0Cg4QhyIeWAELRgVAggfADDGRiICwGOGxhezL",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oYg3fBBC6BAA8isQ0IimPAoWwEpQAJ2EAA9Aid.jpeg",
+      "rank": 36
+    },
+    {
+      "id": "6716010812382644226",
+      "name": "Arc de Triomphe",
+      "artist": "Paris Cafe Society",
+      "durationSec": 60,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/9c76f0454d64c6471c364e7c00334578.mp4",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oMviZAAYBEiAr0C9APWEEuygANqiBAFLQ7rUj.jpeg",
+      "rank": 37
+    },
+    {
+      "id": "7540730590665197585",
+      "name": "Zamba Tuya",
+      "artist": "Daniel Frascoli",
+      "durationSec": 161,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/owBRCM8JIR9LDlGEPAfQTqh8zv5rGDgeGexYdg",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/o4CDe7DSFAe0TDm4AzUCFCBavqREEgAfARBnbE.jpeg",
+      "rank": 38
     },
     {
       "id": "7133389378496006145",
@@ -873,33 +351,555 @@
       "durationSec": 138,
       "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/2d245f13a5c54983b1761e4823035513",
       "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oQAmAznAk9diWRis3CEAK9BoF7wf8P7UABKEpB.jpeg",
+      "rank": 39
+    },
+    {
+      "id": "7247323524120709121",
+      "name": "Gator Tears",
+      "artist": "Atomica Music",
+      "durationSec": 158,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/o0vcQQqLKnCiTaJrs6eBBZkg0D7gABfkYYbxnD",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/okmytAVEZQKf5sBAygActEAVECzmgfDNnLwBFB.jpeg",
+      "rank": 40
+    },
+    {
+      "id": "7437145033642395665",
+      "name": "Nosso Destino",
+      "artist": "Batista Herrman",
+      "durationSec": 177,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oQefxYgzvGtBKDG6DVALobrRgeL5ORICtAdHYE",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oEtaeDL67EGl7iAFdfAAeoI6P0E1zCPDgA7BCC.jpeg",
+      "rank": 41
+    },
+    {
+      "id": "7653283395984869393",
+      "name": "Back To You (Instrumental Mix)",
+      "artist": "Tjalling Reitsma",
+      "durationSec": 265,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oE51cCwGfBICOZg4QBs1EMAY7iAoiBJ8ZvIMK9",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ocBqzT8yrjAiv44AhWAPj8A1BaElEYYAQAYiU.jpeg",
+      "rank": 42
+    },
+    {
+      "id": "7564113279418877953",
+      "name": "G.T.A. – Grand Trance Audio (San AndDreams)",
+      "artist": "Tahara (Br)",
+      "durationSec": 438,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/owfRgLzDG0D8Q5DEaIFFeIdMDUNvMACekKQgDE",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oop5xjAefFEFlEDIADzRWTCyIEDgFaA0YSAEre.jpeg",
+      "rank": 43
+    },
+    {
+      "id": "7125577980989933569",
+      "name": "相思種籽",
+      "artist": "田希仁",
+      "durationSec": 60,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/063b2128898e61f9c0c4621049d18f42.mp4",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/osI8mCUrhEAA1AGrFFeFzBeEEnDA22KfNAf64C.jpeg",
+      "rank": 44
+    },
+    {
+      "id": "6830461416416217089",
+      "name": "Upbeat pop BGM ♪ of whistling melody(185317)",
+      "artist": "3KTrack",
+      "durationSec": 82,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2774/ea9fb2dbdd2c421f9c95437b8c20d91f",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/43faa110cb7545508bcb8448e005da2d.jpeg",
+      "rank": 45
+    },
+    {
+      "id": "7023375770634422273",
+      "name": "Presentation",
+      "artist": "FlyFlyMusic",
+      "durationSec": 156,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oYftAPGgkYMJL4U0MgeCzrVLpHFGnzGeEIDEAQ",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oMAmGIA6IpgA1s18IFWA1ALAeLae1GeaNcKPfD.jpeg",
+      "rank": 46
+    },
+    {
+      "id": "6877432066993031169",
+      "name": "Crystal Music Box",
+      "artist": "瓜瓜龙儿歌",
+      "durationSec": 21,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/ies-music/5a3f6c264b04c4f3cbc8f4897ecb73cc.mp3",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/fa901f85d15c4599a06e28ce9c19c52c.jpeg",
+      "rank": 47
+    },
+    {
+      "id": "7033745785624496129",
+      "name": "Mari-Mari",
+      "artist": "Benyamin S",
+      "durationSec": 60,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/ef0f52a9ac6489607bf219b8248419c2.mp4",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/o44MdnLVMAKgAiAJueYQAfAo7BAqDeMfvtxrfV.jpeg",
+      "rank": 48
+    },
+    {
+      "id": "7646775660023974664",
+      "name": "FREAKED OUT",
+      "artist": "Fat Papi & prodshushy",
+      "durationSec": 14,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/music/f392189df1fb408528f665350aaf91e2.mp3",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ocjfALGEm1GnREATU7IEkeFKjAPA8fAS7oesKA.jpeg",
+      "rank": 49
+    },
+    {
+      "id": "7405070490777159697",
+      "name": "In the Urban Shadows",
+      "artist": "Shiba Beats",
+      "durationSec": 204,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oQBEQovpMAjYgIio9fsFBuxAvvmCgw8yQaBGiz",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oI7m3ADFIBBEAG41ftCgIaAFRyfGKi0jMVpZQK.jpeg",
+      "rank": 50
+    },
+    {
+      "id": "7598595387776305169",
+      "name": "Sidewalk Symphony",
+      "artist": "DJ Reverb & Ads",
+      "durationSec": 29,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/o8ohs42siYDXg1tCPYRhiO7wUzdOAM2IAaBw3",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/osEzEABAZohcCLDp2FBXff1kGJutyEAgQW6nBs.jpeg",
+      "rank": 51
+    },
+    {
+      "id": "6886904305429792770",
+      "name": "Plenty of Time",
+      "artist": "The Albatross",
+      "durationSec": 60,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/11573e050cd5f3edfd4dd478abd25ae6.mp4",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oEwhYZiWMxS7EAA1jAiYrwUAAAgxEs4TiBb2P.jpeg",
+      "rank": 52
+    },
+    {
+      "id": "7686893507734489089",
+      "name": "One More Time",
+      "artist": "Jamie Mercer",
+      "durationSec": 59,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oI0qSgDuqVBeqQraB6FEgSDNDrCZZBqYQVfpQV",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/o8EtEADAzVeWFAGVqLCkeeImhoGahIAAg8qRCi.jpeg",
+      "rank": 53
+    },
+    {
+      "id": "7609016454654708502",
+      "name": "LET ME BE",
+      "artist": "The Second Voice",
+      "durationSec": 60,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/music/daa0a72003cd234cdd8a096dcdf7219a.mp3",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/o4fJo12CBABEA6g5z1DrQpIutIAFEAZeAFItF3.jpeg",
+      "rank": 54
+    },
+    {
+      "id": "7247200631278569474",
+      "name": "A song with a gentle atmosphere on the recorder(1443227)",
+      "artist": "Patricia",
+      "durationSec": 162,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2774/oYgfOzDfnMGubT4rCm8QQcZbmBbGkCBIDNgVtk",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/21ebc5fa64514d34b1af12efb1dcd385.jpeg",
+      "rank": 55
+    },
+    {
+      "id": "7075960540903770114",
+      "name": "Everyday, heartwarming, xylophone, healing(1205112)",
+      "artist": "Patricia",
+      "durationSec": 69,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/30e719d9141f609cf719cbc96fe7a0f0.mp3",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/4eaf554cdff64cadb38754abeac45674.jpeg",
+      "rank": 56
+    },
+    {
+      "id": "7627059009263192065",
+      "name": "Badlands",
+      "artist": "Toonorth",
+      "durationSec": 91,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/ocCqEiWuIL9LYGcAgTIGMtegxRfeAVtQDgzn2z",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/o8fAIDFLfEA0DzAAs2aujbEcyr4bGeUCg20Tsc.jpeg",
+      "rank": 57
+    },
+    {
+      "id": "7587521931412588560",
+      "name": "Homem de rua",
+      "artist": "Dely França",
+      "durationSec": 173,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oEgQxS6G3CJV2AzLqnxEELIDXKGfOmA38eE1fg",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ooa5vAA7yEYjlBUsKZiLjiAAEWo4rIHAm63oA.jpeg",
+      "rank": 58
+    },
+    {
+      "id": "7148169447046383617",
+      "name": "The Movement of Flowers in the Wind",
+      "artist": "Amanda Rosa",
+      "durationSec": 81,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/o4nzDf8MgQ2LzsMGeTFoNxkJiCvEWQ3fWgErYA",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/o8AiAUEw9ArEPTYAAEmYSwB0PZjdJdDBsiZWi.jpeg",
+      "rank": 59
+    },
+    {
+      "id": "7317216126823680001",
+      "name": "天気の良い日は街へ",
+      "artist": "田中芳典",
+      "durationSec": 60,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/8daf9e92fd4b4d849e044738fdc3099d.mp4",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ogAAAIAPcNQFARfBhHItCL3azDwGOAcglIeDif.jpeg",
+      "rank": 60
+    },
+    {
+      "id": "6817422635597563905",
+      "name": "Rock and Roll Session",
+      "artist": "Canal Records JP",
+      "durationSec": 140,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2774/5d96763f4c6e4b90a4a3b8f2491b8ce5",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/97d6cd6abafb471a978a2c551cf8a9bf.jpeg",
+      "rank": 61
+    },
+    {
+      "id": "7706854464279906310",
+      "name": "Memory Signal",
+      "artist": "Bonobo",
+      "durationSec": 60,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/9d228d29183f164c2888fed596722767.mp4",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/osFsIRWAYXWrTBA8DAo8yEi8UaiF1BvAE6qAv.jpeg",
+      "rank": 62
+    },
+    {
+      "id": "7181527947700865026",
+      "name": "Restart (Lofi)",
+      "artist": "Muspace Lofi",
+      "durationSec": 122,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oUneTTbag3XeH8HGv47CEYgEDUoDzQkAzP9i2f",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/fe2a015b0e984eff9042702b858c8511.jpeg",
+      "rank": 63
+    },
+    {
+      "id": "7686151089847502865",
+      "name": "Spectacular Moment",
+      "artist": "life motivation",
+      "durationSec": 59,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oMBq1oKfMAEVCIiIYvssBI9AUiRFVwD7QSBBi1",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/owjVBfysWiRoEdsRRA1wiAsqEEsVBAOjCAnAkI.jpeg",
+      "rank": 64
+    },
+    {
+      "id": "7552183815725877265",
+      "name": "Christmas",
+      "artist": "Axby",
+      "durationSec": 59,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oU4OIyiG07QeXGgOBQBCM9z3ZpogvB3DBriwfG",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oEAAZOQQQGAjHDO8yfWA6CM9Ief6p1KfMFvmAS.jpeg",
+      "rank": 65
+    },
+    {
+      "id": "7194130826051880961",
+      "name": "Tell Me Where to Go (Lofi)",
+      "artist": "Muspace Lofi",
+      "durationSec": 59,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/owPx6QzqIAAhBDIZtBBwUk0fB1WjyDkQUGvsoq",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/e8767a6607cb416c96b692fec23e5abb.jpeg",
+      "rank": 66
+    },
+    {
+      "id": "7161816007613368321",
+      "name": "Free Falling",
+      "artist": "Muspace",
+      "durationSec": 102,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/ogs9fnYmoCQgKkgDFBuDtD1GwQLZgReMjHB2yb",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/4ad4470d38a341aab3fa9772d44108cf.jpeg",
+      "rank": 67
+    },
+    {
+      "id": "6872206814973265922",
+      "name": "Dame Tu Querer",
+      "artist": "Ramon Chicharron",
+      "durationSec": 60,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/256422c6c6eecd349f99540e01d549ad.mp4",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oEtcexIgQsCFMEyRAPZ0mBfdAODBBBAITA2mRO.jpeg",
+      "rank": 68
+    },
+    {
+      "id": "7159253981607233537",
+      "name": "Final Minutes",
+      "artist": "Muspace Lofi",
+      "durationSec": 59,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/okj0QxaQbBfIsCeZHBIUsh4QBWDCgJbBbIwnDV",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/02a88827e8034f6c840fdf8e40fba8fc.jpeg",
+      "rank": 69
+    },
+    {
+      "id": "7173742929473718274",
+      "name": "Something to Forget (Lofi)",
+      "artist": "Muspace Lofi",
+      "durationSec": 101,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/osYCI2AxAwIUhKs1DhE9NQUBOpIzxfL3xotOvB",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/17a263a86ac7417aa9cdbce986afa398.jpeg",
+      "rank": 70
+    },
+    {
+      "id": "7086562622027384834",
+      "name": "Finally You Are Here",
+      "artist": "BCD Studio",
+      "durationSec": 59,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/3e7d776bf8a94d2e838173c13a56712c",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/677c43e1741841baa7b4acd85931bac7.jpeg",
+      "rank": 71
+    },
+    {
+      "id": "7142916558816282626",
+      "name": "Floating",
+      "artist": "Muspace Lofi",
+      "durationSec": 97,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oMrQgY2tAEFhDGf7zW8BbTMCgFqFUQGfKexHgU",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oE2reF1tEEDEgk1wNUfkaAUCZAoSpDQABAgRBY.jpeg",
+      "rank": 72
+    },
+    {
+      "id": "7220440373749876737",
+      "name": "Empty Arms Mot (Lofi)",
+      "artist": "Muspace Lofi",
+      "durationSec": 59,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/ocAPYHbQHDlAxf4AQfKI3jI2yfemF2N0QgGSac",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/bfc773aee8f14c7d99673ccc2cd42bcb.jpeg",
+      "rank": 73
+    },
+    {
+      "id": "7247803271426803714",
+      "name": "In My Own Mind",
+      "artist": "Atomica Music",
+      "durationSec": 60,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/3e4c31d379382372a93945d36cd86c4d.mp4",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ocXJKgWbiYclrtNAvEBciAsbUVMVAExEAZBA8.jpeg",
+      "rank": 74
+    },
+    {
+      "id": "7169995999530731522",
+      "name": "Stay with Me",
+      "artist": "Muspace Lofi",
+      "durationSec": 127,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/okRMQUnNIeEfUsCAfQDg57GDDZdQbzoAH092Ab",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/a3f3826b171545e49445abdfb65144ef.jpeg",
+      "rank": 75
+    },
+    {
+      "id": "7169996006484871170",
+      "name": "Show Me Now",
+      "artist": "Muspace Lofi",
+      "durationSec": 59,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/387a421064744dce8f85e85ff8230352",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/a3f3826b171545e49445abdfb65144ef.jpeg",
+      "rank": 76
+    },
+    {
+      "id": "7144133684730284034",
+      "name": "Dinner Table",
+      "artist": "Muspace Lofi",
+      "durationSec": 97,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/4d6175aa0c36455da222b19ba7700f2f",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/3355ce6e966c437fb0bb5268405fea04.jpeg",
+      "rank": 77
+    },
+    {
+      "id": "7221171716369631233",
+      "name": "Polar Winds (Lofi)",
+      "artist": "Muspace Lofi",
+      "durationSec": 99,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oAGsECg64DDz9DekCZQxMwI2bBD0EBBQGnRZNe",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/877c05fcd5644642b2ccf5334a7f8bd2.jpeg",
+      "rank": 78
+    },
+    {
+      "id": "7220826747104004097",
+      "name": "Drunk in Your Arms (Lofi)",
+      "artist": "Muspace Lofi",
+      "durationSec": 101,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oQmrTIWDMeZRgYFQfB8kCC5ngCQPGBjzbYND0G",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/2581cfd9647a4488b645209ecd398850.jpeg",
+      "rank": 79
+    },
+    {
+      "id": "7463252720251078657",
+      "name": "Poolside Gossip",
+      "artist": "Cosmo Kuma",
+      "durationSec": 60,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/3cd2627576c742acdc49119317e7caa7.mp4",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ok7aoYl9BpMUAOALiizPWEEg1ST3AhrBXAWYA.jpeg",
+      "rank": 80
+    },
+    {
+      "id": "7143277065788196866",
+      "name": "Maybe You",
+      "artist": "Muspace Lofi",
+      "durationSec": 21,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/ocZD2bEskgFZn7fYUvSDCPBQQBbeQx5JkIG25p",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/44b812c33bef46c0a63fa540b9e930d6.jpeg",
+      "rank": 81
+    },
+    {
+      "id": "7221171486114514945",
+      "name": "Missing My Home (Lofi)",
+      "artist": "Muspace Lofi",
+      "durationSec": 106,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oAXVIlBkBgQMGUZ4DDFCbQ4C2aKnNeUAsQ7weD",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/ee93f79b76734105a0d14e7a5162844b.jpeg",
+      "rank": 82
+    },
+    {
+      "id": "7179308685070616577",
+      "name": "Need You Whole (Lofi)",
+      "artist": "Muspace Lofi",
+      "durationSec": 59,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/ooNxnbsCBXz0diqhiAfE6I0nAJBtUwAHQsQoBB",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/2902acb8da2349eda86fa959e7ddb345.jpeg",
+      "rank": 83
+    },
+    {
+      "id": "7177809413976918017",
+      "name": "Lucky Thing (Lofi)",
+      "artist": "Muspace Lofi",
+      "durationSec": 59,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oAQcogBnZr5nCinjf8eKbzKH24kD1DDgQMKjBb",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/a6841da9536c464ba7dcba4c4fe35a54.jpeg",
+      "rank": 84
+    },
+    {
+      "id": "7413011603664259088",
+      "name": "Double Apple",
+      "artist": "David Cutter Music",
+      "durationSec": 104,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oApKAV1MvnUgvI0iDrhhwYgJA2iBObQ6SaXs0",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oov3ABShEBo5GuAW7A7iLNdAMECswAix1WARwf.jpeg",
+      "rank": 85
+    },
+    {
+      "id": "7322514540758108161",
+      "name": "La Vacanze",
+      "artist": "Tommi Syracuse",
+      "durationSec": 150,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/o8lnk7DlYQssBc8DQlJ9BBCAgZFeyQfcbg4DvE",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/o0QM7AyVSfBfffMgYMQetwuF9AAKrA46glrAF3.jpeg",
+      "rank": 86
+    },
+    {
+      "id": "7197097967755462658",
+      "name": "Don't Wait for It Now (Lofi)",
+      "artist": "Muspace Lofi",
+      "durationSec": 88,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/a6129646ccbe49ccbeccd32d986156bf",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/cbb51896a9a9498ca47f2843b1bdc51c.jpeg",
+      "rank": 87
+    },
+    {
+      "id": "7168570548426016770",
+      "name": "Presents from Santa Claus",
+      "artist": "Muspace Lofi",
+      "durationSec": 114,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/owa9GDRNrAnFASE5h1nGCutv4g8fzesD5OeMbD",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/e8700eb05a3d4150a6d03b11c1611b8d.jpeg",
+      "rank": 88
+    },
+    {
+      "id": "7165947202102118401",
+      "name": "Almond Pudding",
+      "artist": "Muspace",
+      "durationSec": 109,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/ogdyQgahWZs7QUcIPAfxBjZzwAoJDAUStUuBzJ",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/1fc71270552d462aa03545732550e24d.jpeg",
+      "rank": 89
+    },
+    {
+      "id": "7165947200915113986",
+      "name": "Holiday Gift",
+      "artist": "Muspace",
+      "durationSec": 139,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oELl63goDdnCcQkeotBzLjG0TIABZDglQfk2bm",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/1fc71270552d462aa03545732550e24d.jpeg",
+      "rank": 90
+    },
+    {
+      "id": "7194130825158330370",
+      "name": "Please Holding Me (Lofi)",
+      "artist": "Muspace Lofi",
+      "durationSec": 59,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/eeac9d4441fe40418ecbb5e2880d91b6",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/e8767a6607cb416c96b692fec23e5abb.jpeg",
+      "rank": 91
+    },
+    {
+      "id": "7667576607158323217",
+      "name": "Tokyo Midnight",
+      "artist": "ChilliZone",
+      "durationSec": 173,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/ocBGyOIwowBi2iFt9PswwNf9UpBUAAFMSQK1uo",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oYtWdiyBw0AAiqjifA1sAABwEFokRNEkFJMB6o.jpeg",
+      "rank": 92
+    },
+    {
+      "id": "7168570536225441794",
+      "name": "Blessing Card",
+      "artist": "Muspace Lofi",
+      "durationSec": 59,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/o42DjfTGhUBIAPehe7N2dBOEz0L6GzgUDQrxC0",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/e8700eb05a3d4150a6d03b11c1611b8d.jpeg",
+      "rank": 93
+    },
+    {
+      "id": "7140545234248681473",
+      "name": "Smoke Bomb",
+      "artist": "Muspace Lofi",
+      "durationSec": 58,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/ocbIeNz7G1n1rWyDXueqeQksDSDZYACArnggAE",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/7974e67170ef4079b80fc64597ad5e35.jpeg",
+      "rank": 94
+    },
+    {
+      "id": "7228560515818752002",
+      "name": "What More Can I Say",
+      "artist": "Teddy Swims",
+      "durationSec": 60,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oIITMQB1ZoeUCWnk989vb70foE8DQDBgQ56RBE",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/35f0a826fe364d9fb2f02ffdedb1a9a7.jpeg",
+      "rank": 95
+    },
+    {
+      "id": "7181527948632164354",
+      "name": "Cotton Candy (Lofi)",
+      "artist": "Muspace Lofi",
+      "durationSec": 59,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/bb8ad31687f74e6a981ed42d2c6fafd8",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/fe2a015b0e984eff9042702b858c8511.jpeg",
+      "rank": 96
+    },
+    {
+      "id": "7168570549785626626",
+      "name": "Shake the Bell",
+      "artist": "Muspace Lofi",
+      "durationSec": 111,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/o4GeJDc2Ub9DChTGIeD7WDEMQzfwFgNL0AUzrh",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/e8700eb05a3d4150a6d03b11c1611b8d.jpeg",
       "rank": 97
     },
     {
-      "id": "7564113279418894337",
-      "name": "G.T.A. – Grand Trance Audio (San AndDreams)",
-      "artist": "Tahara (Br)",
-      "durationSec": 15,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/oYEADeH7IEKQOOZDSIRG5DMCeMbvgLifAEDFvz",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oop5xjAefFEFlEDIADzRWTCyIEDgFaA0YSAEre.jpeg",
+      "id": "6817472741495539713",
+      "name": "Refreshing and transparent acoustic music",
+      "artist": "Yusuke Shimizu",
+      "durationSec": 139,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2774/7d366a5e6e1b44c2bd0386cdbae1bf01",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/43faa110cb7545508bcb8448e005da2d.jpeg",
       "rank": 98
     },
     {
-      "id": "6981828410792216577",
-      "name": "Little Things",
-      "artist": "Adrián Berenguer",
-      "durationSec": 60,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/558fb5ea60d1638a7d5721ff59212c31.mp4",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/oAEAYPXaICLABAzthiEFCLIDGWGnfMAreeN1Ng.jpeg",
+      "id": "7165947207881852930",
+      "name": "Dreams of Children",
+      "artist": "Muspace",
+      "durationSec": 97,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/o4BTjjepbCBqgznqDS0y0Aog3eZ9ociFnQDQBI",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/1fc71270552d462aa03545732550e24d.jpeg",
       "rank": 99
     },
     {
-      "id": "6906926918739462146",
-      "name": "A warm and bright song of piano and violin(937512)",
-      "artist": "KOU MUSIC",
-      "durationSec": 337,
-      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tiktok-obj/6c472e98a124a12f47d5975ba5aba16f.wav",
-      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/43faa110cb7545508bcb8448e005da2d.jpeg",
+      "id": "6979160217825052673",
+      "name": "Mine (Extended Mix)",
+      "artist": "AAO & Maittel Vilou & Marows",
+      "durationSec": 260,
+      "previewUrl": "https://sf16-ies-music-sg.tiktokcdn.com/obj/tos-alisg-ve-2102/3cdf38225cd347a7b2489abaad56f665",
+      "thumbnailUrl": "https://p16-sg.tiktokcdn.com/aweme/100x100/tos-alisg-v-2774/okXW0irvisoY9CaE7AAldUOArpaBArxFoEF2A.jpeg",
       "rank": 100
     }
   ]
