@@ -21,27 +21,7 @@
   },
   "timezone": "Europe/Paris",
   "status": "published",
-  "media": [
-    {
-      "path": "media/d8ba4c1b-c0e8-4a2f-a451-d29a7d9f7547/mww64t6d-Itw-Benoit-Liger-Belair-BPI-Directeur-Valorisation-Partenariat-Digitaux-.mp4",
-      "ref": "media",
-      "type": "video",
-      "poster": "media/d8ba4c1b-c0e8-4a2f-a451-d29a7d9f7547/mww64t6d-Itw-Benoit-Liger-Belair-BPI-Directeur-Valorisation-Partenariat-Digitaux-.mp4-apercu.jpg",
-      "mime": "video/mp4",
-      "size": 259492142,
-      "width": 2160,
-      "height": 3840,
-      "duration": 94.4,
-      "asset": {
-        "id": 791716101,
-        "url": "https://github.com/AliceRenier/cadence/releases/download/visuels/d8ba4c1b-c0e8-4a2f-a451-d29a7d9f7547-mww64t6d-Itw-Benoit-Liger-Belair-BPI-Directeur-Valorisation-Partenariat-Digitaux-.mp4"
-      },
-      "copy1080": {
-        "id": 791795761,
-        "url": "https://github.com/AliceRenier/cadence/releases/download/visuels/d8ba4c1b-c0e8-4a2f-a451-d29a7d9f7547-mww64t6d-Itw-Benoit-Liger-Belair-BPI-Directeur-Valorisation-Partenariat-Digitaux-.mp4-1080p.mp4"
-      }
-    }
-  ],
+  "media": [],
   "updatedAt": "2026-11-25T13:40:12.329Z",
   "mentionCheck": {
     "key": "[[\"Benoît Liger-Belair\",\"https://www.linkedin.com/in/benoitligerbelair/\"]]",
@@ -78,5 +58,9 @@
     }
   },
   "manual": [],
-  "publishedAt": "2026-11-25T14:07:40.582Z"
+  "publishedAt": "2026-11-25T14:07:40.582Z",
+  "mediaRemoved": {
+    "at": "2026-11-26T14:10:35.902Z",
+    "count": 1
+  }
 }
