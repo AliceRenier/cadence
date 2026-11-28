@@ -28,7 +28,7 @@
     "mode": "none"
   },
   "timezone": "Europe/Paris",
-  "status": "scheduled",
+  "status": "published",
   "media": [
     {
       "path": "media/05e7d630-6533-4df0-91fd-d8f0b034ee62/mwzbgoyu-RISKY-TALK_RT2_paye-par-nos-impots_v3.mp4",
@@ -43,6 +43,10 @@
       "asset": {
         "id": 801605032,
         "url": "https://github.com/AliceRenier/cadence/releases/download/visuels/05e7d630-6533-4df0-91fd-d8f0b034ee62-mwzbgoyu-RISKY-TALK_RT2_paye-par-nos-impots_v3.mp4"
+      },
+      "copy1080": {
+        "id": 803763991,
+        "url": "https://github.com/AliceRenier/cadence/releases/download/visuels/05e7d630-6533-4df0-91fd-d8f0b034ee62-mwzbgoyu-RISKY-TALK_RT2_paye-par-nos-impots_v3.mp4-1080p.mp4"
       }
     }
   ],
@@ -69,5 +73,32 @@
         "error": "LinkedIn ne trouve pas ce profil ou cette page (404)"
       }
     ]
-  }
+  },
+  "results": {
+    "instagram": {
+      "ok": true,
+      "id": "18121516724467983",
+      "at": "2026-11-28T08:05:27.749Z"
+    },
+    "linkedin": {
+      "ok": true,
+      "id": "6b0a8b491ac952509429a26b",
+      "at": "2026-11-28T08:07:33.118Z"
+    },
+    "tiktok": {
+      "ok": true,
+      "id": "6b0a8bc5e39dc4040a4e374b",
+      "at": "2026-11-28T08:07:47.471Z"
+    },
+    "youtube": {
+      "ok": true,
+      "id": "a31xKbuKHHA",
+      "at": "2026-11-28T08:08:29.590Z"
+    }
+  },
+  "untagged": [
+    "Paul Beglin"
+  ],
+  "manual": [],
+  "publishedAt": "2026-11-28T08:08:29.590Z"
 }
